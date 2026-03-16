@@ -1,0 +1,27 @@
+{
+  "name": "@step-func-emailer/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "step-func-emailer-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@aws-sdk/client-dynamodb": "^3.1009.0",
+    "@aws-sdk/client-s3": "^3.1009.0",
+    "@aws-sdk/client-sfn": "^3.1009.0",
+    "@aws-sdk/util-dynamodb": "^3.996.2",
+    "@step-func-emailer/shared": "workspace:*",
+    "liquidjs": "^10.25.0",
+    "zod": "^3.25.67"
+  }
+}

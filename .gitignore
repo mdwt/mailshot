@@ -1,0 +1,22 @@
+node_modules/
+dist/
+cdk.out/
+*.js
+*.d.ts
+*.d.ts.map
+*.js.map
+!jest.config.js
+!vitest.config.ts
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+coverage/
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
