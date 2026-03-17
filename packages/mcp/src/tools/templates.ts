@@ -68,10 +68,27 @@ export async function previewTemplate(config: McpConfig, templateKey: string, em
 
   const html = await fetchTemplate(config, templateKey);
 
+  const SYSTEM_KEYS = new Set([
+    "PK",
+    "SK",
+    "email",
+    "firstName",
+    "unsubscribed",
+    "suppressed",
+    "createdAt",
+    "updatedAt",
+  ]);
+  const profileAttrs: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(profile)) {
+    if (!SYSTEM_KEYS.has(key)) {
+      profileAttrs[key] = value;
+    }
+  }
+
   const rendered = await liquid.parseAndRender(html, {
     email: profile.email,
     firstName: profile.firstName,
-    ...(profile.attributes as Record<string, unknown>),
+    ...profileAttrs,
     unsubscribeUrl: "https://example.com/unsubscribe?token=preview",
     currentYear: new Date().getFullYear(),
   });

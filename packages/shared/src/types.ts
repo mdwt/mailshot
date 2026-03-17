@@ -13,9 +13,9 @@ export interface SubscriberProfile {
   firstName: string;
   unsubscribed: boolean;
   suppressed: boolean;
-  attributes: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+  [key: string]: unknown;
 }
 
 // ── Active execution ────────────────────────────────────────────────────────

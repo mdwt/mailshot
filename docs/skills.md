@@ -1,0 +1,140 @@
+# Skills & Workflows
+
+Claude Code skills are structured prompts that guide Claude through multi-step workflows. They turn complex operations into single commands.
+
+## Available skills
+
+### /setup-env
+
+Interactive wizard that configures the `.env` file by discovering real AWS resources.
+
+```
+/setup-env
+```
+
+**What it does:**
+
+1. Lists AWS profiles, lets you pick one
+2. Queries STS for account ID and region
+3. Discovers verified SES identities (domains and email addresses)
+4. Walks you through choosing sender details
+5. Discovers existing SES configuration sets
+6. Generates resource names from a prefix
+7. Generates a random HMAC secret for unsubscribe tokens
+8. Writes the `.env` file
+9. Verifies the output
+
+**When to use:** First-time setup, switching AWS accounts, or reconfiguring sender details.
+
+### /create-sequence
+
+Generates a complete email sequence from a natural language description.
+
+```
+/create-sequence A trial expiring sequence triggered by trial.expiring — send a
+"trial ending soon" email immediately, then a "last chance" email after 2 days,
+then a "trial expired" email after 3 more days
+```
+
+**What it generates:**
+
+- `sequences/<sequenceId>/sequence.config.ts` — Step definitions
+- `sequences/<sequenceId>/src/emails/*.tsx` — React Email templates
+- `sequences/<sequenceId>/src/render.ts` — Build script
+- `sequences/<sequenceId>/package.json` and `tsconfig.json`
+
+**What you don't need to edit:**
+
+- No CDK changes needed. The CDK auto-discovers sequences from `sequences/*/sequence.config.ts` at deploy time.
+
+**Step types it supports:**
+
+- `send` — Email with template and subject
+- `wait` — Delay (days, hours, minutes)
+- `choice` — Branch on subscriber attributes (native Step Functions)
+- `condition` — Lambda-based DynamoDB check (has_been_sent, field_exists, field_equals)
+- `events` — Fire-and-forget emails triggered during the sequence
+
+### /validate-sequence
+
+Validates a sequence config is correct and deployable.
+
+```
+/validate-sequence              # validates all sequences
+/validate-sequence onboarding   # validates one
+```
+
+**Validation checks (in order):**
+
+1. Config file exists
+2. Required fields present (id, trigger, timeoutMinutes, steps)
+3. All steps valid (type-specific validation, recursive through branches)
+4. Collects all templateKeys
+5. Verifies template HTML files exist in `build/`
+6. TypeCheck passes (`pnpm --filter @step-func-emailer/cdk typecheck`)
+7. CDK synth succeeds
+
+Stops at the first failure with a clear error message and file path.
+
+### /deploy
+
+Full deployment pipeline with validation, build, and deploy.
+
+```
+/deploy
+```
+
+**Phases:**
+
+1. Validate all sequences (`/validate-sequence`)
+2. Build shared package
+3. Build all sequences (render templates to HTML)
+4. Generate Mermaid diagrams
+5. Verify all template HTML files exist
+6. Build CDK
+7. CDK synth
+8. Show build artifacts and ask for confirmation
+9. `cdk deploy` to AWS
+10. Report stack outputs
+
+Always asks for confirmation before the actual deploy step.
+
+## The AI-native workflow
+
+These skills, combined with the MCP server, enable a complete AI-driven email operations workflow:
+
+```
+Describe a sequence in English
+        │
+        ▼
+/create-sequence ──→ generates all code
+        │
+        ▼
+/validate-sequence ──→ catches errors before deploy
+        │
+        ▼
+/deploy ──→ builds, verifies, deploys to AWS
+        │
+        ▼
+MCP tools ──→ manage subscribers, query engagement, preview templates
+```
+
+No code editor needed. No AWS console needed. No email SaaS dashboard needed. You describe what you want, Claude generates the code, validates it, deploys it, and then manages it — all through conversation.
+
+## Cost of this approach
+
+The entire infrastructure runs on pay-per-use AWS services:
+
+- Under $5/month at 1,000 subscribers
+- No SaaS fees ($0 vs $29–299/month for comparable tools)
+- Claude Code usage is the only ongoing cost beyond AWS
+
+## How skills work
+
+Skills are markdown files in `.claude/skills/`. Each contains:
+
+- A description of what the skill does
+- Step-by-step instructions for Claude to follow
+- File templates and validation rules
+
+When you type `/create-sequence`, Claude Code loads the skill's `SKILL.md` and follows the instructions as a structured workflow. The skill provides the domain knowledge (file structure, types, conventions) so Claude can generate correct code without you knowing the framework internals.

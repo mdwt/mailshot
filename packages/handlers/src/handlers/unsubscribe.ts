@@ -3,6 +3,9 @@ import { resolveConfig } from "../lib/ssm-config.js";
 import { validateToken } from "../lib/unsubscribe-token.js";
 import { setProfileFlag } from "../lib/dynamo-client.js";
 import { stopAllExecutions } from "../lib/execution-stopper.js";
+import { createLogger } from "../lib/logger.js";
+
+const logger = createLogger("unsubscribe");
 
 const HTML_HEADERS = {
   "Content-Type": "text/html; charset=utf-8",
@@ -21,6 +24,7 @@ export const handler = async (event: {
 }): Promise<APIGatewayProxyResultV2> => {
   const token = event.queryStringParameters?.token;
   if (!token) {
+    logger.warn("Unsubscribe request with no token");
     return {
       statusCode: 400,
       headers: HTML_HEADERS,
@@ -35,6 +39,7 @@ export const handler = async (event: {
   const result = validateToken(token, config.unsubscribeSecret);
 
   if (!result.valid) {
+    logger.warn("Invalid unsubscribe token", { reason: result.reason });
     return {
       statusCode: 400,
       headers: HTML_HEADERS,
@@ -45,8 +50,12 @@ export const handler = async (event: {
     };
   }
 
+  logger.info("Processing unsubscribe", { email: result.email });
+
   await setProfileFlag(config.tableName, result.email, "unsubscribed");
   await stopAllExecutions(config.tableName, result.email);
+
+  logger.info("Unsubscribe complete", { email: result.email });
 
   return {
     statusCode: 200,

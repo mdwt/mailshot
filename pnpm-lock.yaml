@@ -97,6 +97,9 @@ importers:
 
   packages/handlers:
     dependencies:
+      '@aws-lambda-powertools/logger':
+        specifier: ^2.31.0
+        version: 2.31.0
       '@aws-sdk/client-dynamodb':
         specifier: ^3.1009.0
         version: 3.1009.0
@@ -233,6 +236,20 @@ packages:
 
   '@aws-crypto/util@5.2.0':
     resolution: {integrity: sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ==}
+
+  '@aws-lambda-powertools/commons@2.31.0':
+    resolution: {integrity: sha512-K5Hy3WtU/n0M8/kgsgw6OVlF709PHOfnTfsWrJS2Cs1vVjEeBvW22a6u9n3VPNpDeqJ7GIodmSkbuzvQzq6vaA==}
+
+  '@aws-lambda-powertools/logger@2.31.0':
+    resolution: {integrity: sha512-FCchy2g/cK5poDvDWnVCBSN9uSDGSWDldDiHGC/bn1/oU2cCxIZu06QnYEOOOAUbCWdzgcT1F9fRjzzHbu0GxQ==}
+    peerDependencies:
+      '@aws-lambda-powertools/jmespath': 2.31.0
+      '@middy/core': 4.x || 5.x || 6.x || 7.x
+    peerDependenciesMeta:
+      '@aws-lambda-powertools/jmespath':
+        optional: true
+      '@middy/core':
+        optional: true
 
   '@aws-sdk/client-dynamodb@3.1009.0':
     resolution: {integrity: sha512-2QYVDbPQpVWxXzeVo94NYwv12K5r1+7Bm4IgG/4TuU03nxgXqdlODWv7VPQeYE+a6cCMWxlEoeWAdX6SJ/lx6A==}
@@ -399,6 +416,10 @@ packages:
   '@aws-sdk/xml-builder@3.972.11':
     resolution: {integrity: sha512-iitV/gZKQMvY9d7ovmyFnFuTHbBAtrmLnvaSb/3X8vOKyevwtpmEtyc8AdhVWZe0pI/1GsHxlEvQeOePFzy7KQ==}
     engines: {node: '>=20.0.0'}
+
+  '@aws/lambda-invoke-store@0.2.3':
+    resolution: {integrity: sha512-oLvsaPMTBejkkmHhjf09xTgk71mOqyr/409NKhRIL08If7AhVfUsJhVsx386uJaqNd42v9kWamQ9lFbkoC2dYw==}
+    engines: {node: '>=18.0.0'}
 
   '@aws/lambda-invoke-store@0.2.4':
     resolution: {integrity: sha512-iY8yvjE0y651BixKNPgmv1WrQc+GZ142sb0z4gYnChDDY2YqI4P/jsSopBWrKfAt7LOJAkOXt7rC/hms+WclQQ==}
@@ -3072,6 +3093,15 @@ snapshots:
       '@smithy/util-utf8': 2.3.0
       tslib: 2.8.1
 
+  '@aws-lambda-powertools/commons@2.31.0':
+    dependencies:
+      '@aws/lambda-invoke-store': 0.2.3
+
+  '@aws-lambda-powertools/logger@2.31.0':
+    dependencies:
+      '@aws-lambda-powertools/commons': 2.31.0
+      '@aws/lambda-invoke-store': 0.2.3
+
   '@aws-sdk/client-dynamodb@3.1009.0':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
@@ -3675,6 +3705,8 @@ snapshots:
       '@smithy/types': 4.13.1
       fast-xml-parser: 5.4.1
       tslib: 2.8.1
+
+  '@aws/lambda-invoke-store@0.2.3': {}
 
   '@aws/lambda-invoke-store@0.2.4': {}
 

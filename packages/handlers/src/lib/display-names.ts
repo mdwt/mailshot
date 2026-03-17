@@ -1,5 +1,7 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { createLogger } from "./logger.js";
 
+const logger = createLogger("display-names");
 const s3 = new S3Client({});
 
 type DisplayNameMap = Record<string, Record<string, string>>;
@@ -9,10 +11,12 @@ const CACHE_TTL_MS = 10 * 60 * 1000;
 
 export async function loadDisplayNames(bucket: string): Promise<DisplayNameMap> {
   if (cachedMap && Date.now() - cachedMap.fetchedAt < CACHE_TTL_MS) {
+    logger.debug("Display names cache hit");
     return cachedMap.data;
   }
 
   try {
+    logger.debug("Loading display names from S3", { bucket });
     const result = await s3.send(
       new GetObjectCommand({
         Bucket: bucket,
@@ -22,9 +26,10 @@ export async function loadDisplayNames(bucket: string): Promise<DisplayNameMap> 
     const body = (await result.Body?.transformToString()) ?? "{}";
     const data = JSON.parse(body) as DisplayNameMap;
     cachedMap = { data, fetchedAt: Date.now() };
+    logger.debug("Display names loaded", { mappingCount: Object.keys(data).length });
     return data;
   } catch {
-    // If file doesn't exist, return empty map
+    logger.debug("Display names file not found, using empty map");
     return {};
   }
 }

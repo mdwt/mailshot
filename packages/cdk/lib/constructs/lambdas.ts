@@ -15,6 +15,7 @@ export interface LambdasProps {
   templateBucket: s3.Bucket;
   ssmPrefix: string;
   snsTopic: sns.Topic;
+  logLevel?: string;
 }
 
 export class LambdasConstruct extends Construct {
@@ -48,6 +49,8 @@ export class LambdasConstruct extends Construct {
     const commonEnv = {
       NODE_OPTIONS: "--enable-source-maps",
       SSM_PREFIX: props.ssmPrefix,
+      LOG_LEVEL: props.logLevel ?? "INFO",
+      POWERTOOLS_LOG_DEDUPLICATION_DISABLED: "true",
     };
 
     // ── SendEmailFn ────────────────────────────────────────────────────

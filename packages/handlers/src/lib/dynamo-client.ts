@@ -23,7 +23,9 @@ import type {
   ActiveExecution,
   SendLog,
 } from "@step-func-emailer/shared";
+import { createLogger } from "./logger.js";
 
+const logger = createLogger("dynamo-client");
 const dynamo = new DynamoDBClient({});
 
 // ── Subscriber profile ──────────────────────────────────────────────────────
@@ -32,13 +34,42 @@ export async function getSubscriberProfile(
   tableName: string,
   email: string,
 ): Promise<SubscriberProfile | null> {
+  logger.debug("Getting subscriber profile", { email });
   const result = await dynamo.send(
     new GetItemCommand({
       TableName: tableName,
       Key: marshall({ PK: subscriberPK(email), SK: PROFILE_SK }),
     }),
   );
-  return result.Item ? (unmarshall(result.Item) as SubscriberProfile) : null;
+  const profile = result.Item ? (unmarshall(result.Item) as SubscriberProfile) : null;
+  logger.debug("Subscriber profile result", {
+    email,
+    found: !!profile,
+    unsubscribed: profile?.unsubscribed,
+    suppressed: profile?.suppressed,
+  });
+  return profile;
+}
+
+const SYSTEM_KEYS = new Set([
+  "PK",
+  "SK",
+  "email",
+  "firstName",
+  "unsubscribed",
+  "suppressed",
+  "createdAt",
+  "updatedAt",
+]);
+
+export function extractAttributes(profile: Record<string, unknown>): Record<string, unknown> {
+  const attrs: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(profile)) {
+    if (!SYSTEM_KEYS.has(key)) {
+      attrs[key] = value;
+    }
+  }
+  return attrs;
 }
 
 export async function upsertSubscriberProfile(
@@ -48,6 +79,12 @@ export async function upsertSubscriberProfile(
   const now = new Date().toISOString();
   const pk = subscriberPK(subscriber.email);
   const attrs = subscriber.attributes ?? {};
+
+  logger.info("Upserting subscriber profile", {
+    email: subscriber.email,
+    firstName: subscriber.firstName,
+    attributeCount: Object.keys(attrs).length,
+  });
 
   // Build SET expressions — never overwrite unsubscribed or suppressed
   const expressionParts = ["email = :email", "firstName = :firstName", "updatedAt = :updatedAt"];
@@ -59,26 +96,21 @@ export async function upsertSubscriberProfile(
     ":defaultFalse": false,
   };
 
-  // Merge attributes
-  for (const [key, value] of Object.entries(attrs)) {
-    expressionParts.push(`attributes.#attr_${key} = :attr_${key}`);
-    expressionValues[`:attr_${key}`] = value;
-  }
-
   const expressionNames: Record<string, string> = {};
-  for (const key of Object.keys(attrs)) {
+
+  // Write each attribute as a top-level column
+  for (const [key, value] of Object.entries(attrs)) {
+    expressionParts.push(`#attr_${key} = :attr_${key}`);
     expressionNames[`#attr_${key}`] = key;
+    expressionValues[`:attr_${key}`] = value;
   }
 
   await dynamo.send(
     new UpdateItemCommand({
       TableName: tableName,
       Key: marshall({ PK: pk, SK: PROFILE_SK }),
-      UpdateExpression: `SET ${expressionParts.join(", ")}, createdAt = if_not_exists(createdAt, :createdAt), unsubscribed = if_not_exists(unsubscribed, :defaultFalse), suppressed = if_not_exists(suppressed, :defaultFalse), attributes = if_not_exists(attributes, :emptyMap)`,
-      ExpressionAttributeValues: marshall({
-        ...expressionValues,
-        ":emptyMap": {},
-      }),
+      UpdateExpression: `SET ${expressionParts.join(", ")}, createdAt = if_not_exists(createdAt, :createdAt), unsubscribed = if_not_exists(unsubscribed, :defaultFalse), suppressed = if_not_exists(suppressed, :defaultFalse)`,
+      ExpressionAttributeValues: marshall(expressionValues),
       ...(Object.keys(expressionNames).length > 0
         ? { ExpressionAttributeNames: expressionNames }
         : {}),
@@ -93,6 +125,7 @@ export async function getExecution(
   email: string,
   sequenceId: string,
 ): Promise<ActiveExecution | null> {
+  logger.debug("Getting execution", { email, sequenceId });
   const result = await dynamo.send(
     new GetItemCommand({
       TableName: tableName,
@@ -111,6 +144,7 @@ export async function putExecution(
   sequenceId: string,
   executionArn: string,
 ): Promise<void> {
+  logger.info("Storing execution", { email, sequenceId, executionArn });
   await dynamo.send(
     new PutItemCommand({
       TableName: tableName,
@@ -130,6 +164,7 @@ export async function deleteExecution(
   email: string,
   sequenceId: string,
 ): Promise<void> {
+  logger.info("Deleting execution", { email, sequenceId });
   await dynamo.send(
     new DeleteItemCommand({
       TableName: tableName,
@@ -145,6 +180,7 @@ export async function getAllExecutions(
   tableName: string,
   email: string,
 ): Promise<ActiveExecution[]> {
+  logger.debug("Querying all executions", { email });
   const result = await dynamo.send(
     new QueryCommand({
       TableName: tableName,
@@ -155,7 +191,9 @@ export async function getAllExecutions(
       }),
     }),
   );
-  return (result.Items ?? []).map((item) => unmarshall(item) as ActiveExecution);
+  const executions = (result.Items ?? []).map((item) => unmarshall(item) as ActiveExecution);
+  logger.debug("Found executions", { email, count: executions.length });
+  return executions;
 }
 
 // ── Send log ────────────────────────────────────────────────────────────────
@@ -167,6 +205,12 @@ export async function writeSendLog(
 ): Promise<void> {
   const now = new Date();
   const ttl = Math.floor(now.getTime() / 1000) + SEND_LOG_TTL_DAYS * 86400;
+  logger.info("Writing send log", {
+    email,
+    templateKey: log.templateKey,
+    sequenceId: log.sequenceId,
+    sesMessageId: log.sesMessageId,
+  });
   await dynamo.send(
     new PutItemCommand({
       TableName: tableName,
@@ -185,6 +229,7 @@ export async function hasBeenSent(
   email: string,
   templateKey: string,
 ): Promise<boolean> {
+  logger.debug("Checking if template has been sent", { email, templateKey });
   const result = await dynamo.send(
     new QueryCommand({
       TableName: tableName,
@@ -198,7 +243,9 @@ export async function hasBeenSent(
       Limit: 1,
     }),
   );
-  return (result.Count ?? 0) > 0;
+  const sent = (result.Count ?? 0) > 0;
+  logger.debug("Has been sent result", { email, templateKey, sent });
+  return sent;
 }
 
 // ── Suppression ─────────────────────────────────────────────────────────────
@@ -210,6 +257,7 @@ export async function writeSuppression(
   bounceType: string | undefined,
   sesNotificationId: string,
 ): Promise<void> {
+  logger.warn("Writing suppression record", { email, reason, bounceType, sesNotificationId });
   await dynamo.send(
     new PutItemCommand({
       TableName: tableName,
@@ -230,6 +278,7 @@ export async function setProfileFlag(
   email: string,
   flag: "unsubscribed" | "suppressed",
 ): Promise<void> {
+  logger.warn("Setting profile flag", { email, flag });
   await dynamo.send(
     new UpdateItemCommand({
       TableName: tableName,

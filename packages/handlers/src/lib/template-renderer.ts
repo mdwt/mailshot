@@ -1,7 +1,9 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { Liquid } from "liquidjs";
 import { TEMPLATE_CACHE_TTL_MS } from "@step-func-emailer/shared";
+import { createLogger } from "./logger.js";
 
+const logger = createLogger("template-renderer");
 const s3 = new S3Client({});
 const liquid = new Liquid();
 
@@ -11,9 +13,11 @@ const templateCache = new Map<string, { html: string; fetchedAt: number }>();
 async function fetchTemplate(bucket: string, templateKey: string): Promise<string> {
   const cached = templateCache.get(templateKey);
   if (cached && Date.now() - cached.fetchedAt < TEMPLATE_CACHE_TTL_MS) {
+    logger.debug("Template cache hit", { templateKey });
     return cached.html;
   }
 
+  logger.debug("Fetching template from S3", { bucket, key: `${templateKey}.html` });
   const result = await s3.send(
     new GetObjectCommand({
       Bucket: bucket,
@@ -23,6 +27,7 @@ async function fetchTemplate(bucket: string, templateKey: string): Promise<strin
 
   const html = (await result.Body?.transformToString()) ?? "";
   templateCache.set(templateKey, { html, fetchedAt: Date.now() });
+  logger.debug("Template fetched and cached", { templateKey, length: html.length });
   return html;
 }
 
@@ -39,6 +44,9 @@ export async function renderTemplate(
   templateKey: string,
   context: RenderContext,
 ): Promise<string> {
+  logger.info("Rendering template", { templateKey, email: context.email });
   const html = await fetchTemplate(bucket, templateKey);
-  return liquid.parseAndRender(html, context);
+  const rendered = await liquid.parseAndRender(html, context);
+  logger.debug("Template rendered", { templateKey, outputLength: rendered.length });
+  return rendered;
 }

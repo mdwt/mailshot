@@ -27,7 +27,7 @@ describe("check-condition handler", () => {
   describe("subscriber_field_exists", () => {
     it("returns true when field exists and has a value", async () => {
       mockGetSubscriberProfile.mockResolvedValueOnce({
-        attributes: { platform: "web" },
+        platform: "web",
       });
 
       const result = await handler({
@@ -41,7 +41,7 @@ describe("check-condition handler", () => {
 
     it("returns false when field is empty string", async () => {
       mockGetSubscriberProfile.mockResolvedValueOnce({
-        attributes: { platform: "" },
+        platform: "",
       });
 
       const result = await handler({
@@ -54,9 +54,7 @@ describe("check-condition handler", () => {
     });
 
     it("returns false when field is undefined", async () => {
-      mockGetSubscriberProfile.mockResolvedValueOnce({
-        attributes: {},
-      });
+      mockGetSubscriberProfile.mockResolvedValueOnce({});
 
       const result = await handler({
         check: "subscriber_field_exists",
@@ -83,7 +81,7 @@ describe("check-condition handler", () => {
   describe("subscriber_field_equals", () => {
     it("returns true when field matches value", async () => {
       mockGetSubscriberProfile.mockResolvedValueOnce({
-        attributes: { plan: "pro" },
+        plan: "pro",
       });
 
       const result = await handler({
@@ -98,7 +96,7 @@ describe("check-condition handler", () => {
 
     it("returns false when field does not match", async () => {
       mockGetSubscriberProfile.mockResolvedValueOnce({
-        attributes: { plan: "free" },
+        plan: "free",
       });
 
       const result = await handler({

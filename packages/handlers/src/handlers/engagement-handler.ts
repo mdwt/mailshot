@@ -4,7 +4,9 @@ import { marshall } from "@aws-sdk/util-dynamodb";
 import { subscriberPK, eventSK, EVENT_TTL_DAYS } from "@step-func-emailer/shared";
 import type { EmailEventType } from "@step-func-emailer/shared";
 import { resolveConfig } from "../lib/ssm-config.js";
+import { createLogger } from "../lib/logger.js";
 
+const logger = createLogger("engagement-handler");
 const dynamo = new DynamoDBClient({});
 
 interface SESMailHeader {
@@ -100,18 +102,20 @@ const EVENT_TYPE_MAP: Record<string, EmailEventType> = {
 };
 
 export const handler = async (event: SNSEvent): Promise<void> => {
+  logger.info("EngagementHandler invoked", { recordCount: event.Records.length });
   const config = await resolveConfig();
 
   for (const record of event.Records) {
     const notification = JSON.parse(record.Sns.Message) as SESEventNotification;
     const eventType = EVENT_TYPE_MAP[notification.eventType];
-    if (!eventType) continue;
+    if (!eventType) {
+      logger.debug("Skipping unknown event type", { eventType: notification.eventType });
+      continue;
+    }
 
     const timestamp = extractTimestamp(notification);
     const recipients = extractRecipients(notification);
     const subject = getHeader(notification.mail.headers, "Subject");
-
-    // Extract templateKey and sequenceId from custom headers set by ses-sender
     const templateKey = getHeader(notification.mail.headers, "X-Template-Key");
     const sequenceId = getHeader(notification.mail.headers, "X-Sequence-Id") || "fire_and_forget";
 
@@ -123,10 +127,20 @@ export const handler = async (event: SNSEvent): Promise<void> => {
           ? notification.click.userAgent
           : undefined;
 
+    logger.info("Processing engagement event", {
+      eventType,
+      templateKey,
+      sequenceId,
+      sesMessageId: notification.mail.messageId,
+      recipientCount: recipients.length,
+      ...(linkUrl ? { linkUrl } : {}),
+    });
+
     const now = new Date();
     const ttl = Math.floor(now.getTime() / 1000) + EVENT_TTL_DAYS * 86400;
 
     for (const email of recipients) {
+      logger.debug("Writing engagement event", { email, eventType, templateKey });
       await dynamo.send(
         new PutItemCommand({
           TableName: config.eventsTableName,
@@ -150,4 +164,6 @@ export const handler = async (event: SNSEvent): Promise<void> => {
       );
     }
   }
+
+  logger.info("EngagementHandler complete");
 };

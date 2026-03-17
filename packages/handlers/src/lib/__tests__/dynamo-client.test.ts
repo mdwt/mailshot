@@ -44,6 +44,7 @@ vi.mock("@aws-sdk/client-dynamodb", () => ({
 const {
   getSubscriberProfile,
   upsertSubscriberProfile,
+  extractAttributes,
   getExecution,
   putExecution,
   deleteExecution,
@@ -67,7 +68,6 @@ describe("getSubscriberProfile", () => {
       firstName: "Jane",
       unsubscribed: false,
       suppressed: false,
-      attributes: {},
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
     };
@@ -114,9 +114,42 @@ describe("upsertSubscriberProfile", () => {
     });
 
     const cmd = mockSend.mock.calls[0][0];
-    expect(cmd.input.UpdateExpression).toContain("attributes.#attr_platform");
-    expect(cmd.input.UpdateExpression).toContain("attributes.#attr_plan");
+    expect(cmd.input.UpdateExpression).toContain("#attr_platform = :attr_platform");
+    expect(cmd.input.UpdateExpression).toContain("#attr_plan = :attr_plan");
+    expect(cmd.input.UpdateExpression).not.toContain("attributes.#attr_");
     expect(cmd.input.ExpressionAttributeNames?.["#attr_platform"]).toBe("platform");
+  });
+});
+
+describe("extractAttributes", () => {
+  it("returns only non-system keys", () => {
+    const result = extractAttributes({
+      PK: "SUB#user@example.com",
+      SK: "PROFILE",
+      email: "user@example.com",
+      firstName: "Jane",
+      unsubscribed: false,
+      suppressed: false,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      platform: "web",
+      country: "US",
+    });
+    expect(result).toEqual({ platform: "web", country: "US" });
+  });
+
+  it("returns empty object when no custom attributes", () => {
+    const result = extractAttributes({
+      PK: "SUB#user@example.com",
+      SK: "PROFILE",
+      email: "user@example.com",
+      firstName: "Jane",
+      unsubscribed: false,
+      suppressed: false,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+    expect(result).toEqual({});
   });
 });
 

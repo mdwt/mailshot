@@ -102,12 +102,11 @@ export async function updateSubscriber(
   const parts: string[] = [];
   const values: Record<string, unknown> = {
     ":now": new Date().toISOString(),
-    ":emptyMap": {},
   };
   const names: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(attributes)) {
-    parts.push(`attributes.#attr_${key} = :attr_${key}`);
+    parts.push(`#attr_${key} = :attr_${key}`);
     names[`#attr_${key}`] = key;
     values[`:attr_${key}`] = value;
   }
@@ -116,7 +115,7 @@ export async function updateSubscriber(
     new UpdateItemCommand({
       TableName: config.tableName,
       Key: marshall({ PK: subscriberPK(email), SK: PROFILE_SK }),
-      UpdateExpression: `SET ${parts.join(", ")}, updatedAt = :now, attributes = if_not_exists(attributes, :emptyMap)`,
+      UpdateExpression: `SET ${parts.join(", ")}, updatedAt = :now`,
       ExpressionAttributeNames: names,
       ExpressionAttributeValues: marshall(values),
       ConditionExpression: "attribute_exists(PK)",

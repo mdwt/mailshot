@@ -41,7 +41,7 @@ export default tseslint.config(
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/consistent-type-imports": [
         "error",
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
@@ -52,7 +52,7 @@ export default tseslint.config(
       "@typescript-eslint/no-require-imports": "off",
 
       // General
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-console": ["error", { allow: ["warn", "error"] }],
       eqeqeq: ["error", "always"],
       "no-throw-literal": "error",
       "prefer-const": "error",
@@ -65,6 +65,15 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "no-console": "off",
+    },
+  },
+
+  // CLI scripts and build tools — allow console and any
+  {
+    files: ["tools/**/*.ts", "**/render.ts"],
+    rules: {
+      "no-console": "off",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 );

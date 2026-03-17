@@ -1,0 +1,159 @@
+# DynamoDB Schema
+
+Two tables: a main table (single-table design) for all subscriber state, and an events table for engagement tracking.
+
+## Main table
+
+All items are keyed by subscriber email. No GSIs — all access patterns are served by the primary key.
+
+### Key structure
+
+| PK                     | SK                              | Item type          |
+| ---------------------- | ------------------------------- | ------------------ |
+| `SUB#user@example.com` | `PROFILE`                       | Subscriber profile |
+| `SUB#user@example.com` | `EXEC#onboarding`               | Active execution   |
+| `SUB#user@example.com` | `SENT#2026-03-17T10:30:00.000Z` | Send log entry     |
+| `SUB#user@example.com` | `SUPPRESSION`                   | Suppression record |
+
+### Key helper functions
+
+The `@step-func-emailer/shared` package exports these helpers:
+
+```typescript
+subscriberPK("user@example.com"); // → "SUB#user@example.com"
+executionSK("onboarding"); // → "EXEC#onboarding"
+sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
+```
+
+### Item schemas
+
+**PROFILE**
+
+```typescript
+{
+  PK: "SUB#user@example.com",
+  SK: "PROFILE",
+  email: "user@example.com",
+  firstName: "Jane",
+  attributes: { platform: "kajabi", country: "ZA" },
+  unsubscribed: false,
+  suppressed: false,
+  createdAt: "2026-03-01T00:00:00.000Z",
+  updatedAt: "2026-03-17T10:00:00.000Z",
+}
+```
+
+**EXEC#\<sequenceId\>**
+
+```typescript
+{
+  PK: "SUB#user@example.com",
+  SK: "EXEC#onboarding",
+  sequenceId: "onboarding",
+  executionArn: "arn:aws:states:...",
+  startedAt: "2026-03-01T00:00:00.000Z",
+}
+```
+
+**SENT#\<timestamp\>**
+
+```typescript
+{
+  PK: "SUB#user@example.com",
+  SK: "SENT#2026-03-17T10:30:00.000Z",
+  templateKey: "onboarding/welcome",
+  subject: "Welcome!",
+  sequenceId: "onboarding",
+  sentAt: "2026-03-17T10:30:00.000Z",
+  ttl: 1752710400, // 90 days from sentAt
+}
+```
+
+**SUPPRESSION**
+
+```typescript
+{
+  PK: "SUB#user@example.com",
+  SK: "SUPPRESSION",
+  type: "Permanent",     // or "Complaint"
+  reason: "General",
+  suppressedAt: "2026-03-17T10:30:00.000Z",
+}
+```
+
+### Access patterns
+
+| Pattern                       | Key condition                                                  |
+| ----------------------------- | -------------------------------------------------------------- |
+| Get subscriber profile        | `PK = SUB#email, SK = PROFILE`                                 |
+| Get active execution          | `PK = SUB#email, SK = EXEC#sequenceId`                         |
+| List all executions           | `PK = SUB#email, SK begins_with EXEC#`                         |
+| Get send history              | `PK = SUB#email, SK begins_with SENT#`                         |
+| Check if sent                 | `PK = SUB#email, SK begins_with SENT#` + filter on templateKey |
+| Get suppression               | `PK = SUB#email, SK = SUPPRESSION`                             |
+| Get everything for subscriber | `PK = SUB#email` (no SK condition)                             |
+
+### TTLs
+
+| Item type  | TTL                                         |
+| ---------- | ------------------------------------------- |
+| Send logs  | 90 days (`SEND_LOG_TTL_DAYS`)               |
+| All others | No TTL (permanent until explicitly deleted) |
+
+## Events table
+
+Stores SES engagement events (delivery, open, click, bounce, complaint).
+
+### Key structure
+
+| PK                     | SK                                      |
+| ---------------------- | --------------------------------------- |
+| `SUB#user@example.com` | `EVT#2026-03-17T10:30:00.000Z#delivery` |
+
+### Item schema
+
+```typescript
+{
+  PK: "SUB#user@example.com",
+  SK: "EVT#2026-03-17T10:30:00.000Z#delivery",
+  eventType: "delivery",
+  templateKey: "onboarding/welcome",
+  sequenceId: "onboarding",
+  subject: "Welcome!",
+  timestamp: "2026-03-17T10:30:00.000Z",
+  ttl: 1784246400, // 365 days
+}
+```
+
+### TemplateIndex GSI
+
+Enables cross-subscriber queries by template:
+
+| GSI PK                                     | GSI SK                        |
+| ------------------------------------------ | ----------------------------- |
+| `templateKey` (e.g., `onboarding/welcome`) | `EVT#<timestamp>#<eventType>` |
+
+Query: "Show me all opens for the welcome email in the last 7 days"
+
+```
+PK = "onboarding/welcome", SK begins_with "EVT#2026-03-10"
+```
+
+### TTLs
+
+All events expire after 365 days (`EVENT_TTL_DAYS`).
+
+## Why single-table design?
+
+All subscriber data in one table means:
+
+- A single `Query` on the PK retrieves everything about a subscriber (profile, executions, send history, suppression)
+- No joins, no cross-table transactions
+- Consistent performance regardless of table size
+- Lower operational overhead (one table to manage, back up, monitor)
+
+The events table is separate because:
+
+- Different TTL (365 days vs permanent)
+- Different access patterns (cross-subscriber queries via GSI)
+- Higher write volume (every open/click generates a record)

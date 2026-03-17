@@ -1,5 +1,7 @@
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { createLogger } from "./logger.js";
 
+const logger = createLogger("ses-sender");
 const ses = new SESv2Client({});
 
 export interface SendEmailParams {
@@ -41,6 +43,13 @@ function htmlToPlainText(html: string): string {
 }
 
 export async function sendEmail(params: SendEmailParams): Promise<string> {
+  logger.info("Sending email via SES", {
+    to: params.to,
+    subject: params.subject,
+    templateKey: params.templateKey,
+    sequenceId: params.sequenceId,
+  });
+
   const textBody = htmlToPlainText(params.htmlBody);
 
   const result = await ses.send(
@@ -83,5 +92,11 @@ export async function sendEmail(params: SendEmailParams): Promise<string> {
     }),
   );
 
-  return result.MessageId ?? "unknown";
+  const messageId = result.MessageId ?? "unknown";
+  logger.info("Email sent successfully", {
+    messageId,
+    to: params.to,
+    templateKey: params.templateKey,
+  });
+  return messageId;
 }

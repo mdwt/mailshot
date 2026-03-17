@@ -1,0 +1,15 @@
+{
+  "name": "@step-func-emailer/tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "diagram": "tsx visualize-sequence.ts"
+  },
+  "dependencies": {
+    "@step-func-emailer/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}

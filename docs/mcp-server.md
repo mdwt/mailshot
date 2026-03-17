@@ -1,0 +1,95 @@
+# MCP Server
+
+The MCP (Model Context Protocol) server lets you manage the entire email system through Claude Code. No dashboard, no CLI scripts — just talk to Claude.
+
+## Setup
+
+```bash
+claude mcp add step-func-emailer -- npx @step-func-emailer/mcp
+```
+
+The server uses your local AWS credentials. Make sure the credentials have access to DynamoDB, S3, SES, and Step Functions in the target region.
+
+Required environment variables (read from `.env` at repo root):
+
+- `REGION`
+- `TABLE_NAME`
+- `EVENTS_TABLE_NAME`
+- `TEMPLATE_BUCKET_NAME`
+
+## Tool categories
+
+### Subscribers
+
+| Tool                                   | Description                                                                |
+| -------------------------------------- | -------------------------------------------------------------------------- |
+| `get_subscriber(email)`                | Full view: profile, active executions, recent send log, suppression record |
+| `list_subscribers(status?, limit?)`    | Scan profiles filtered by status: `active`, `unsubscribed`, `suppressed`   |
+| `update_subscriber(email, attributes)` | Update profile attributes (does not affect unsubscribed/suppressed flags)  |
+| `delete_subscriber(email)`             | Remove all records from both tables                                        |
+| `unsubscribe_subscriber(email)`        | Mark as unsubscribed, stop all active executions                           |
+| `resubscribe_subscriber(email)`        | Clear unsubscribed flag and remove suppression record                      |
+
+### Suppression
+
+| Tool                        | Description                                         |
+| --------------------------- | --------------------------------------------------- |
+| `list_suppressed()`         | Scan for all suppression records                    |
+| `remove_suppression(email)` | Delete suppression record and clear suppressed flag |
+
+### Engagement
+
+| Tool                                                                         | Description                                                            |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `get_subscriber_events(email, eventType?, startDate?, endDate?, limit?)`     | Query events for a subscriber                                          |
+| `get_template_events(templateKey, eventType?, startDate?, endDate?, limit?)` | Query events across subscribers for a template (via TemplateIndex GSI) |
+| `get_sequence_events(sequenceId, eventType?, startDate?, endDate?, limit?)`  | Scan events for a sequence                                             |
+| `get_delivery_stats(startDate, endDate)`                                     | Aggregate counts by event type                                         |
+
+### Templates
+
+| Tool                                                            | Description                                               |
+| --------------------------------------------------------------- | --------------------------------------------------------- |
+| `list_templates()`                                              | List all templates in S3                                  |
+| `preview_template(templateKey, email, firstName?, attributes?)` | Fetch from S3, render with LiquidJS using subscriber data |
+| `validate_template(templateKey)`                                | Check template exists and renders without errors          |
+
+### System
+
+| Tool                                                         | Description                                 |
+| ------------------------------------------------------------ | ------------------------------------------- |
+| `get_failed_executions(stateMachineArn, startDate?, limit?)` | List failed Step Functions executions       |
+| `get_delivery_stats(startDate, endDate)`                     | Delivery/open/click/bounce/complaint counts |
+
+## Example conversations
+
+### "How is the onboarding sequence performing?"
+
+Claude uses `get_delivery_stats` and `get_template_events` to pull open rates, click rates, and bounce rates for each template in the sequence.
+
+### "Show me everyone who bounced this week"
+
+Claude uses `list_suppressed` and `get_subscriber_events` to identify bounced subscribers and show the bounce details.
+
+### "Unsubscribe user@example.com and show me their history"
+
+Claude uses `get_subscriber` to show the full profile, then `unsubscribe_subscriber` to mark them as unsubscribed and stop executions.
+
+### "Preview the welcome email for user@example.com"
+
+Claude uses `preview_template` to render the template with the subscriber's actual profile data and shows the HTML output.
+
+### "Are there any failed executions?"
+
+Claude uses `get_failed_executions` to check each state machine for failures and reports the details.
+
+## How it works
+
+The MCP server is a Node.js process that communicates with Claude Code over stdio using the Model Context Protocol. It:
+
+1. Registers tools with Zod schemas for input validation
+2. Receives tool calls from Claude Code
+3. Executes AWS SDK calls using local credentials
+4. Returns structured results
+
+The server has no state of its own — it's a thin wrapper over AWS APIs, purpose-built for the operations you need when managing email sequences.

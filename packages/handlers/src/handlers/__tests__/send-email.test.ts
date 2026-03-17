@@ -33,6 +33,23 @@ vi.mock("../../lib/ssm-config.js", () => ({
 vi.mock("../../lib/dynamo-client.js", () => ({
   getSubscriberProfile: (...args: unknown[]) => mockGetSubscriberProfile(...args),
   upsertSubscriberProfile: (...args: unknown[]) => mockUpsertSubscriberProfile(...args),
+  extractAttributes: (profile: Record<string, unknown>) => {
+    const SYSTEM_KEYS = new Set([
+      "PK",
+      "SK",
+      "email",
+      "firstName",
+      "unsubscribed",
+      "suppressed",
+      "createdAt",
+      "updatedAt",
+    ]);
+    const attrs: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(profile)) {
+      if (!SYSTEM_KEYS.has(key)) attrs[key] = value;
+    }
+    return attrs;
+  },
   getExecution: (...args: unknown[]) => mockGetExecution(...args),
   putExecution: (...args: unknown[]) => mockPutExecution(...args),
   deleteExecution: (...args: unknown[]) => mockDeleteExecution(...args),
@@ -159,7 +176,6 @@ describe("send-email handler", () => {
         firstName: "Jane",
         unsubscribed: false,
         suppressed: false,
-        attributes: {},
       });
 
       const result = await handler(sendEvent);
@@ -176,7 +192,6 @@ describe("send-email handler", () => {
         firstName: "Jane",
         unsubscribed: true,
         suppressed: false,
-        attributes: {},
       });
 
       const result = await handler(sendEvent);
@@ -191,7 +206,6 @@ describe("send-email handler", () => {
         firstName: "Jane",
         unsubscribed: false,
         suppressed: true,
-        attributes: {},
       });
 
       const result = await handler(sendEvent);
