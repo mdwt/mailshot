@@ -54,11 +54,11 @@ export class StorageConstruct extends Construct {
       encryption: s3.BucketEncryption.S3_MANAGED,
     });
 
-    // Deploy rendered templates from root out/ directory
+    // Deploy rendered templates from root templates/ directory
     new s3deploy.BucketDeployment(this, "DeployTemplates", {
       sources: [
         s3deploy.Source.asset(
-          path.join(__dirname, "../../../../out"),
+          path.join(__dirname, "../../../../templates"),
         ),
       ],
       destinationBucket: this.templateBucket,

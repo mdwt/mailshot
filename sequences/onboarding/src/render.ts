@@ -1,20 +1,19 @@
 /**
- * Renders all React Email templates to static HTML files in the `out/` directory.
- * These HTML files use Liquid syntax for template variables — React Email handles
- * the layout/styling, Liquid handles runtime personalization.
- *
- * The rendered HTML files are deployed to S3 via CDK BucketDeployment.
+ * Renders all onboarding email templates to static HTML in templates/onboarding/.
+ * Uses Liquid syntax for template variables — React Email handles layout/styling,
+ * Liquid handles runtime personalization.
  */
 import { render } from "@react-email/render";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
 const EMAILS_DIR = path.join(__dirname, "emails");
-const OUT_DIR = path.join(__dirname, "../../../out");
+const OUT_DIR = path.join(__dirname, "../../../templates/onboarding");
 
 function collectTemplates(dir: string, relDir = ""): string[] {
   const results: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith("_")) continue;
     if (entry.isDirectory()) {
       results.push(...collectTemplates(path.join(dir, entry.name), path.join(relDir, entry.name)));
     } else if (entry.name.endsWith(".tsx")) {
@@ -25,7 +24,6 @@ function collectTemplates(dir: string, relDir = ""): string[] {
 }
 
 async function main() {
-  // Ensure output directory exists
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const files = collectTemplates(EMAILS_DIR);
@@ -40,7 +38,6 @@ async function main() {
       continue;
     }
 
-    // Render with Liquid placeholder props
     const html = await render(
       Component({
         firstName: "{{ firstName }}",
@@ -52,7 +49,7 @@ async function main() {
     const outPath = path.join(OUT_DIR, outName);
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
     fs.writeFileSync(outPath, html);
-    console.log(`Rendered: ${outName}`);
+    console.log(`Rendered: onboarding/${outName}`);
   }
 
   console.log(`Done. ${files.length} template(s) written to ${OUT_DIR}`);

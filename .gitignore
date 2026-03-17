@@ -18,5 +18,5 @@ coverage/
 *.iml
 *.iws
 *.ipr
-out/
+templates/*/
 .idea_modules/
