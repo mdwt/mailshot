@@ -201,44 +201,36 @@ export interface ConditionStep {
   else?: SequenceStep[]; // branch when condition is false (optional)
 }
 
-export type SequenceStep = SendStep | WaitStep | ConditionStep;
+// Native Step Functions Choice — no Lambda invocation, evaluated in the
+// state machine using sfn.Condition.stringEquals on the execution input.
+export interface ChoiceBranch {
+  value: string;
+  steps: SequenceStep[];
+}
 
-export interface FireAndForgetConfig {
+export interface ChoiceStep {
+  type: "choice";
+  field: string; // JSONPath e.g. "$.subscriber.attributes.platform"
+  branches: ChoiceBranch[];
+  default?: SequenceStep[]; // fallback when no branch matches
+}
+
+export type SequenceStep = SendStep | WaitStep | ConditionStep | ChoiceStep;
+
+// Event-triggered one-off email within a sequence
+export interface EventEmail {
+  detailType: string; // EventBridge detail-type to match
   templateKey: string;
   subject: string;
+  subscriberMapping?: SubscriberMapping; // override sequence-level mapping
 }
 
-// A sequence definition is EITHER multi-step OR fire-and-forget
-export interface SequenceDefinitionBase {
+export interface SequenceDefinition {
   id: string;
   trigger: SequenceTrigger;
-}
-
-export interface MultiStepSequence extends SequenceDefinitionBase {
-  timeoutDays?: number; // default 30
+  timeoutMinutes: number;
   steps: SequenceStep[];
-  fireAndForget?: never;
-}
-
-export interface FireAndForgetSequence extends SequenceDefinitionBase {
-  fireAndForget: FireAndForgetConfig;
-  steps?: never;
-  timeoutDays?: never;
-}
-
-export type SequenceDefinition = MultiStepSequence | FireAndForgetSequence;
-
-// Type guards
-export function isMultiStep(
-  def: SequenceDefinition,
-): def is MultiStepSequence {
-  return "steps" in def && Array.isArray(def.steps);
-}
-
-export function isFireAndForget(
-  def: SequenceDefinition,
-): def is FireAndForgetSequence {
-  return "fireAndForget" in def && def.fireAndForget != null;
+  events?: EventEmail[]; // fire-and-forget emails triggered by events
 }
 
 // ── CDK context config ──────────────────────────────────────────────────────

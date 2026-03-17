@@ -4,17 +4,18 @@ import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import type {
-  MultiStepSequence,
+  SequenceDefinition,
   SequenceStep,
   SendStep,
   WaitStep,
   ConditionStep,
+  ChoiceStep,
 } from "@step-func-emailer/shared";
 
 export interface StateMachinesProps {
   sendEmailFn: lambda.IFunction;
   checkConditionFn: lambda.IFunction;
-  sequences: MultiStepSequence[];
+  sequences: SequenceDefinition[];
 }
 
 function pascalCase(id: string): string {
@@ -46,7 +47,7 @@ export class StateMachinesConstruct extends Construct {
   }
 
   private buildSequence(
-    def: MultiStepSequence,
+    def: SequenceDefinition,
     sendEmailFn: lambda.IFunction,
     checkConditionFn: lambda.IFunction,
   ): sfn.StateMachine {
@@ -100,7 +101,7 @@ export class StateMachinesConstruct extends Construct {
     return new sfn.StateMachine(this, `${prefix}Sequence`, {
       stateMachineName: `${prefix}Sequence`,
       definitionBody: sfn.DefinitionBody.fromChainable(definition),
-      timeout: cdk.Duration.days(def.timeoutDays ?? 30),
+      timeout: cdk.Duration.minutes(def.timeoutMinutes),
     });
   }
 
@@ -127,12 +128,12 @@ export class StateMachinesConstruct extends Construct {
           break;
         case "condition":
           state = this.buildConditionStep(
-            prefix,
-            n,
-            step,
-            sendEmailFn,
-            checkConditionFn,
-            ctx,
+            prefix, n, step, sendEmailFn, checkConditionFn, ctx,
+          );
+          break;
+        case "choice":
+          state = this.buildChoiceStep(
+            prefix, n, step, sendEmailFn, checkConditionFn, ctx,
           );
           break;
       }
@@ -179,6 +180,7 @@ export class StateMachinesConstruct extends Construct {
     });
   }
 
+  // Lambda-based condition check (reads from DynamoDB — for has_been_sent etc.)
   private buildConditionStep(
     prefix: string,
     n: number,
@@ -187,7 +189,6 @@ export class StateMachinesConstruct extends Construct {
     checkConditionFn: lambda.IFunction,
     ctx: { counter: number },
   ): sfn.IChainable {
-    // Invoke the check-condition Lambda
     const checkTask = new tasks.LambdaInvoke(
       this,
       `${prefix}-Check${n}`,
@@ -206,28 +207,14 @@ export class StateMachinesConstruct extends Construct {
     );
     checkTask.addRetry(this.retryConfig);
 
-    // Build then branch
     const thenChain = this.buildChain(
-      prefix,
-      step.then,
-      sendEmailFn,
-      checkConditionFn,
-      ctx,
+      prefix, step.then, sendEmailFn, checkConditionFn, ctx,
     );
-
-    // Build else branch
-    const elseSteps = step.else ?? [];
     const elseChain = this.buildChain(
-      prefix,
-      elseSteps,
-      sendEmailFn,
-      checkConditionFn,
-      ctx,
+      prefix, step.else ?? [], sendEmailFn, checkConditionFn, ctx,
     );
 
-    // Choice state
-    const choice = new sfn.Choice(this, `${prefix}-Choice${n}`);
-
+    const choice = new sfn.Choice(this, `${prefix}-Cond${n}`);
     const thenState = thenChain ?? new sfn.Pass(this, `${prefix}-ThenPass${n}`);
     const elseState = elseChain ?? new sfn.Pass(this, `${prefix}-ElsePass${n}`);
 
@@ -238,11 +225,60 @@ export class StateMachinesConstruct extends Construct {
       )
       .otherwise(elseState);
 
-    // Converge branches
-    const converge = new sfn.Pass(this, `${prefix}-Converge${n}`);
+    const converge = new sfn.Pass(this, `${prefix}-CondMerge${n}`);
     choice.afterwards().next(converge);
 
-    // Return check → choice → converge as a chain
-    return sfn.Chain.start(checkTask).next(choice);
+    // Chain: checkTask → choice → (branches) → converge
+    // Use custom chain so the end state is converge (chainable), not choice
+    const checkChain = sfn.Chain.start(checkTask).next(choice);
+    return sfn.Chain.custom(checkChain.startState, [converge], converge);
+  }
+
+  // Native Step Functions Choice — no Lambda, evaluates JSONPath directly
+  private buildChoiceStep(
+    prefix: string,
+    n: number,
+    step: ChoiceStep,
+    sendEmailFn: lambda.IFunction,
+    checkConditionFn: lambda.IFunction,
+    ctx: { counter: number },
+  ): sfn.IChainable {
+    const choice = new sfn.Choice(this, `${prefix}-Choice${n}`);
+
+    // Build each branch and wire it to the Choice
+    for (const branch of step.branches) {
+      const branchChain = this.buildChain(
+        prefix, branch.steps, sendEmailFn, checkConditionFn, ctx,
+      );
+      if (branchChain) {
+        choice.when(
+          sfn.Condition.stringEquals(step.field, branch.value),
+          branchChain,
+        );
+      }
+    }
+
+    // Default/otherwise branch
+    if (step.default && step.default.length > 0) {
+      const defaultChain = this.buildChain(
+        prefix, step.default, sendEmailFn, checkConditionFn, ctx,
+      );
+      if (defaultChain) {
+        choice.otherwise(defaultChain);
+      } else {
+        ctx.counter++;
+        choice.otherwise(new sfn.Pass(this, `${prefix}-DefaultPass${ctx.counter}`));
+      }
+    } else {
+      ctx.counter++;
+      choice.otherwise(new sfn.Pass(this, `${prefix}-DefaultPass${ctx.counter}`));
+    }
+
+    // Converge all branches into a single Pass so the chain can continue
+    const converge = new sfn.Pass(this, `${prefix}-ChoiceMerge${n}`);
+    choice.afterwards().next(converge);
+
+    // Return a Chain that starts at choice but ends at converge (chainable)
+    return sfn.Chain.custom(choice.startState, [converge], converge);
   }
 }

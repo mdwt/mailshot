@@ -4,7 +4,6 @@ import type {
   StepFuncEmailerConfig,
   SequenceDefinition,
 } from "@step-func-emailer/shared";
-import { isMultiStep } from "@step-func-emailer/shared";
 import { StorageConstruct } from "./constructs/storage.js";
 import { SsmConstruct } from "./constructs/ssm-params.js";
 import { LambdasConstruct } from "./constructs/lambdas.js";
@@ -68,12 +67,10 @@ export class StepFuncEmailerStack extends cdk.Stack {
     });
 
     // ── State machines ───────────────────────────────────────────────────
-    const multiStepDefs = definitions.filter(isMultiStep);
-
     const stateMachines = new StateMachinesConstruct(this, "StateMachines", {
       sendEmailFn: lambdas.sendEmailFn,
       checkConditionFn: lambdas.checkConditionFn,
-      sequences: multiStepDefs,
+      sequences: definitions,
     });
 
     // Grant permissions to stop executions (wildcard — covers all sequences)

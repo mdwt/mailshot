@@ -40,14 +40,11 @@ export function loadSequenceConfigs(
       throw new Error(`${configPath}: missing 'trigger.detailType'`);
     }
 
-    const hasSteps = "steps" in def && Array.isArray(def.steps);
-    const hasFireAndForget =
-      "fireAndForget" in def && def.fireAndForget != null;
-
-    if (!hasSteps && !hasFireAndForget) {
-      throw new Error(
-        `${configPath}: must have either 'steps' or 'fireAndForget'`,
-      );
+    if (!Array.isArray(def.steps)) {
+      throw new Error(`${configPath}: missing 'steps' array`);
+    }
+    if (!def.timeoutMinutes) {
+      throw new Error(`${configPath}: missing 'timeoutMinutes'`);
     }
 
     definitions.push(def);
