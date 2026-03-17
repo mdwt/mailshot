@@ -21,7 +21,7 @@ pnpm --filter @step-func-emailer/cdk deploy   # Deploy to AWS
 
 # Templates
 pnpm --filter @step-func-emailer/templates dev     # React Email dev server on :3001
-pnpm --filter @step-func-emailer/templates render  # Render .tsx → .html in templates/
+pnpm --filter @step-func-emailer/templates render  # Render .tsx → .html in build/<sequenceId>/templates/
 ```
 
 ## Architecture
@@ -34,7 +34,7 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 - **`handlers`** — Five Lambda functions + shared lib modules. All handlers read config from SSM Parameter Store at runtime (cached 5min via `lib/ssm-config.ts`).
 - **`cdk`** — AWS CDK infrastructure. Config is loaded from a root `.env` file (see `.env.example`). All environment variables are stored as SSM parameters (not Lambda env vars directly). Entry point: `bin/app.ts`.
 - **`mcp`** — MCP server (`@step-func-emailer/mcp`) for interacting with the email system from Claude Code. Provides tools for subscriber management, engagement analytics, template preview, and system health. Spawned over stdio, uses local AWS credentials.
-- **`templates`** — React Email components in `src/emails/`. Build step renders them to static HTML with Liquid placeholders (`{{ firstName }}`, `{{ unsubscribeUrl }}`), output to `templates/`, deployed to S3 via CDK BucketDeployment.
+- **`templates`** — React Email components in `src/emails/`. Build step renders them to static HTML with Liquid placeholders (`{{ firstName }}`, `{{ unsubscribeUrl }}`), output to `build/<sequenceId>/templates/`, deployed to S3 via CDK BucketDeployment.
 
 ### Data flow
 

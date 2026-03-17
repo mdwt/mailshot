@@ -24,6 +24,7 @@ export class StepFuncEmailerStack extends cdk.Stack {
       tableName: config.tableName,
       eventsTableName: config.eventsTableName,
       templateBucketName: config.templateBucketName,
+      sequenceIds: definitions.map((d) => d.id),
     });
 
     // ── SES configuration ────────────────────────────────────────────────

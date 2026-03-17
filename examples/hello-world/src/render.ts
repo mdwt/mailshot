@@ -10,7 +10,7 @@ import * as path from "node:path";
 import { render } from "@react-email/render";
 
 const EMAILS_DIR = path.join(__dirname, "emails");
-const OUT_DIR = path.join(__dirname, "../../../templates");
+const OUT_DIR = path.join(__dirname, "../../../build/hello-world/templates");
 
 function collectTemplates(dir: string, relDir = ""): string[] {
   const results: string[] = [];

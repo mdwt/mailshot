@@ -3,7 +3,7 @@
  * Generates a PNG diagram of a sequence from its config.
  *
  * Usage: pnpm diagram <sequenceId>
- * Output: sequences/<sequenceId>/diagram.png
+ * Output: build/<sequenceId>/diagrams/diagram.png
  *
  * Requires: npx @mermaid-js/mermaid-cli (auto-invoked)
  */
@@ -207,9 +207,10 @@ async function main() {
   const mermaidSrc = lines.map((l) => l.text).join("\n");
 
   // Write .mmd file
-  const seqDir = path.join(__dirname, `../sequences/${sequenceId}`);
-  const mmdPath = path.join(seqDir, "diagram.mmd");
-  const pngPath = path.join(seqDir, "diagram.png");
+  const diagDir = path.join(__dirname, `../build/${sequenceId}/diagrams`);
+  fs.mkdirSync(diagDir, { recursive: true });
+  const mmdPath = path.join(diagDir, "diagram.mmd");
+  const pngPath = path.join(diagDir, "diagram.png");
   fs.writeFileSync(mmdPath, mermaidSrc);
 
   // Render to PNG via mermaid-cli

@@ -9,6 +9,7 @@ export interface StorageProps {
   tableName: string;
   eventsTableName: string;
   templateBucketName: string;
+  sequenceIds: string[];
 }
 
 export class StorageConstruct extends Construct {
@@ -54,10 +55,15 @@ export class StorageConstruct extends Construct {
       encryption: s3.BucketEncryption.S3_MANAGED,
     });
 
-    // Deploy rendered templates from root templates/ directory
-    new s3deploy.BucketDeployment(this, "DeployTemplates", {
-      sources: [s3deploy.Source.asset(path.join(__dirname, "../../../../templates"))],
-      destinationBucket: this.templateBucket,
-    });
+    // Deploy rendered templates from build/<sequenceId>/templates/ directories
+    for (const seqId of props.sequenceIds) {
+      new s3deploy.BucketDeployment(this, `DeployTemplates-${seqId}`, {
+        sources: [
+          s3deploy.Source.asset(path.join(__dirname, `../../../../build/${seqId}/templates`)),
+        ],
+        destinationBucket: this.templateBucket,
+        destinationKeyPrefix: `${seqId}/`,
+      });
+    }
   }
 }

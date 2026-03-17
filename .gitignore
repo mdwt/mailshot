@@ -18,8 +18,5 @@ coverage/
 *.iml
 *.iws
 *.ipr
-templates/*/
-diagram.html
-diagram.mmd
-diagram.png
+build/
 .idea_modules/
