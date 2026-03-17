@@ -1,10 +1,22 @@
 {
   "name": "@step-func-emailer/mcp",
   "version": "0.1.0",
-  "private": true,
+  "description": "MCP server for step-func-emailer — subscriber management, engagement analytics, and system health",
+  "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "directory": "packages/mcp"
+  },
   "bin": {
     "step-func-emailer-mcp": "dist/index.js"
   },

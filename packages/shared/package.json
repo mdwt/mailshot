@@ -1,10 +1,22 @@
 {
   "name": "@step-func-emailer/shared",
   "version": "0.1.0",
-  "private": true,
+  "description": "Shared types and constants for step-func-emailer",
+  "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "directory": "packages/shared"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",

@@ -62,7 +62,7 @@ Create `sequences/<sequenceId>/` with:
   },
   "devDependencies": {
     "@react-email/render": "^2.0.4",
-    "@step-func-emailer/shared": "workspace:*",
+    "@step-func-emailer/shared": "workspace:*|^0.1.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "react-email": "^5.2.9",
@@ -173,7 +173,7 @@ Available checks:
 
 For each email, create a file at `sequences/<sequenceId>/src/emails/<templateName>.tsx`.
 
-Follow the pattern from existing templates in `sequences/onboarding/src/emails/`:
+Follow the pattern from existing templates in `examples/hello-world/src/emails/`:
 
 - Import from `@react-email/components`
 - Use Liquid placeholders: `firstName` and `unsubscribeUrl` as props with defaults
@@ -182,10 +182,10 @@ Follow the pattern from existing templates in `sequences/onboarding/src/emails/`
 
 ### Step 5: Create render script
 
-Create `sequences/<sequenceId>/src/render.ts` — copy from `sequences/onboarding/src/render.ts` and update the `OUT_DIR` to use the new sequence ID:
+Create `sequences/<sequenceId>/src/render.ts` — copy from `examples/hello-world/src/render.ts` and update the `OUT_DIR` to use the new sequence ID:
 
 ```typescript
-const OUT_DIR = path.join(__dirname, "../../../templates/<sequenceId>");
+const OUT_DIR = path.resolve(process.cwd(), "build/<sequenceId>/templates");
 ```
 
 ### Step 6: Install and verify

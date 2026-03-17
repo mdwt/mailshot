@@ -1,0 +1,29 @@
+{
+  "name": "create-step-func-emailer",
+  "version": "0.1.0",
+  "description": "Create a new step-func-emailer project",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "create-step-func-emailer": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "directory": "packages/create"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

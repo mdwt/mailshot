@@ -17,6 +17,7 @@ export interface LambdasProps {
   snsTopic: sns.Topic;
   sesConfigSetName: string;
   logLevel?: string;
+  handlersPath?: string;
 }
 
 export class LambdasConstruct extends Construct {
@@ -30,7 +31,11 @@ export class LambdasConstruct extends Construct {
   constructor(scope: Construct, id: string, props: LambdasProps) {
     super(scope, id);
 
-    const handlersPath = path.join(__dirname, "../../../handlers/src");
+    function resolveHandlersPath(): string {
+      const entry = require.resolve("@step-func-emailer/handlers");
+      return path.join(path.dirname(entry), "../src");
+    }
+    const handlersPath = props.handlersPath ?? resolveHandlersPath();
 
     const commonBundling: nodejs.BundlingOptions = {
       minify: true,

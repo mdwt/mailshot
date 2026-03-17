@@ -17,7 +17,7 @@
     "diagram": "tsx tools/visualize-sequence.ts",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "changeset version && pnpm -r build",
+    "release": "changeset version && pnpm -r build && changeset publish",
     "prepare": "husky"
   },
   "lint-staged": {

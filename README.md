@@ -4,6 +4,17 @@ Serverless email sequences on AWS. Step Functions for orchestration, SES for del
 
 Build onboarding drips, event-triggered sequences, and transactional emails. Manage everything through Claude Code via the MCP server — no dashboard needed.
 
+## Quick start
+
+```bash
+npx create-step-func-emailer my-project
+cd my-project
+claude                    # Open Claude Code
+/setup-env                # Configure AWS environment
+/create-sequence          # Create your first email sequence
+/deploy                   # Deploy to AWS
+```
+
 ## How it works
 
 Your app publishes events to EventBridge. Each event starts a Step Functions sequence. The Lambda fetches an HTML template from S3, renders it with LiquidJS, and sends it through SES. Subscriber state, execution tracking, and send logs live in DynamoDB. Engagement events (opens, clicks, deliveries) are tracked in a separate table and queryable through the MCP server.
@@ -15,20 +26,16 @@ App backend → EventBridge → Step Functions → Send Lambda → SES
                                           DynamoDB (state)
 ```
 
-## Getting started
+## Framework development
+
+If you're contributing to the framework itself (not building a project on top of it):
 
 ```bash
-git clone <repo-url> my-project
-cd my-project
+git clone <repo-url>
+cd step-func-emailer
 pnpm install
 cp .env.example .env
-```
-
-Edit `.env` with your AWS account, region, SES domain, and sender details. Then build and deploy:
-
-```bash
 pnpm -r build
-pnpm --filter @step-func-emailer/cdk deploy
 ```
 
 ### Project structure
@@ -37,15 +44,29 @@ pnpm --filter @step-func-emailer/cdk deploy
 packages/
   shared/       — Types, constants, DynamoDB key helpers
   handlers/     — Five Lambda functions + shared lib modules
-  cdk/          — AWS CDK infrastructure
+  cdk/          — AWS CDK infrastructure constructs
   mcp/          — MCP server for Claude Code integration
-apps/
-  hello-world/  — Starter app with React Email templates
+  create/       — create-step-func-emailer CLI scaffolder
+examples/
+  hello-world/  — Reference sequence with React Email templates
+```
+
+### Publishing
+
+This project uses [Changesets](https://github.com/changesets/changesets) for versioning. Core packages (shared, handlers, cdk, mcp, create) are linked — they version together.
+
+```bash
+# 1. Make code changes
+# 2. Create a changeset
+pnpm changeset
+
+# 3. When ready to release
+pnpm release              # version + build + publish to npm
 ```
 
 ## Templates
 
-Templates are React Email components in `apps/hello-world/src/emails/`. The build step renders them to static HTML with [LiquidJS](https://liquidjs.com/) placeholders, outputs to `out/`, and CDK deploys them to S3.
+Templates are React Email components. The build step renders them to static HTML with [LiquidJS](https://liquidjs.com/) placeholders, and CDK deploys them to S3.
 
 Full Liquid syntax at runtime — variables, conditionals, loops, filters:
 
@@ -61,19 +82,15 @@ Full Liquid syntax at runtime — variables, conditionals, loops, filters:
 
 Template keys map directly to S3 paths. `onboarding/welcome` → `s3://bucket/onboarding/welcome.html`
 
-Preview templates with live subscriber data through the MCP server's `preview_template` tool, or use the React Email dev server:
-
-```bash
-pnpm --filter @step-func-emailer/hello-world dev
-```
+Preview templates with live subscriber data through the MCP server's `preview_template` tool.
 
 ## Sequences
 
 Each sequence is a Step Functions state machine defined in CDK. The state machine calls the shared Send Lambda with a template key, subject, and subscriber context. Wait states handle delays between emails — no compute running while it waits.
 
-The starter project includes an onboarding sequence: welcome email → wait 2 days → day-3 email → wait 3 days → day-6 email.
-
 Every state machine starts with a `register` call and ends with a `complete` call. Send steps pass `{ action: "send", templateKey, subject, subscriber }`. Pre-send checks (unsubscribed, suppressed, rate-limited) return `{ sent: false }` without throwing — sequences continue, emails are skipped.
+
+See `examples/hello-world` for a reference implementation.
 
 ## Events
 
@@ -93,11 +110,19 @@ Add new events by defining EventBridge rules in CDK and creating the correspondi
 
 Manage subscribers, preview templates, check engagement, and monitor system health through Claude Code. No UI needed.
 
+For projects created with `create-step-func-emailer`:
+
+```bash
+claude mcp add step-func-emailer -e AWS_PROFILE=<your-profile> -- npx @step-func-emailer/mcp
+```
+
+For the framework repo:
+
 ```bash
 claude mcp add step-func-emailer -e AWS_PROFILE=<your-profile> -- npx --prefix packages/mcp tsx packages/mcp/src/index.ts
 ```
 
-The MCP server reads `TABLE_NAME`, `EVENTS_TABLE_NAME`, `TEMPLATE_BUCKET_NAME`, and `REGION` from the root `.env` file automatically. `AWS_PROFILE` is passed as an environment variable so it uses the correct AWS credentials.
+The MCP server reads `TABLE_NAME`, `EVENTS_TABLE_NAME`, `TEMPLATE_BUCKET_NAME`, and `REGION` from the `.env` file automatically. `AWS_PROFILE` is passed as an environment variable so it uses the correct AWS credentials.
 
 After adding, restart Claude Code. The tools will be available immediately:
 
@@ -119,7 +144,7 @@ After adding, restart Claude Code. The tools will be available immediately:
 
 ## Configuration
 
-All config lives in `.env` at the repo root (see `.env.example`). At deploy time, CDK writes these values as SSM parameters. Lambda handlers read config from SSM at runtime with 5-minute caching.
+All config lives in `.env` at the project root (see `.env.example`). At deploy time, CDK writes these values as SSM parameters. Lambda handlers read config from SSM at runtime with 5-minute caching.
 
 Key settings:
 

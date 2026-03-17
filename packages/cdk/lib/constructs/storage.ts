@@ -10,6 +10,7 @@ export interface StorageProps {
   eventsTableName: string;
   templateBucketName: string;
   sequenceIds: string[];
+  templateBuildDir: string;
 }
 
 export class StorageConstruct extends Construct {
@@ -58,9 +59,7 @@ export class StorageConstruct extends Construct {
     // Deploy rendered templates from build/<sequenceId>/templates/ directories
     for (const seqId of props.sequenceIds) {
       new s3deploy.BucketDeployment(this, `DeployTemplates-${seqId}`, {
-        sources: [
-          s3deploy.Source.asset(path.join(__dirname, `../../../../build/${seqId}/templates`)),
-        ],
+        sources: [s3deploy.Source.asset(path.join(props.templateBuildDir, seqId, "templates"))],
         destinationBucket: this.templateBucket,
         destinationKeyPrefix: `${seqId}/`,
       });

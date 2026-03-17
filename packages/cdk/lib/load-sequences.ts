@@ -7,7 +7,7 @@ import type { SequenceDefinition } from "@step-func-emailer/shared";
  * Works because CDK is invoked via tsx which registers the TS loader.
  */
 export function loadSequenceConfigs(sequencesDir?: string): SequenceDefinition[] {
-  const dir = sequencesDir ?? path.resolve(__dirname, "../../../sequences");
+  const dir = sequencesDir ?? path.resolve(process.cwd(), "sequences");
 
   if (!fs.existsSync(dir)) {
     return [];

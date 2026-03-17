@@ -221,7 +221,7 @@ SSM_PREFIX=<ssmPrefix>
 Register the MCP server for Claude Code so the subscriber management and engagement tools are available:
 
 ```bash
-claude mcp add step-func-emailer -e AWS_PROFILE=<profile> -- npx --prefix packages/mcp tsx packages/mcp/src/index.ts
+claude mcp add step-func-emailer -e AWS_PROFILE=<profile> -- npx @step-func-emailer/mcp
 ```
 
 Tell the user they'll need to restart Claude Code for the MCP tools to become available.

@@ -1,10 +1,32 @@
 {
   "name": "@step-func-emailer/cdk",
   "version": "0.1.0",
-  "private": true,
+  "description": "AWS CDK constructs for step-func-emailer",
+  "license": "MIT",
   "type": "commonjs",
   "main": "dist/lib/step-func-emailer-stack.js",
   "types": "dist/lib/step-func-emailer-stack.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "directory": "packages/cdk"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/lib/step-func-emailer-stack.d.ts",
+      "default": "./dist/lib/step-func-emailer-stack.js"
+    },
+    "./load-sequences": {
+      "types": "./dist/lib/load-sequences.d.ts",
+      "default": "./dist/lib/load-sequences.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -15,14 +37,19 @@
     "deploy": "cdk deploy"
   },
   "dependencies": {
+    "@step-func-emailer/handlers": "workspace:*",
     "@step-func-emailer/shared": "workspace:*",
-    "aws-cdk": "^2.1111.0",
-    "aws-cdk-lib": "^2.243.0",
-    "constructs": "^10.5.1",
     "source-map-support": "^0.5.21"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.243.0",
+    "constructs": "^10.5.1"
   },
   "devDependencies": {
     "@types/source-map-support": "^0.5.10",
+    "aws-cdk": "^2.1111.0",
+    "aws-cdk-lib": "^2.243.0",
+    "constructs": "^10.5.1",
     "ts-node": "^10.9.2"
   }
 }

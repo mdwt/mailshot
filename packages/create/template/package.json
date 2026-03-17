@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "synth": "npx cdk synth",
+    "deploy": "npx cdk deploy --require-approval never",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@step-func-emailer/cdk": "^0.1.0",
+    "@step-func-emailer/shared": "^0.1.0",
+    "aws-cdk": "^2.1111.0",
+    "aws-cdk-lib": "^2.243.0",
+    "constructs": "^10.5.1",
+    "source-map-support": "^0.5.21",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0"
+  }
+}

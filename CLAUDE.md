@@ -16,7 +16,7 @@ pnpm format:check          # Prettier check (CI)
 # Versioning
 pnpm changeset             # Create a new changeset (interactive)
 pnpm version-packages      # Apply changesets → bump versions + update CHANGELOGs
-pnpm release               # Version + build (run before deploy)
+pnpm release               # Version + build + publish to npm
 
 # Single package
 pnpm --filter @step-func-emailer/handlers build
@@ -38,8 +38,8 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 - **`shared`** — Types and constants consumed by handlers and CDK. Must build first. Exports key helpers like `subscriberPK()`, `executionSK()`, `sentSK()` for DynamoDB key construction.
 - **`handlers`** — Five Lambda functions + shared lib modules. All handlers read config from SSM Parameter Store at runtime (cached 5min via `lib/ssm-config.ts`).
 - **`cdk`** — AWS CDK infrastructure. Config is loaded from a root `.env` file (see `.env.example`). All environment variables are stored as SSM parameters (not Lambda env vars directly). Entry point: `bin/app.ts`.
-- **`mcp`** — MCP server (`@step-func-emailer/mcp`) for interacting with the email system from Claude Code. Provides tools for subscriber management, engagement analytics, template preview, and system health. Spawned over stdio, uses local AWS credentials. Setup: `claude mcp add step-func-emailer -e AWS_PROFILE=<profile> -- npx --prefix packages/mcp tsx packages/mcp/src/index.ts` (reads config from root `.env`).
-- **`templates`** — React Email components in `src/emails/`. Build step renders them to static HTML with Liquid placeholders (`{{ firstName }}`, `{{ unsubscribeUrl }}`), output to `build/<sequenceId>/templates/`, deployed to S3 via CDK BucketDeployment.
+- **`mcp`** — MCP server (`@step-func-emailer/mcp`) for interacting with the email system from Claude Code. Provides tools for subscriber management, engagement analytics, template preview, and system health. Spawned over stdio, uses local AWS credentials. Setup: `claude mcp add step-func-emailer -e AWS_PROFILE=<profile> -- npx @step-func-emailer/mcp` (reads config from `.env`).
+- **`create`** — `create-step-func-emailer` CLI that scaffolds new user projects. Run with `npx create-step-func-emailer my-project`. Template files are embedded in the package.
 
 ### Data flow
 
@@ -63,7 +63,7 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 - **ssm-params** — Writes all config as SSM parameters under configurable prefix
 - **lambdas** — Five NodejsFunction Lambdas with esbuild bundling (AWS SDK externalized)
 - **ses-config** — SES configuration set + SNS topics for bounce/complaint and engagement events
-- **state-machines** — Step Functions definitions (onboarding sequence as starter)
+- **state-machines** — Step Functions definitions (auto-discovered from sequences)
 - **event-bus** — Custom EventBridge bus + routing rules
 
 ### Handler lib modules
@@ -88,4 +88,69 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 - `AWS_PROFILE` is set in `.env` and must be passed to CDK commands and the MCP server. The MCP server reads `.env` automatically for table/bucket names
 - SES EmailTags don't allow `/` in values — `templateKey` is stored with `/` replaced by `--` in tags only. Headers and DynamoDB use the original key with `/`
 - Commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format (enforced by commitlint). Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-- Use Changesets for version management: run `pnpm changeset` to describe changes, then `pnpm version-packages` to bump versions and generate changelogs. Core packages (shared, handlers, cdk, mcp) are linked — they version together
+
+## Versioning & Change Management
+
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated changelog generation. Core packages (shared, handlers, cdk, mcp, create-step-func-emailer) are **linked** — they always version together. All packages are published to npm as public packages.
+
+### When to create a changeset
+
+Create a changeset for any code change that affects package behavior — features, fixes, refactors, breaking changes. Skip changesets for docs-only, CI, or tooling changes that don't affect package code.
+
+### How to create a changeset (non-interactive, for AI use)
+
+The `pnpm changeset` command is interactive and cannot be used by AI. Instead, write a changeset file directly to `.changeset/`:
+
+```bash
+# File: .changeset/<descriptive-kebab-name>.md
+# Example: .changeset/add-rate-limit-headers.md
+```
+
+**File format:**
+
+```markdown
+---
+"@step-func-emailer/handlers": minor
+"@step-func-emailer/shared": minor
+---
+
+Add rate limit headers to SES sender responses
+```
+
+**Rules for the YAML frontmatter:**
+
+- List every package that was changed (by its `name` from `package.json`)
+- Bump type per package: `patch` (bug fixes), `minor` (new features, non-breaking), `major` (breaking changes)
+- Linked packages (shared, handlers, cdk, mcp, create-step-func-emailer) will all get the highest bump among them
+- Example packages (`@step-func-emailer/hello-world`) are versioned independently
+- The `@step-func-emailer/tools` package is ignored by changesets
+
+**Rules for the summary (below the `---`):**
+
+- One concise line describing the change from a user/consumer perspective
+- Use imperative mood ("Add...", "Fix...", "Remove...")
+- This text appears verbatim in the CHANGELOG.md
+
+### Bump type guide
+
+| Change type                                                 | Bump    | Examples                                             |
+| ----------------------------------------------------------- | ------- | ---------------------------------------------------- |
+| Bug fix, typo, minor correction                             | `patch` | Fix SES tag encoding, fix DynamoDB key format        |
+| New feature, new handler, new config option                 | `minor` | Add engagement tracking, add display name mappings   |
+| Breaking API/type change, removed feature, schema migration | `major` | Change Subscriber type shape, rename SSM param paths |
+
+### Applying changesets (releasing)
+
+```bash
+pnpm version-packages    # Consumes all .changeset/*.md files, bumps versions in package.json, updates CHANGELOG.md
+pnpm release             # version-packages + build + publish to npm
+```
+
+After `version-packages` runs, the `.changeset/*.md` files are deleted and the version bumps + changelog entries are staged. Commit this as a release commit (e.g., `chore: release v0.2.0`).
+
+### Example workflow
+
+1. Make code changes
+2. Write `.changeset/my-change.md` with affected packages and bump types
+3. Commit everything together: `feat: add rate limit headers`
+4. When ready to release: `pnpm version-packages` → commit → deploy

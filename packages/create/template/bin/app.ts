@@ -4,11 +4,11 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import * as cdk from "aws-cdk-lib";
 import type { StepFuncEmailerConfig } from "@step-func-emailer/shared";
-import { StepFuncEmailerStack } from "../lib/step-func-emailer-stack.js";
-import { loadSequenceConfigs } from "../lib/load-sequences.js";
+import { StepFuncEmailerStack } from "@step-func-emailer/cdk";
+import { loadSequenceConfigs } from "@step-func-emailer/cdk/load-sequences";
 
-// Load .env from repo root
-const envPath = path.join(__dirname, "../../../.env");
+// Load .env from project root
+const envPath = path.join(__dirname, "../.env");
 if (fs.existsSync(envPath)) {
   for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
     const trimmed = line.trim();
@@ -17,19 +17,13 @@ if (fs.existsSync(envPath)) {
     if (idx === -1) continue;
     const key = trimmed.slice(0, idx);
     const value = trimmed.slice(idx + 1);
-    if (!(key in process.env)) {
-      process.env[key] = value;
-    }
+    if (!(key in process.env)) process.env[key] = value;
   }
 }
 
 function required(name: string): string {
   const val = process.env[name];
-  if (!val) {
-    throw new Error(
-      `Missing environment variable ${name}. Copy .env.example to .env and fill in your values.`,
-    );
-  }
+  if (!val) throw new Error(`Missing env var ${name}. Run /setup-env in Claude Code.`);
   return val;
 }
 
@@ -51,15 +45,9 @@ const config: StepFuncEmailerConfig = {
 };
 
 const definitions = loadSequenceConfigs();
-
 const app = new cdk.App();
-
 new StepFuncEmailerStack(app, config.stackName, {
-  env: {
-    account: config.account,
-    region: config.region,
-  },
+  env: { account: config.account, region: config.region },
   config,
   definitions,
-  templateBuildDir: path.resolve(__dirname, "../../build"),
 });

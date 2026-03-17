@@ -8,15 +8,16 @@
       "@step-func-emailer/shared",
       "@step-func-emailer/handlers",
       "@step-func-emailer/cdk",
-      "@step-func-emailer/mcp"
+      "@step-func-emailer/mcp",
+      "create-step-func-emailer"
     ]
   ],
-  "access": "restricted",
+  "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@step-func-emailer/tools"],
-  "privatePackages": {
-    "version": true,
-    "tag": true
-  }
+  "ignore": [
+    "@step-func-emailer/tools",
+    "@step-func-emailer/onboarding",
+    "@step-func-emailer/hello-world"
+  ]
 }

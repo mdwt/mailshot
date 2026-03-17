@@ -84,9 +84,19 @@ importers:
 
   packages/cdk:
     dependencies:
+      '@step-func-emailer/handlers':
+        specifier: workspace:*
+        version: link:../handlers
       '@step-func-emailer/shared':
         specifier: workspace:*
         version: link:../shared
+      source-map-support:
+        specifier: ^0.5.21
+        version: 0.5.21
+    devDependencies:
+      '@types/source-map-support':
+        specifier: ^0.5.10
+        version: 0.5.10
       aws-cdk:
         specifier: ^2.1111.0
         version: 2.1111.0
@@ -96,16 +106,15 @@ importers:
       constructs:
         specifier: ^10.5.1
         version: 10.5.1
-      source-map-support:
-        specifier: ^0.5.21
-        version: 0.5.21
-    devDependencies:
-      '@types/source-map-support':
-        specifier: ^0.5.10
-        version: 0.5.10
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.5.0)(typescript@5.9.3)
+
+  packages/create:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
 
   packages/handlers:
     dependencies:
@@ -169,37 +178,6 @@ importers:
         version: 3.25.76
 
   packages/shared: {}
-
-  sequences/onboarding:
-    dependencies:
-      '@react-email/components':
-        specifier: ^1.0.9
-        version: 1.0.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.2.4
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@react-email/render':
-        specifier: ^2.0.4
-        version: 2.0.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@step-func-emailer/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@types/react':
-        specifier: ^19.2.14
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.14)
-      react-email:
-        specifier: ^5.2.9
-        version: 5.2.9
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
 
   tools:
     dependencies:

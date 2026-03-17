@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import * as cdk from "aws-cdk-lib";
 import type { Construct } from "constructs";
 import type { StepFuncEmailerConfig, SequenceDefinition } from "@step-func-emailer/shared";
@@ -11,6 +12,8 @@ import { EventBusConstruct } from "./constructs/event-bus.js";
 export interface StepFuncEmailerStackProps extends cdk.StackProps {
   config: StepFuncEmailerConfig;
   definitions: SequenceDefinition[];
+  handlersPath?: string;
+  templateBuildDir?: string;
 }
 
 export class StepFuncEmailerStack extends cdk.Stack {
@@ -25,6 +28,7 @@ export class StepFuncEmailerStack extends cdk.Stack {
       eventsTableName: config.eventsTableName,
       templateBucketName: config.templateBucketName,
       sequenceIds: definitions.map((d) => d.id),
+      templateBuildDir: props.templateBuildDir ?? path.resolve(process.cwd(), "build"),
     });
 
     // ── SES configuration ────────────────────────────────────────────────
@@ -41,6 +45,7 @@ export class StepFuncEmailerStack extends cdk.Stack {
       ssmPrefix: config.ssmPrefix,
       snsTopic: sesConfig.snsTopic,
       sesConfigSetName: config.sesConfigSetName,
+      handlersPath: props.handlersPath,
     });
 
     // Subscribe engagement handler to engagement events

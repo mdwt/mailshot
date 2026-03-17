@@ -8,17 +8,20 @@ export interface McpConfig {
   templateBucketName: string;
 }
 
-function findRepoRoot(): string {
+function findProjectRoot(): string {
   let dir = __dirname;
   for (let i = 0; i < 10; i++) {
+    if (fs.existsSync(path.join(dir, ".env"))) return dir;
     if (fs.existsSync(path.join(dir, "pnpm-workspace.yaml"))) return dir;
-    dir = path.dirname(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
   return process.cwd();
 }
 
 function loadEnvFile(): void {
-  const envPath = path.join(findRepoRoot(), ".env");
+  const envPath = path.join(findProjectRoot(), ".env");
   if (!fs.existsSync(envPath)) return;
   for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
     const trimmed = line.trim();
