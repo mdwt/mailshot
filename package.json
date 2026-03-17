@@ -10,7 +10,8 @@
     "typecheck": "pnpm -r typecheck",
     "cdk": "pnpm --filter @step-func-emailer/cdk cdk",
     "deploy": "pnpm --filter @step-func-emailer/cdk deploy",
-    "synth": "pnpm --filter @step-func-emailer/cdk synth"
+    "synth": "pnpm --filter @step-func-emailer/cdk synth",
+    "diagram": "tsx tools/visualize-sequence.ts"
   },
   "engines": {
     "node": ">=22.0.0"
