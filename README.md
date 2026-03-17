@@ -1,4 +1,14 @@
-# step-func-emailer
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=18181b,e65100,ff9900&height=250&section=header&text=step-func-emailer&fontSize=60&fontAlign=50&fontAlignY=40&desc=Serverless%20Email%20Sequences%20on%20AWS&descSize=22&descAlign=50&descAlignY=65" alt="step-func-emailer banner" />
+</div>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/AWS-Step%20Functions-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" alt="AWS Step Functions" />
+  <img src="https://img.shields.io/badge/AWS-SES-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" alt="AWS SES" />
+  <img src="https://img.shields.io/badge/Database-DynamoDB-4053D6?logo=amazon-dynamodb&logoColor=white&style=for-the-badge" alt="DynamoDB" />
+  <img src="https://img.shields.io/badge/MCP-Claude_Code-D97757?logo=anthropic&logoColor=white&style=for-the-badge" alt="Claude Code" />
+</div>
+<br/>
 
 Serverless email sequences on AWS. Step Functions for orchestration, SES for delivery, DynamoDB for state.
 
