@@ -3,12 +3,22 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
+import type { SequenceDefinition } from "@step-func-emailer/shared";
+import { isMultiStep, isFireAndForget } from "@step-func-emailer/shared";
 
 export interface EventBusProps {
   eventBusName: string;
   eventSource: string;
-  onboardingStateMachine: sfn.StateMachine;
+  definitions: SequenceDefinition[];
+  stateMachines: Map<string, sfn.StateMachine>;
   sendEmailFn: lambda.IFunction;
+}
+
+function pascalCase(id: string): string {
+  return id
+    .split(/[-_]/)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join("");
 }
 
 export class EventBusConstruct extends Construct {
@@ -21,45 +31,73 @@ export class EventBusConstruct extends Construct {
       eventBusName: props.eventBusName,
     });
 
-    // ── Sequence rule: customer.created → OnboardingSequence ─────────
-    new events.Rule(this, "CustomerCreatedRule", {
-      eventBus: this.eventBus,
-      ruleName: "customer-created-onboarding",
-      eventPattern: {
-        detailType: ["customer.created"],
-      },
-      targets: [
-        new targets.SfnStateMachine(props.onboardingStateMachine, {
-          input: events.RuleTargetInput.fromObject({
-            subscriber: {
-              email: events.EventField.fromPath("$.detail.email"),
-              firstName: events.EventField.fromPath("$.detail.firstName"),
-              attributes: events.EventField.fromPath("$.detail"),
-            },
-          }),
-        }),
-      ],
-    });
+    for (const def of props.definitions) {
+      const prefix = pascalCase(def.id);
+      const ruleSlug = def.trigger.detailType.replace(/[^a-zA-Z0-9]/g, "-");
 
-    // Example fire-and-forget rule (commented out, add as needed):
-    // new events.Rule(this, "FirstSaleRule", {
-    //   eventBus: this.eventBus,
-    //   ruleName: "first-sale-email",
-    //   eventPattern: { detailType: ["customer.first_sale"] },
-    //   targets: [
-    //     new targets.LambdaFunction(props.sendEmailFn, {
-    //       event: events.RuleTargetInput.fromObject({
-    //         action: "fire_and_forget",
-    //         templateKey: "events/first-sale",
-    //         subject: "You just made your first sale!",
-    //         subscriber: {
-    //           email: events.EventField.fromPath("$.detail.email"),
-    //           firstName: events.EventField.fromPath("$.detail.firstName"),
-    //           attributes: events.EventField.fromPath("$.detail"),
-    //         },
-    //       }),
-    //     }),
-    //   ],
-    // });
+      if (isMultiStep(def)) {
+        const sm = props.stateMachines.get(def.id);
+        if (!sm) {
+          throw new Error(
+            `No state machine found for sequence '${def.id}'`,
+          );
+        }
+
+        const mapping = def.trigger.subscriberMapping;
+        const subscriberInput: Record<string, unknown> = {
+          email: events.EventField.fromPath(mapping.email),
+          firstName: events.EventField.fromPath(mapping.firstName),
+        };
+        if (mapping.attributes) {
+          subscriberInput.attributes = events.EventField.fromPath(
+            mapping.attributes,
+          );
+        }
+
+        new events.Rule(this, `${prefix}Rule`, {
+          eventBus: this.eventBus,
+          ruleName: `${def.id}-${ruleSlug}`,
+          eventPattern: {
+            detailType: [def.trigger.detailType],
+          },
+          targets: [
+            new targets.SfnStateMachine(sm, {
+              input: events.RuleTargetInput.fromObject({
+                subscriber: subscriberInput,
+              }),
+            }),
+          ],
+        });
+      } else if (isFireAndForget(def)) {
+        const mapping = def.trigger.subscriberMapping;
+        const subscriberInput: Record<string, unknown> = {
+          email: events.EventField.fromPath(mapping.email),
+          firstName: events.EventField.fromPath(mapping.firstName),
+        };
+        if (mapping.attributes) {
+          subscriberInput.attributes = events.EventField.fromPath(
+            mapping.attributes,
+          );
+        }
+
+        new events.Rule(this, `${prefix}Rule`, {
+          eventBus: this.eventBus,
+          ruleName: `${def.id}-${ruleSlug}`,
+          eventPattern: {
+            detailType: [def.trigger.detailType],
+          },
+          targets: [
+            new targets.LambdaFunction(props.sendEmailFn, {
+              event: events.RuleTargetInput.fromObject({
+                action: "fire_and_forget",
+                templateKey: def.fireAndForget.templateKey,
+                subject: def.fireAndForget.subject,
+                subscriber: subscriberInput,
+              }),
+            }),
+          ],
+        });
+      }
+    }
   }
 }

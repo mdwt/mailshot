@@ -164,6 +164,83 @@ export interface EmailEvent {
   ttl: number;
 }
 
+// ── Sequence config types ────────────────────────────────────────────────
+
+export interface SubscriberMapping {
+  email: string; // JSONPath e.g. "$.detail.email"
+  firstName: string; // JSONPath e.g. "$.detail.firstName"
+  attributes?: string; // JSONPath e.g. "$.detail" (entire detail object)
+}
+
+export interface SequenceTrigger {
+  detailType: string; // EventBridge detail-type to match
+  subscriberMapping: SubscriberMapping; // How to extract subscriber from event
+}
+
+// Step types
+export interface SendStep {
+  type: "send";
+  templateKey: string; // S3 path e.g. "onboarding/welcome"
+  subject: string;
+}
+
+export interface WaitStep {
+  type: "wait";
+  days?: number;
+  hours?: number;
+  minutes?: number; // useful for testing
+}
+
+export interface ConditionStep {
+  type: "condition";
+  check: "subscriber_field_exists" | "subscriber_field_equals" | "has_been_sent";
+  field?: string; // for subscriber_field_exists / subscriber_field_equals
+  value?: string; // for subscriber_field_equals
+  templateKey?: string; // for has_been_sent
+  then: SequenceStep[]; // branch when condition is true
+  else?: SequenceStep[]; // branch when condition is false (optional)
+}
+
+export type SequenceStep = SendStep | WaitStep | ConditionStep;
+
+export interface FireAndForgetConfig {
+  templateKey: string;
+  subject: string;
+}
+
+// A sequence definition is EITHER multi-step OR fire-and-forget
+export interface SequenceDefinitionBase {
+  id: string;
+  trigger: SequenceTrigger;
+}
+
+export interface MultiStepSequence extends SequenceDefinitionBase {
+  timeoutDays?: number; // default 30
+  steps: SequenceStep[];
+  fireAndForget?: never;
+}
+
+export interface FireAndForgetSequence extends SequenceDefinitionBase {
+  fireAndForget: FireAndForgetConfig;
+  steps?: never;
+  timeoutDays?: never;
+}
+
+export type SequenceDefinition = MultiStepSequence | FireAndForgetSequence;
+
+// Type guards
+export function isMultiStep(
+  def: SequenceDefinition,
+): def is MultiStepSequence {
+  return "steps" in def && Array.isArray(def.steps);
+}
+
+export function isFireAndForget(
+  def: SequenceDefinition,
+): def is FireAndForgetSequence {
+  return "fireAndForget" in def && def.fireAndForget != null;
+}
+
 // ── CDK context config ──────────────────────────────────────────────────────
 
 export interface StepFuncEmailerConfig {

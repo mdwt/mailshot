@@ -1,6 +1,10 @@
 import * as cdk from "aws-cdk-lib";
 import type { Construct } from "constructs";
-import type { StepFuncEmailerConfig } from "@step-func-emailer/shared";
+import type {
+  StepFuncEmailerConfig,
+  SequenceDefinition,
+} from "@step-func-emailer/shared";
+import { isMultiStep } from "@step-func-emailer/shared";
 import { StorageConstruct } from "./constructs/storage.js";
 import { SsmConstruct } from "./constructs/ssm-params.js";
 import { LambdasConstruct } from "./constructs/lambdas.js";
@@ -10,13 +14,14 @@ import { EventBusConstruct } from "./constructs/event-bus.js";
 
 export interface StepFuncEmailerStackProps extends cdk.StackProps {
   config: StepFuncEmailerConfig;
+  definitions: SequenceDefinition[];
 }
 
 export class StepFuncEmailerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: StepFuncEmailerStackProps) {
     super(scope, id, props);
 
-    const { config } = props;
+    const { config, definitions } = props;
 
     // ── Storage (DynamoDB + S3) ──────────────────────────────────────────
     const storage = new StorageConstruct(this, "Storage", {
@@ -63,13 +68,15 @@ export class StepFuncEmailerStack extends cdk.Stack {
     });
 
     // ── State machines ───────────────────────────────────────────────────
+    const multiStepDefs = definitions.filter(isMultiStep);
+
     const stateMachines = new StateMachinesConstruct(this, "StateMachines", {
       sendEmailFn: lambdas.sendEmailFn,
       checkConditionFn: lambdas.checkConditionFn,
+      sequences: multiStepDefs,
     });
 
-    // Grant the send email lambda permission to stop executions
-    stateMachines.onboardingSequence.grantRead(lambdas.sendEmailFn);
+    // Grant permissions to stop executions (wildcard — covers all sequences)
     lambdas.sendEmailFn.addToRolePolicy(
       new cdk.aws_iam.PolicyStatement({
         actions: ["states:StopExecution"],
@@ -89,11 +96,17 @@ export class StepFuncEmailerStack extends cdk.Stack {
       }),
     );
 
+    // Grant read on each state machine
+    for (const sm of stateMachines.stateMachines.values()) {
+      sm.grantRead(lambdas.sendEmailFn);
+    }
+
     // ── EventBridge ──────────────────────────────────────────────────────
     new EventBusConstruct(this, "EventBus", {
       eventBusName: config.eventBusName,
       eventSource: config.eventSource,
-      onboardingStateMachine: stateMachines.onboardingSequence,
+      definitions,
+      stateMachines: stateMachines.stateMachines,
       sendEmailFn: lambdas.sendEmailFn,
     });
 

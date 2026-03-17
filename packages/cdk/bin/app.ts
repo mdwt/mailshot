@@ -5,6 +5,7 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import type { StepFuncEmailerConfig } from "@step-func-emailer/shared";
 import { StepFuncEmailerStack } from "../lib/step-func-emailer-stack.js";
+import { loadSequenceConfigs } from "../lib/load-sequences.js";
 
 // Load .env from repo root
 const envPath = path.join(__dirname, "../../../.env");
@@ -51,6 +52,8 @@ const config: StepFuncEmailerConfig = {
   ssmPrefix: required("SSM_PREFIX"),
 };
 
+const definitions = loadSequenceConfigs();
+
 const app = new cdk.App();
 
 new StepFuncEmailerStack(app, config.stackName, {
@@ -59,4 +62,5 @@ new StepFuncEmailerStack(app, config.stackName, {
     region: config.region,
   },
   config,
+  definitions,
 });

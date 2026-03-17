@@ -1,0 +1,29 @@
+{
+  "name": "@step-func-emailer/onboarding",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && pnpm render",
+    "render": "tsx src/render.ts",
+    "typecheck": "tsc --noEmit",
+    "dev": "email dev --dir src/emails --port 3002",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.9",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@react-email/render": "^2.0.4",
+    "@step-func-emailer/shared": "workspace:*",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "react-email": "^5.2.9",
+    "tsx": "^4.21.0"
+  }
+}
