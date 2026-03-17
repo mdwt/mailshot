@@ -62,8 +62,10 @@ pnpm --filter @step-func-emailer/cdk build
 
 ### Phase 7: CDK synth
 
+Read `AWS_PROFILE` from the root `.env` file and pass it as an environment variable:
+
 ```bash
-pnpm --filter @step-func-emailer/cdk synth
+cd packages/cdk && AWS_PROFILE=<profile-from-env> npx cdk synth
 ```
 
 Review the synth output for any errors or warnings. If synth fails, report the error and stop.
@@ -87,8 +89,10 @@ Only proceed after the user confirms.
 
 ### Phase 9: Deploy
 
+Read `AWS_PROFILE` from the root `.env` file and pass it as an environment variable to the deploy command:
+
 ```bash
-pnpm --filter @step-func-emailer/cdk deploy
+cd packages/cdk && AWS_PROFILE=<profile-from-env> npx cdk deploy --require-approval never
 ```
 
 This single command handles everything:
