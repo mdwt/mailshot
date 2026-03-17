@@ -16,10 +16,10 @@ sequences/<sequenceId>/
 
 ## Sequence config
 
-A sequence config satisfies the `SequenceDefinition` type from `@step-func-emailer/shared`:
+A sequence config satisfies the `SequenceDefinition` type from `@mailshot/shared`:
 
 ```typescript
-import type { SequenceDefinition } from "@step-func-emailer/shared";
+import type { SequenceDefinition } from "@mailshot/shared";
 
 export default {
   id: "trial-expiring",

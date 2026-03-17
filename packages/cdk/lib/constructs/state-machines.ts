@@ -10,7 +10,7 @@ import type {
   WaitStep,
   ConditionStep,
   ChoiceStep,
-} from "@step-func-emailer/shared";
+} from "@mailshot/shared";
 
 export interface StateMachinesProps {
   sendEmailFn: lambda.IFunction;

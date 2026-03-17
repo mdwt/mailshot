@@ -19,14 +19,14 @@ pnpm version-packages      # Apply changesets → bump versions + update CHANGEL
 pnpm release               # Version + build + publish to npm
 
 # Single package
-pnpm --filter @step-func-emailer/handlers build
-pnpm --filter @step-func-emailer/handlers test
+pnpm --filter @mailshot/handlers build
+pnpm --filter @mailshot/handlers test
 cd packages/cdk && AWS_PROFILE=<profile> npx cdk synth    # Synthesize CloudFormation
 cd packages/cdk && AWS_PROFILE=<profile> npx cdk deploy --require-approval never  # Deploy to AWS
 
 # Templates
-pnpm --filter @step-func-emailer/templates dev     # React Email dev server on :3001
-pnpm --filter @step-func-emailer/templates render  # Render .tsx → .html in build/<sequenceId>/templates/
+pnpm --filter @mailshot/templates dev     # React Email dev server on :3001
+pnpm --filter @mailshot/templates render  # Render .tsx → .html in build/<sequenceId>/templates/
 ```
 
 ## Architecture
@@ -38,8 +38,8 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 - **`shared`** — Types and constants consumed by handlers and CDK. Must build first. Exports key helpers like `subscriberPK()`, `executionSK()`, `sentSK()` for DynamoDB key construction.
 - **`handlers`** — Five Lambda functions + shared lib modules. All handlers read config from SSM Parameter Store at runtime (cached 5min via `lib/ssm-config.ts`).
 - **`cdk`** — AWS CDK infrastructure. Config is loaded from a root `.env` file (see `.env.example`). All environment variables are stored as SSM parameters (not Lambda env vars directly). Entry point: `bin/app.ts`.
-- **`mcp`** — MCP server (`@step-func-emailer/mcp`) for interacting with the email system from Claude Code. Provides tools for subscriber management, engagement analytics, template preview, and system health. Spawned over stdio, uses local AWS credentials. Setup: `claude mcp add step-func-emailer -e AWS_PROFILE=<profile> -- npx @step-func-emailer/mcp` (reads config from `.env`).
-- **`create`** — `create-step-func-emailer` CLI that scaffolds new user projects. Run with `npx create-step-func-emailer my-project`. Template files are embedded in the package.
+- **`mcp`** — MCP server (`@mailshot/mcp`) for interacting with the email system from Claude Code. Provides tools for subscriber management, engagement analytics, template preview, and system health. Spawned over stdio, uses local AWS credentials. Setup: `claude mcp add mailshot -e AWS_PROFILE=<profile> -- npx @mailshot/mcp` (reads config from `.env`).
+- **`create`** — `create-mailshot` CLI that scaffolds new user projects. Run with `npx create-mailshot my-project`. Template files are embedded in the package.
 
 ### Data flow
 
@@ -80,7 +80,7 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 
 - All packages use CommonJS (`"type": "commonjs"`) with `Node16` module resolution
 - TypeScript strict mode, target ES2022, Node 22 runtime
-- Imports between workspace packages use `@step-func-emailer/<pkg>` with `.js` extensions
+- Imports between workspace packages use `@mailshot/<pkg>` with `.js` extensions
 - CDK uses `NodejsFunction` — handlers are bundled with esbuild at deploy time, AWS SDK is externalized
 - Pre-send check failures (unsubscribed, suppressed, rate-limited) return `{ sent: false }` — they don't throw. Sequences continue, emails are skipped.
 - The `unsubscribed` and `suppressed` flags on subscriber profiles are never overwritten by upsert — only their respective handlers can set them to `true`
@@ -91,7 +91,7 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 
 ## Versioning & Change Management
 
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated changelog generation. Core packages (shared, handlers, cdk, mcp, create-step-func-emailer) are **linked** — they always version together. All packages are published to npm as public packages.
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated changelog generation. Core packages (shared, handlers, cdk, mcp, create-mailshot) are **linked** — they always version together. All packages are published to npm as public packages.
 
 ### When to create a changeset
 
@@ -110,8 +110,8 @@ The `pnpm changeset` command is interactive and cannot be used by AI. Instead, w
 
 ```markdown
 ---
-"@step-func-emailer/handlers": minor
-"@step-func-emailer/shared": minor
+"@mailshot/handlers": minor
+"@mailshot/shared": minor
 ---
 
 Add rate limit headers to SES sender responses
@@ -121,9 +121,9 @@ Add rate limit headers to SES sender responses
 
 - List every package that was changed (by its `name` from `package.json`)
 - Bump type per package: `patch` (bug fixes), `minor` (new features, non-breaking), `major` (breaking changes)
-- Linked packages (shared, handlers, cdk, mcp, create-step-func-emailer) will all get the highest bump among them
-- Example packages (`@step-func-emailer/hello-world`) are versioned independently
-- The `@step-func-emailer/tools` package is ignored by changesets
+- Linked packages (shared, handlers, cdk, mcp, create-mailshot) will all get the highest bump among them
+- Example packages (`@mailshot/hello-world`) are versioned independently
+- The `@mailshot/tools` package is ignored by changesets
 
 **Rules for the summary (below the `---`):**
 

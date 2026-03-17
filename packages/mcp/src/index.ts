@@ -20,7 +20,7 @@ import { getFailedExecutions, getDeliveryStats } from "./tools/system.js";
 const config = resolveConfig();
 
 const server = new McpServer({
-  name: "step-func-emailer",
+  name: "mailshot",
   version,
 });
 

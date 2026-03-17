@@ -1,11 +1,11 @@
 {
-  "name": "@step-func-emailer/cdk",
+  "name": "@mailshot/cdk",
   "version": "0.2.0",
-  "description": "AWS CDK constructs for step-func-emailer",
+  "description": "AWS CDK constructs for mailshot",
   "license": "MIT",
   "type": "commonjs",
-  "main": "dist/lib/step-func-emailer-stack.js",
-  "types": "dist/lib/step-func-emailer-stack.d.ts",
+  "main": "dist/lib/mailshot-stack.js",
+  "types": "dist/lib/mailshot-stack.d.ts",
   "files": [
     "dist"
   ],
@@ -14,13 +14,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "url": "https://github.com/mdwt/mailshot.git",
     "directory": "packages/cdk"
   },
   "exports": {
     ".": {
-      "types": "./dist/lib/step-func-emailer-stack.d.ts",
-      "default": "./dist/lib/step-func-emailer-stack.js"
+      "types": "./dist/lib/mailshot-stack.d.ts",
+      "default": "./dist/lib/mailshot-stack.js"
     },
     "./load-sequences": {
       "types": "./dist/lib/load-sequences.d.ts",
@@ -37,8 +37,8 @@
     "deploy": "cdk deploy"
   },
   "dependencies": {
-    "@step-func-emailer/handlers": "workspace:*",
-    "@step-func-emailer/shared": "workspace:*",
+    "@mailshot/handlers": "workspace:*",
+    "@mailshot/shared": "workspace:*",
     "source-map-support": "^0.5.21"
   },
   "peerDependencies": {

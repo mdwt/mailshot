@@ -16,13 +16,8 @@ import {
   EXEC_SK_PREFIX,
   SENT_SK_PREFIX,
   SEND_LOG_TTL_DAYS,
-} from "@step-func-emailer/shared";
-import type {
-  Subscriber,
-  SubscriberProfile,
-  ActiveExecution,
-  SendLog,
-} from "@step-func-emailer/shared";
+} from "@mailshot/shared";
+import type { Subscriber, SubscriberProfile, ActiveExecution, SendLog } from "@mailshot/shared";
 import { createLogger } from "./logger.js";
 
 const logger = createLogger("dynamo-client");

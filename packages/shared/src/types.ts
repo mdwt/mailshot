@@ -225,7 +225,7 @@ export interface SequenceDefinition {
 
 // ── CDK context config ──────────────────────────────────────────────────────
 
-export interface StepFuncEmailerConfig {
+export interface MailshotConfig {
   account: string;
   region: string;
   stackName: string;

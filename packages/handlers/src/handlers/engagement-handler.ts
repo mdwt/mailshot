@@ -1,8 +1,8 @@
 import type { SNSEvent } from "aws-lambda";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
-import { subscriberPK, eventSK, EVENT_TTL_DAYS } from "@step-func-emailer/shared";
-import type { EmailEventType } from "@step-func-emailer/shared";
+import { subscriberPK, eventSK, EVENT_TTL_DAYS } from "@mailshot/shared";
+import type { EmailEventType } from "@mailshot/shared";
 import { resolveConfig } from "../lib/ssm-config.js";
 import { createLogger } from "../lib/logger.js";
 

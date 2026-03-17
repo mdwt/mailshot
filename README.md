@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=18181b,e65100,ff9900&height=250&section=header&text=step-func-emailer&fontSize=60&fontAlign=50&fontAlignY=40&desc=Serverless%20Email%20Sequences%20on%20AWS&descSize=22&descAlign=50&descAlignY=65" alt="step-func-emailer banner" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=18181b,e65100,ff9900&height=250&section=header&text=mailshot&fontSize=60&fontAlign=50&fontAlignY=40&desc=Serverless%20Email%20Sequences%20on%20AWS&descSize=22&descAlign=50&descAlignY=65" alt="mailshot banner" />
 </div>
 
 <div align="center">
@@ -17,7 +17,7 @@ Build onboarding drips, event-triggered sequences, and transactional emails. Man
 ## Quick start
 
 ```bash
-npx create-step-func-emailer my-project
+npx create-mailshot my-project
 cd my-project
 claude                    # Open Claude Code
 /setup-env                # Configure AWS environment
@@ -42,7 +42,7 @@ If you're contributing to the framework itself (not building a project on top of
 
 ```bash
 git clone <repo-url>
-cd step-func-emailer
+cd mailshot
 pnpm install
 cp .env.example .env
 pnpm -r build
@@ -56,7 +56,7 @@ packages/
   handlers/     — Five Lambda functions + shared lib modules
   cdk/          — AWS CDK infrastructure constructs
   mcp/          — MCP server for Claude Code integration
-  create/       — create-step-func-emailer CLI scaffolder
+  create/       — create-mailshot CLI scaffolder
 examples/
   hello-world/  — Reference sequence with React Email templates
 ```
@@ -120,16 +120,16 @@ Add new events by defining EventBridge rules in CDK and creating the correspondi
 
 Manage subscribers, preview templates, check engagement, and monitor system health through Claude Code. No UI needed.
 
-For projects created with `create-step-func-emailer`:
+For projects created with `create-mailshot`:
 
 ```bash
-claude mcp add step-func-emailer -e AWS_PROFILE=<your-profile> -- npx @step-func-emailer/mcp
+claude mcp add mailshot -e AWS_PROFILE=<your-profile> -- npx @mailshot/mcp
 ```
 
 For the framework repo:
 
 ```bash
-claude mcp add step-func-emailer -e AWS_PROFILE=<your-profile> -- npx --prefix packages/mcp tsx packages/mcp/src/index.ts
+claude mcp add mailshot -e AWS_PROFILE=<your-profile> -- npx --prefix packages/mcp tsx packages/mcp/src/index.ts
 ```
 
 The MCP server reads `TABLE_NAME`, `EVENTS_TABLE_NAME`, `TEMPLATE_BUCKET_NAME`, and `REGION` from the `.env` file automatically. `AWS_PROFILE` is passed as an environment variable so it uses the correct AWS credentials.

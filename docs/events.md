@@ -56,7 +56,7 @@ await eventBridgeClient.send(
       {
         Source: "your-app",
         DetailType: "customer.created",
-        EventBusName: "step-func-emailer-bus",
+        EventBusName: "mailshot-bus",
         Detail: JSON.stringify({
           email: "user@example.com",
           firstName: "Jane",

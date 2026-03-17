@@ -41,7 +41,7 @@ Create `sequences/<sequenceId>/` with:
 
 ```json
 {
-  "name": "@step-func-emailer/<sequenceId>",
+  "name": "@mailshot/<sequenceId>",
   "version": "0.0.0",
   "private": true,
   "type": "commonjs",
@@ -62,7 +62,7 @@ Create `sequences/<sequenceId>/` with:
   },
   "devDependencies": {
     "@react-email/render": "^2.0.4",
-    "@step-func-emailer/shared": "workspace:*|^0.1.0",
+    "@mailshot/shared": "workspace:*|^0.1.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "react-email": "^5.2.9",
@@ -87,10 +87,10 @@ Create `sequences/<sequenceId>/` with:
 
 ### Step 3: Create `sequence.config.ts`
 
-The config must satisfy the `SequenceDefinition` type from `@step-func-emailer/shared`. Here is the full shape:
+The config must satisfy the `SequenceDefinition` type from `@mailshot/shared`. Here is the full shape:
 
 ```typescript
-import type { SequenceDefinition } from "@step-func-emailer/shared";
+import type { SequenceDefinition } from "@mailshot/shared";
 
 export default {
   id: "<sequenceId>",
@@ -192,9 +192,9 @@ const OUT_DIR = path.resolve(process.cwd(), "build/<sequenceId>/templates");
 
 ```bash
 pnpm install
-pnpm --filter @step-func-emailer/<sequenceId> build
-pnpm --filter @step-func-emailer/cdk typecheck
-pnpm --filter @step-func-emailer/cdk synth
+pnpm --filter @mailshot/<sequenceId> build
+pnpm --filter @mailshot/cdk typecheck
+pnpm --filter @mailshot/cdk synth
 ```
 
 All commands must succeed before the skill is complete.
@@ -203,5 +203,5 @@ All commands must succeed before the skill is complete.
 
 - `packages/cdk/lib/constructs/state-machines.ts` — auto-discovers sequences
 - `packages/cdk/lib/constructs/event-bus.ts` — auto-discovers sequences
-- `packages/cdk/lib/step-func-emailer-stack.ts` — auto-discovers sequences
+- `packages/cdk/lib/mailshot-stack.ts` — auto-discovers sequences
 - `packages/cdk/bin/app.ts` — auto-discovers sequences

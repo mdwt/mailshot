@@ -45,7 +45,7 @@ aws configure get region --profile <admin-profile>
 
 Extract the **account ID** and **region**. If the STS call fails, tell the user and stop.
 
-Ask the user for a **name** for the new profile. Default to `step-func-emailer`.
+Ask the user for a **name** for the new profile. Default to `mailshot`.
 
 **Important:** Do NOT create the IAM user yet. Continue through steps 2-5 first to collect all resource names (table, bucket, event bus, etc.). The IAM policy needs these names to scope permissions. Return to this step after step 5 to create the user.
 
@@ -167,13 +167,13 @@ Then ask: **"What reply-to email address should be used? (optional)"** — sugge
 aws sesv2 list-configuration-sets --profile <profile> --region <region> --output json
 ```
 
-If configuration sets exist, ask the user if they want to **reuse an existing one** or **create a new one** (the CDK stack will create it). If they choose an existing one, use that name. Otherwise, default to `step-func-emailer-config`.
+If configuration sets exist, ask the user if they want to **reuse an existing one** or **create a new one** (the CDK stack will create it). If they choose an existing one, use that name. Otherwise, default to `mailshot-config`.
 
 ### Step 5: Choose resource names
 
-Ask the user for a **project prefix** to use for naming resources. Default to `step-func-emailer`. This prefix will be used to generate:
+Ask the user for a **project prefix** to use for naming resources. Default to `mailshot`. This prefix will be used to generate:
 
-- `STACK_NAME` → `<Prefix>` (PascalCase, e.g., `StepFuncEmailer`)
+- `STACK_NAME` → `<Prefix>` (PascalCase, e.g., `Mailshot`)
 - `TABLE_NAME` → `<Prefix>` (PascalCase)
 - `EVENTS_TABLE_NAME` → `<Prefix>-events`
 - `TEMPLATE_BUCKET_NAME` → `<prefix>-templates-<accountId>` (lowercase with account ID for uniqueness)
@@ -221,7 +221,7 @@ SSM_PREFIX=<ssmPrefix>
 Register the MCP server for Claude Code so the subscriber management and engagement tools are available:
 
 ```bash
-claude mcp add step-func-emailer -e AWS_PROFILE=<profile> -- npx @step-func-emailer/mcp
+claude mcp add mailshot -e AWS_PROFILE=<profile> -- npx @mailshot/mcp
 ```
 
 Tell the user they'll need to restart Claude Code for the MCP tools to become available.

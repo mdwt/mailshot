@@ -17,7 +17,7 @@ All items are keyed by subscriber email. No GSIs — all access patterns are ser
 
 ### Key helper functions
 
-The `@step-func-emailer/shared` package exports these helpers:
+The `@mailshot/shared` package exports these helpers:
 
 ```typescript
 subscriberPK("user@example.com"); // → "SUB#user@example.com"

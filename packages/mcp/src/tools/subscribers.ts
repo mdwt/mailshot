@@ -14,7 +14,7 @@ import {
   EXEC_SK_PREFIX,
   SENT_SK_PREFIX,
   SUPPRESSION_SK,
-} from "@step-func-emailer/shared";
+} from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
 let dynamo: DynamoDBClient;

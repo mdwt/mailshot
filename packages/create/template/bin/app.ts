@@ -3,9 +3,9 @@ import "source-map-support/register";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import * as cdk from "aws-cdk-lib";
-import type { StepFuncEmailerConfig } from "@step-func-emailer/shared";
-import { StepFuncEmailerStack } from "@step-func-emailer/cdk";
-import { loadSequenceConfigs } from "@step-func-emailer/cdk/load-sequences";
+import type { MailshotConfig } from "@mailshot/shared";
+import { MailshotStack } from "@mailshot/cdk";
+import { loadSequenceConfigs } from "@mailshot/cdk/load-sequences";
 
 // Load .env from project root
 const envPath = path.join(__dirname, "../.env");
@@ -27,7 +27,7 @@ function required(name: string): string {
   return val;
 }
 
-const config: StepFuncEmailerConfig = {
+const config: MailshotConfig = {
   account: required("ACCOUNT"),
   region: required("REGION"),
   stackName: required("STACK_NAME"),
@@ -46,7 +46,7 @@ const config: StepFuncEmailerConfig = {
 
 const definitions = loadSequenceConfigs();
 const app = new cdk.App();
-new StepFuncEmailerStack(app, config.stackName, {
+new MailshotStack(app, config.stackName, {
   env: { account: config.account, region: config.region },
   config,
   definitions,

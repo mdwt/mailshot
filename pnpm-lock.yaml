@@ -84,10 +84,10 @@ importers:
 
   packages/cdk:
     dependencies:
-      '@step-func-emailer/handlers':
+      '@mailshot/handlers':
         specifier: workspace:*
         version: link:../handlers
-      '@step-func-emailer/shared':
+      '@mailshot/shared':
         specifier: workspace:*
         version: link:../shared
       source-map-support:
@@ -139,7 +139,7 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: ^3.996.2
         version: 3.996.2(@aws-sdk/client-dynamodb@3.1009.0)
-      '@step-func-emailer/shared':
+      '@mailshot/shared':
         specifier: workspace:*
         version: link:../shared
       liquidjs:
@@ -164,12 +164,12 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: ^3.996.2
         version: 3.996.2(@aws-sdk/client-dynamodb@3.1009.0)
+      '@mailshot/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@modelcontextprotocol/sdk':
         specifier: ^1.12.1
         version: 1.27.1(zod@3.25.76)
-      '@step-func-emailer/shared':
-        specifier: workspace:*
-        version: link:../shared
       liquidjs:
         specifier: ^10.25.0
         version: 10.25.0
@@ -181,7 +181,7 @@ importers:
 
   tools:
     dependencies:
-      '@step-func-emailer/shared':
+      '@mailshot/shared':
         specifier: workspace:*
         version: link:../packages/shared
     devDependencies:

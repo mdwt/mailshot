@@ -1,7 +1,7 @@
 {
-  "name": "@step-func-emailer/handlers",
+  "name": "@mailshot/handlers",
   "version": "0.2.0",
-  "description": "Lambda handlers for step-func-emailer",
+  "description": "Lambda handlers for mailshot",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "url": "https://github.com/mdwt/mailshot.git",
     "directory": "packages/handlers"
   },
   "scripts": {
@@ -32,7 +32,7 @@
     "@aws-sdk/client-sfn": "^3.1009.0",
     "@aws-sdk/client-ssm": "^3.1009.0",
     "@aws-sdk/util-dynamodb": "^3.996.2",
-    "@step-func-emailer/shared": "workspace:*",
+    "@mailshot/shared": "workspace:*",
     "liquidjs": "^10.25.0"
   },
   "devDependencies": {

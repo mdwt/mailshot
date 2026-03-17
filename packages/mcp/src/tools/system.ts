@@ -1,7 +1,7 @@
 import { SFNClient, ListExecutionsCommand, ExecutionStatus } from "@aws-sdk/client-sfn";
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { EVT_SK_PREFIX } from "@step-func-emailer/shared";
+import { EVT_SK_PREFIX } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
 let sfn: SFNClient;

@@ -1,5 +1,5 @@
 import { SFNClient, StopExecutionCommand } from "@aws-sdk/client-sfn";
-import type { SendEmailInput, RegisterOutput, SendOutput } from "@step-func-emailer/shared";
+import type { SendEmailInput, RegisterOutput, SendOutput } from "@mailshot/shared";
 import { resolveConfig } from "../lib/ssm-config.js";
 import {
   getSubscriberProfile,

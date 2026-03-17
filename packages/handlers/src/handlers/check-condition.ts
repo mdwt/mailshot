@@ -1,4 +1,4 @@
-import type { CheckConditionInput, CheckConditionOutput } from "@step-func-emailer/shared";
+import type { CheckConditionInput, CheckConditionOutput } from "@mailshot/shared";
 import { resolveConfig } from "../lib/ssm-config.js";
 import { getSubscriberProfile, hasBeenSent } from "../lib/dynamo-client.js";
 import { createLogger } from "../lib/logger.js";

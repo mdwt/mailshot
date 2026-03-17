@@ -3,7 +3,7 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import type * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import type * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
-import type { SequenceDefinition } from "@step-func-emailer/shared";
+import type { SequenceDefinition } from "@mailshot/shared";
 
 export interface EventBusProps {
   eventBusName: string;

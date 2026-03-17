@@ -5,7 +5,7 @@ The MCP (Model Context Protocol) server lets you manage the entire email system 
 ## Setup
 
 ```bash
-claude mcp add step-func-emailer -- npx @step-func-emailer/mcp
+claude mcp add mailshot -- npx @mailshot/mcp
 ```
 
 The server uses your local AWS credentials. Make sure the credentials have access to DynamoDB, S3, SES, and Step Functions in the target region.

@@ -1,11 +1,11 @@
 {
-  "name": "create-step-func-emailer",
+  "name": "create-mailshot",
   "version": "0.2.2",
-  "description": "Create a new step-func-emailer project",
+  "description": "Create a new mailshot project",
   "license": "MIT",
   "type": "commonjs",
   "bin": {
-    "create-step-func-emailer": "dist/index.js"
+    "create-mailshot": "dist/index.js"
   },
   "files": [
     "dist",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "url": "https://github.com/mdwt/mailshot.git",
     "directory": "packages/create"
   },
   "scripts": {

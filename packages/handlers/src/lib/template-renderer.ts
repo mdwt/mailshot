@@ -1,6 +1,6 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { Liquid } from "liquidjs";
-import { TEMPLATE_CACHE_TTL_MS } from "@step-func-emailer/shared";
+import { TEMPLATE_CACHE_TTL_MS } from "@mailshot/shared";
 import { createLogger } from "./logger.js";
 
 const logger = createLogger("template-renderer");

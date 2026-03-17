@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { SequenceDefinition } from "@step-func-emailer/shared";
+import type { SequenceDefinition } from "@mailshot/shared";
 
 /**
  * Scans sequences/ * /sequence.config.ts and loads each definition.
