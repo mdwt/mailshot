@@ -1,235 +1,213 @@
 <div align="center">
-  <img width="1376" height="768" alt="mailshot-banner" src="https://github.com/user-attachments/assets/20ea65a4-c2e7-44ee-9c1d-eb9cbd1e0dd8" />
+  <img src="https://github.com/user-attachments/assets/20ea65a4-c2e7-44ee-9c1d-eb9cbd1e0dd8" alt="mailshot banner" width="800" />
+  <p align="center">
+    <img src="https://img.shields.io/badge/AWS-Step%20Functions-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" />
+    <img src="https://img.shields.io/badge/AWS-SES-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" />
+    <img src="https://img.shields.io/badge/Database-DynamoDB-4053D6?logo=amazon-dynamodb&logoColor=white&style=for-the-badge" />
+    <img src="https://img.shields.io/badge/Claude-MCP-D97757?logo=anthropic&logoColor=white&style=for-the-badge" />
+  </p>
+
+<strong>Open-source email sequences on AWS, managed entirely through Claude Code.</strong>
+
 </div>
 
+---
 
-<div align="center">
-  <img src="https://img.shields.io/badge/AWS-Step%20Functions-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" alt="AWS Step Functions" />
-  <img src="https://img.shields.io/badge/AWS-SES-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" alt="AWS SES" />
-  <img src="https://img.shields.io/badge/Database-DynamoDB-4053D6?logo=amazon-dynamodb&logoColor=white&style=for-the-badge" alt="DynamoDB" />
-  <img src="https://img.shields.io/badge/MCP-Claude_Code-D97757?logo=anthropic&logoColor=white&style=for-the-badge" alt="Claude Code" />
-</div>
-<br/>
+## What is mailshot?
 
-Serverless email sequences on AWS. Step Functions for orchestration, SES for delivery, DynamoDB for state.
+mailshot is a serverless email sequencing framework built on AWS. It handles onboarding drips, event-triggered sequences, and transactional emails. The same stuff you'd use Kit, Mailchimp, or ActiveCampaign for.
 
-Build onboarding drips, event-triggered sequences, and transactional emails. Manage everything through Claude Code via the MCP server — no dashboard needed.
+The entire management layer is Claude Code via a custom MCP server. Designing sequences, managing subscribers, checking engagement, deploying infrastructure. All of it through conversation.
 
-## Quick start
+You describe what you want. Claude Code generates the sequence config, the templates, validates everything, and deploys it to your AWS account.
+
+```
+You:  "Create a 3-part re-engagement sequence for users inactive for 30 days."
+      Claude generates sequence config, React Email templates, and build files.
+
+You:  "Preview the day-3 email for user@example.com"
+      Claude renders the template with live subscriber data from DynamoDB.
+
+You:  "What are the open rates for the welcome sequence this week?"
+      Claude queries the engagement table and reports back.
+
+You:  "Deploy"
+      Claude validates, builds, and deploys to AWS.
+```
+
+## Why?
+
+Email SaaS pricing is based on subscriber count. That's $39 to $199/month for Kit, $30 to $270/month for Mailchimp, scaling with your list. For sending automated emails on infrastructure that costs AWS a fraction of a cent.
+
+mailshot runs on your AWS account. Pay-per-use pricing. Under $5/month at 1,000 subscribers.
+
+| Subscribers | mailshot | Kit (ConvertKit) | Mailchimp Standard |
+| ----------- | -------- | ---------------- | ------------------ |
+| 1,000       | ~$5/mo   | $39/mo           | ~$30/mo            |
+| 5,000       | ~$8/mo   | $89/mo           | ~$100/mo           |
+| 10,000      | ~$12/mo  | $139/mo          | ~$135/mo           |
+| 25,000      | ~$20/mo  | $199/mo          | ~$270/mo           |
+
+## Architecture
+
+```
+Your App → EventBridge → Step Functions → Lambda → SES → Recipient
+                                            ↓
+                                    S3 (templates)
+                                    DynamoDB (state)
+```
+
+| Service            | What it does                                                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------------------------------- |
+| **EventBridge**    | Receives events from your app, routes them to sequences or single sends                                         |
+| **Step Functions** | Orchestrates multi-step sequences: sends, delays, branches, conditions                                          |
+| **Lambda**         | Five functions: send email, check conditions, handle unsubscribes, process bounces, track engagement            |
+| **DynamoDB**       | Two tables: subscriber state (profiles, executions, send log) and engagement events (opens, clicks, deliveries) |
+| **S3**             | Stores rendered HTML templates                                                                                  |
+| **SES**            | Sends the emails, tracks opens and clicks                                                                       |
+
+## Sequences as code
+
+Sequences are TypeScript config files. A typed definition you can read, diff, and review.
+
+```typescript
+import type { SequenceDefinition } from "@mailshot/shared";
+
+export default {
+  id: "trial-expiring",
+  trigger: {
+    detailType: "trial.expiring",
+    subscriberMapping: {
+      email: "$.detail.email",
+      firstName: "$.detail.firstName",
+      attributes: "$.detail",
+    },
+  },
+  timeoutMinutes: 43200,
+  steps: [
+    { type: "send", templateKey: "trial-expiring/warning", subject: "Your trial ends soon" },
+    { type: "wait", days: 2 },
+    { type: "send", templateKey: "trial-expiring/last-chance", subject: "Last chance" },
+    { type: "wait", days: 3 },
+    {
+      type: "choice",
+      field: "$.subscriber.attributes.plan",
+      branches: [
+        {
+          value: "pro",
+          steps: [
+            {
+              type: "send",
+              templateKey: "trial-expiring/upgrade-thanks",
+              subject: "Welcome to Pro",
+            },
+          ],
+        },
+        {
+          value: "free",
+          steps: [
+            {
+              type: "send",
+              templateKey: "trial-expiring/expired",
+              subject: "Your trial has ended",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+} satisfies SequenceDefinition;
+```
+
+Templates are React Email components with LiquidJS placeholders. Full Liquid syntax at runtime: variables, conditionals, loops, filters.
+
+```tsx
+export default function WelcomeEmail() {
+  return (
+    <Html>
+      <Body>
+        <Text>Hey {"{{ firstName }}"},</Text>
+        <Text>Welcome aboard. Here's what to do next...</Text>
+        <Button href={"{{ dashboardUrl }}"}>Go to dashboard</Button>
+        <Link href={"{{ unsubscribeUrl }}"}>Unsubscribe</Link>
+      </Body>
+    </Html>
+  );
+}
+```
+
+## Getting started
+
+### 1. Create a new project
 
 ```bash
 npx create-mailshot my-project
 cd my-project
-claude                    # Open Claude Code
-/setup-env                # Configure AWS environment
-/create-sequence          # Create your first email sequence
-/deploy                   # Deploy to AWS
 ```
 
-## How it works
-
-Your app publishes events to EventBridge. Each event starts a Step Functions sequence. The Lambda fetches an HTML template from S3, renders it with LiquidJS, and sends it through SES. Subscriber state, execution tracking, and send logs live in DynamoDB. Engagement events (opens, clicks, deliveries) are tracked in a separate table and queryable through the MCP server.
-
-```
-App backend → EventBridge → Step Functions → Send Lambda → SES
-                                                  ↓
-                                          S3 (templates)
-                                          DynamoDB (state)
-```
-
-## Framework development
-
-If you're contributing to the framework itself (not building a project on top of it):
+### 2. Open Claude Code
 
 ```bash
-git clone <repo-url>
-cd mailshot
-pnpm install
-cp .env.example .env
-pnpm -r build
+claude
 ```
 
-### Project structure
+```
+You:  "Set up my environment"
+      Claude discovers your AWS resources, writes .env, registers the MCP server.
+
+You:  "Create a 3-part welcome sequence triggered by customer.created"
+      Claude generates the sequence config, React Email templates, and build files.
+
+You:  "Deploy"
+      Claude validates, builds, and deploys to AWS.
+```
+
+## MCP tools
+
+Once connected, Claude Code has access to:
+
+**Subscribers** get, list, update, delete, unsubscribe, resubscribe
+
+**Engagement** query opens, clicks, deliveries, bounces, complaints per subscriber, per template, or per sequence
+
+**Templates** list, preview with live data, validate Liquid syntax
+
+**Suppression** list suppressed addresses, remove suppressions
+
+**System** failed executions, delivery stats
+
+## Project structure
 
 ```
 packages/
-  shared/       — Types, constants, DynamoDB key helpers
-  handlers/     — Five Lambda functions + shared lib modules
-  cdk/          — AWS CDK infrastructure constructs
-  mcp/          — MCP server for Claude Code integration
-  create/       — create-mailshot CLI scaffolder
+  shared/       Types, constants, DynamoDB key helpers
+  handlers/     Five Lambda functions + shared lib modules
+  cdk/          AWS CDK infrastructure
+  mcp/          MCP server for Claude Code
+  create/       CLI scaffolder
 examples/
-  hello-world/  — Reference sequence with React Email templates
+  hello-world/  Starter templates and example sequence
 ```
 
-### Publishing
+## Requirements
 
-This project uses [Changesets](https://github.com/changesets/changesets) for versioning. Core packages (shared, handlers, cdk, mcp, create) are linked — they version together.
+- AWS account with SES in production mode
+- Node.js 22+
+- Claude Code
+- pnpm
+
+## Contributing
 
 ```bash
-# 1. Make code changes
-# 2. Create a changeset
-pnpm changeset
-
-# 3. When ready to release
-pnpm release              # version + build + publish to npm
+git clone git@github.com:mdwt/mailshot.git
+cd mailshot
+pnpm install
+pnpm -r build
 ```
-
-## Templates
-
-Templates are React Email components. The build step renders them to static HTML with [LiquidJS](https://liquidjs.com/) placeholders, and CDK deploys them to S3.
-
-Full Liquid syntax at runtime — variables, conditionals, loops, filters:
-
-```html
-<p>Hey {{ firstName }},</p>
-
-{% if platform == "kajabi" %}
-<p>Here's how to connect your Kajabi checkout...</p>
-{% endif %}
-
-<p><a href="{{ unsubscribeUrl }}">Unsubscribe</a></p>
-```
-
-Template keys map directly to S3 paths. `onboarding/welcome` → `s3://bucket/onboarding/welcome.html`
-
-Preview templates with live subscriber data through the MCP server's `preview_template` tool.
-
-## Sequences
-
-Each sequence is a Step Functions state machine defined in CDK. The state machine calls the shared Send Lambda with a template key, subject, and subscriber context. Wait states handle delays between emails — no compute running while it waits.
-
-Every state machine starts with a `register` call and ends with a `complete` call. Send steps pass `{ action: "send", templateKey, subject, subscriber }`. Pre-send checks (unsubscribed, suppressed, rate-limited) return `{ sent: false }` without throwing — sequences continue, emails are skipped.
-
-See `examples/hello-world` for a reference implementation.
-
-## Events
-
-Your app publishes events to a custom EventBridge bus. Two types of rules:
-
-**Sequence rules** start a Step Functions execution:
-
-- `customer.created` → onboarding sequence
-
-**Fire-and-forget rules** invoke the Send Lambda directly for single emails:
-
-- `sale.first` → congratulations email (example in code, uncomment to enable)
-
-Add new events by defining EventBridge rules in CDK and creating the corresponding templates.
-
-## MCP server
-
-Manage subscribers, preview templates, check engagement, and monitor system health through Claude Code. No UI needed.
-
-For projects created with `create-mailshot`:
-
-```bash
-claude mcp add mailshot -e AWS_PROFILE=<your-profile> -- npx @mailshot/mcp
-```
-
-For the framework repo:
-
-```bash
-claude mcp add mailshot -e AWS_PROFILE=<your-profile> -- npx --prefix packages/mcp tsx packages/mcp/src/index.ts
-```
-
-The MCP server reads `TABLE_NAME`, `EVENTS_TABLE_NAME`, `TEMPLATE_BUCKET_NAME`, and `REGION` from the `.env` file automatically. `AWS_PROFILE` is passed as an environment variable so it uses the correct AWS credentials.
-
-After adding, restart Claude Code. The tools will be available immediately:
-
-- **Subscribers** — `get_subscriber`, `list_subscribers`, `update_subscriber`, `delete_subscriber`, `unsubscribe_subscriber`, `resubscribe_subscriber`
-- **Engagement** — `get_subscriber_events`, `get_template_events`, `get_sequence_events` (query opens, clicks, deliveries, bounces, complaints)
-- **Templates** — `list_templates`, `preview_template` (render with live subscriber data), `validate_template` (check Liquid syntax)
-- **Suppression** — `list_suppressed`, `remove_suppression`
-- **Health** — `get_failed_executions`, `get_delivery_stats`
-
-## Architecture
-
-- **EventBridge** — event ingestion and routing
-- **Step Functions** — sequence execution with durable wait states
-- **Lambda** — email sending, condition checks, unsubscribe handling, bounce processing, engagement tracking (5 functions)
-- **DynamoDB** — two tables: main table (subscriber state, executions, send log) and events table (engagement tracking with TemplateIndex GSI)
-- **S3** — HTML templates
-- **SES** — email delivery with open/click tracking
-- **SNS** — bounce/complaint and engagement event notifications
-
-## Configuration
-
-All config lives in `.env` at the project root (see `.env.example`). At deploy time, CDK writes these values as SSM parameters. Lambda handlers read config from SSM at runtime with 5-minute caching.
-
-Key settings:
-
-| Variable               | Description                             |
-| ---------------------- | --------------------------------------- |
-| `AWS_PROFILE`          | AWS CLI profile for deployments and MCP |
-| `TABLE_NAME`           | Main DynamoDB table name                |
-| `EVENTS_TABLE_NAME`    | Engagement events table name            |
-| `TEMPLATE_BUCKET_NAME` | S3 bucket for HTML templates            |
-| `DEFAULT_FROM_EMAIL`   | SES verified sender address             |
-| `UNSUBSCRIBE_SECRET`   | HMAC secret for unsubscribe tokens      |
-| `SSM_PREFIX`           | SSM parameter namespace                 |
-
-## Permissions
-
-The local AWS profile (`AWS_PROFILE` in `.env`) needs permissions for CDK deployment, the MCP server, and manual test events. Lambda execution roles are created automatically by CDK with least-privilege grants — no manual setup needed.
-
-Minimum IAM policy for the local profile:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "DynamoDB",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:UpdateItem",
-        "dynamodb:DeleteItem",
-        "dynamodb:Query",
-        "dynamodb:Scan"
-      ],
-      "Resource": [
-        "arn:aws:dynamodb:<region>:<account>:table/<table-name>",
-        "arn:aws:dynamodb:<region>:<account>:table/<table-name>/index/*",
-        "arn:aws:dynamodb:<region>:<account>:table/<events-table-name>",
-        "arn:aws:dynamodb:<region>:<account>:table/<events-table-name>/index/*"
-      ]
-    },
-    {
-      "Sid": "S3Templates",
-      "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:ListBucket"],
-      "Resource": ["arn:aws:s3:::<template-bucket-name>", "arn:aws:s3:::<template-bucket-name>/*"]
-    },
-    {
-      "Sid": "StepFunctions",
-      "Effect": "Allow",
-      "Action": ["states:StopExecution", "states:ListExecutions"],
-      "Resource": "*"
-    },
-    {
-      "Sid": "EventBridge",
-      "Effect": "Allow",
-      "Action": "events:PutEvents",
-      "Resource": "arn:aws:events:<region>:<account>:event-bus/<event-bus-name>"
-    },
-    {
-      "Sid": "CDKBootstrap",
-      "Effect": "Allow",
-      "Action": "sts:AssumeRole",
-      "Resource": "arn:aws:iam::<account>:role/cdk-hnb659fds-*-<account>-<region>"
-    }
-  ]
-}
-```
-
-Replace `<account>`, `<region>`, `<table-name>`, `<events-table-name>`, `<template-bucket-name>`, and `<event-bus-name>` with your values from `.env`.
 
 ## Cost
 
-Under $5/month at 1,000 subscribers. Step Functions charges per state transition ($0.000025 each). Wait states are free. Lambda, DynamoDB, SES, and S3 costs are negligible at this scale.
+Under $5/month at 1,000 subscribers. SES charges $0.10 per 1,000 emails. DynamoDB, Lambda, and Step Functions costs are negligible at that scale. Pay-per-use only.
 
 ## License
 

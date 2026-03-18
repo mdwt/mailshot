@@ -22,8 +22,8 @@ function copyDir(src: string, dest: string): void {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
     const srcPath = path.join(src, entry.name);
-    // Rename _gitignore → .gitignore (npm strips dotfiles)
-    const destName = entry.name === "_gitignore" ? ".gitignore" : entry.name;
+    // Rename _prefix → .prefix (npm strips dotfiles/directories)
+    const destName = entry.name.startsWith("_") ? `.${entry.name.slice(1)}` : entry.name;
     const destPath = path.join(dest, destName);
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath);
