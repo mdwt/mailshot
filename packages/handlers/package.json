@@ -1,6 +1,6 @@
 {
   "name": "@mailshot/handlers",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Lambda handlers for mailshot",
   "license": "MIT",
   "type": "commonjs",
