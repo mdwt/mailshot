@@ -1,5 +1,5 @@
 {
-  "name": "@step-func-emailer/tools",
+  "name": "@mailshot/tools",
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
@@ -7,7 +7,7 @@
     "diagram": "tsx visualize-sequence.ts"
   },
   "dependencies": {
-    "@step-func-emailer/shared": "workspace:*"
+    "@mailshot/shared": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.21.0"

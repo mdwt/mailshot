@@ -71,7 +71,7 @@ Validates a sequence config is correct and deployable.
 3. All steps valid (type-specific validation, recursive through branches)
 4. Collects all templateKeys
 5. Verifies template HTML files exist in `build/`
-6. TypeCheck passes (`pnpm --filter @step-func-emailer/cdk typecheck`)
+6. TypeCheck passes (`pnpm --filter @mailshot/cdk typecheck`)
 7. CDK synth succeeds
 
 Stops at the first failure with a clear error message and file path.

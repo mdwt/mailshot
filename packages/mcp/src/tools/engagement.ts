@@ -1,6 +1,6 @@
 import { DynamoDBClient, QueryCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { subscriberPK, EVT_SK_PREFIX, TEMPLATE_INDEX } from "@step-func-emailer/shared";
+import { subscriberPK, EVT_SK_PREFIX, TEMPLATE_INDEX } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
 let dynamo: DynamoDBClient;

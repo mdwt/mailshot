@@ -105,7 +105,7 @@ Template keys in the sequence config must match the rendered HTML filename exact
 Each sequence has a `render.ts` script that uses `@react-email/render` to convert `.tsx` → `.html`:
 
 ```bash
-pnpm --filter @step-func-emailer/<sequenceId> build
+pnpm --filter @mailshot/<sequenceId> build
 ```
 
 This runs `tsc` (compile TypeScript) then `pnpm render` (execute render.ts). Output goes to `build/<sequenceId>/templates/`.
@@ -115,7 +115,7 @@ This runs `tsc` (compile TypeScript) then `pnpm render` (execute render.ts). Out
 Preview templates in the browser with hot reload:
 
 ```bash
-pnpm --filter @step-func-emailer/<sequenceId> dev
+pnpm --filter @mailshot/<sequenceId> dev
 ```
 
 Opens React Email dev server on port 3002. Shows all templates in `src/emails/` with live preview.

@@ -38,7 +38,7 @@ export interface ResolvedConfig {
   unsubscribeSecret: string;
 }
 
-const SSM_PREFIX = process.env.SSM_PREFIX ?? "/step-func-emailer";
+const SSM_PREFIX = process.env.SSM_PREFIX ?? "/mailshot";
 
 export async function resolveConfig(): Promise<ResolvedConfig> {
   logger.debug("Resolving config", { prefix: SSM_PREFIX });

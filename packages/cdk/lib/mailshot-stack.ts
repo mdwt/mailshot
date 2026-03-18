@@ -1,7 +1,7 @@
 import * as path from "node:path";
 import * as cdk from "aws-cdk-lib";
 import type { Construct } from "constructs";
-import type { StepFuncEmailerConfig, SequenceDefinition } from "@step-func-emailer/shared";
+import type { MailshotConfig, SequenceDefinition } from "@mailshot/shared";
 import { StorageConstruct } from "./constructs/storage.js";
 import { SsmConstruct } from "./constructs/ssm-params.js";
 import { LambdasConstruct } from "./constructs/lambdas.js";
@@ -9,15 +9,15 @@ import { SesConfigConstruct } from "./constructs/ses-config.js";
 import { StateMachinesConstruct } from "./constructs/state-machines.js";
 import { EventBusConstruct } from "./constructs/event-bus.js";
 
-export interface StepFuncEmailerStackProps extends cdk.StackProps {
-  config: StepFuncEmailerConfig;
+export interface MailshotStackProps extends cdk.StackProps {
+  config: MailshotConfig;
   definitions: SequenceDefinition[];
   handlersPath?: string;
   templateBuildDir?: string;
 }
 
-export class StepFuncEmailerStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: StepFuncEmailerStackProps) {
+export class MailshotStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: MailshotStackProps) {
     super(scope, id, props);
 
     const { config, definitions } = props;

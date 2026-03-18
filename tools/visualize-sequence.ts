@@ -10,7 +10,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
-import type { SequenceDefinition, SequenceStep, WaitStep } from "@step-func-emailer/shared";
+import type { SequenceDefinition, SequenceStep, WaitStep } from "@mailshot/shared";
 
 const sequenceId = process.argv[2];
 if (!sequenceId) {

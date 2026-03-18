@@ -8,8 +8,8 @@
     "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "@step-func-emailer/cdk": "^0.2.0",
-    "@step-func-emailer/shared": "^0.2.0",
+    "@mailshot/cdk": "^0.2.0",
+    "@mailshot/shared": "^0.2.0",
     "aws-cdk": "^2.1111.0",
     "aws-cdk-lib": "^2.243.0",
     "constructs": "^10.5.1",

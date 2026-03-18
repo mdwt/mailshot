@@ -1,5 +1,5 @@
 {
-  "name": "@step-func-emailer/hello-world",
+  "name": "@mailshot/hello-world",
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",

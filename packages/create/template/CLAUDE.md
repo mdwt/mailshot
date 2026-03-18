@@ -1,6 +1,6 @@
 # Email Sequences Project
 
-Built with [step-func-emailer](https://github.com/mdwt/step-func-emailer).
+Built with [mailshot](https://github.com/mdwt/mailshot).
 
 ## Commands
 

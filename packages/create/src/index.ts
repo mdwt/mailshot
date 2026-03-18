@@ -6,7 +6,7 @@ import { execSync } from "node:child_process";
 
 const projectName = process.argv[2];
 if (!projectName) {
-  console.error("Usage: npx create-step-func-emailer <project-name>");
+  console.error("Usage: npx create-mailshot <project-name>");
   process.exit(1);
 }
 

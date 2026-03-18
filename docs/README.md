@@ -1,6 +1,6 @@
 # Documentation
 
-step-func-emailer is a serverless email sequencing framework on AWS, designed so that a single person can create, deploy, manage, and query email sequences entirely through AI (Claude Code) at near-zero cost.
+mailshot is a serverless email sequencing framework on AWS, designed so that a single person can create, deploy, manage, and query email sequences entirely through AI (Claude Code) at near-zero cost.
 
 The core idea: describe what you want in natural language, and Claude Code handles the rest — generating sequence configs, rendering templates, deploying infrastructure, managing subscribers, and monitoring delivery. No dashboard, no SaaS fees, no vendor lock-in.
 

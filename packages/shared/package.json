@@ -1,7 +1,7 @@
 {
-  "name": "@step-func-emailer/shared",
+  "name": "@mailshot/shared",
   "version": "0.2.0",
-  "description": "Shared types and constants for step-func-emailer",
+  "description": "Shared types and constants for mailshot",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdwt/step-func-emailer.git",
+    "url": "https://github.com/mdwt/mailshot.git",
     "directory": "packages/shared"
   },
   "scripts": {

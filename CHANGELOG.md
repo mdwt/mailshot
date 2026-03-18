@@ -1,4 +1,4 @@
-# step-func-emailer
+# mailshot
 
 ## 0.1.0
 

@@ -5,7 +5,7 @@ import {
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { subscriberPK, PROFILE_SK, SUPPRESSION_SK } from "@step-func-emailer/shared";
+import { subscriberPK, PROFILE_SK, SUPPRESSION_SK } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
 let dynamo: DynamoDBClient;

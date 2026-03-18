@@ -19,7 +19,7 @@ Run `/validate-sequence` (no argument — validates all sequences). If any seque
 ### Phase 2: Build shared package
 
 ```bash
-pnpm --filter @step-func-emailer/shared build
+pnpm --filter @mailshot/shared build
 ```
 
 This must succeed first since all other packages depend on it.
@@ -29,7 +29,7 @@ This must succeed first since all other packages depend on it.
 For each sequence in `sequences/*/`, run:
 
 ```bash
-pnpm --filter @step-func-emailer/<sequenceId> build
+pnpm --filter @mailshot/<sequenceId> build
 ```
 
 This compiles TypeScript and renders React Email templates to `build/<sequenceId>/templates/*.html`. Report any build failures with the full error output.
@@ -57,7 +57,7 @@ If any are missing, report which templateKeys are missing and which sequence the
 ### Phase 6: Build CDK
 
 ```bash
-pnpm --filter @step-func-emailer/cdk build
+pnpm --filter @mailshot/cdk build
 ```
 
 ### Phase 7: CDK synth

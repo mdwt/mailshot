@@ -32,7 +32,7 @@ export class LambdasConstruct extends Construct {
     super(scope, id);
 
     function resolveHandlersPath(): string {
-      const entry = require.resolve("@step-func-emailer/handlers");
+      const entry = require.resolve("@mailshot/handlers");
       return path.join(path.dirname(entry), "../src");
     }
     const handlersPath = props.handlersPath ?? resolveHandlersPath();

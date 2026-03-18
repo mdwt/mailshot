@@ -2,7 +2,7 @@ import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/clien
 import { Liquid } from "liquidjs";
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { subscriberPK, PROFILE_SK } from "@step-func-emailer/shared";
+import { subscriberPK, PROFILE_SK } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
 let s3: S3Client;

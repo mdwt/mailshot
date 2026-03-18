@@ -75,7 +75,7 @@ Report the full list of templateKeys found.
 For each templateKey, check that `templates/<templateKey>.html` exists. Report any missing templates. If templates are missing, suggest running the sequence's render script:
 
 ```
-pnpm --filter @step-func-emailer/<sequenceId> build
+pnpm --filter @mailshot/<sequenceId> build
 ```
 
 ### Step 6: Typecheck
@@ -83,8 +83,8 @@ pnpm --filter @step-func-emailer/<sequenceId> build
 Run:
 
 ```bash
-pnpm --filter @step-func-emailer/shared build
-pnpm --filter @step-func-emailer/cdk typecheck
+pnpm --filter @mailshot/shared build
+pnpm --filter @mailshot/cdk typecheck
 ```
 
 Report any type errors.
@@ -94,7 +94,7 @@ Report any type errors.
 Run:
 
 ```bash
-pnpm --filter @step-func-emailer/cdk synth
+pnpm --filter @mailshot/cdk synth
 ```
 
 Report any synthesis errors. If synth succeeds, the config is fully valid and deployable.
