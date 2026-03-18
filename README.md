@@ -15,7 +15,7 @@
 
 ## What is mailshot?
 
-mailshot is a serverless email sequencing framework built on AWS. It handles onboarding drips, event-triggered sequences, and transactional emails. The same stuff you'd use Kit, Mailchimp, or ActiveCampaign for.
+mailshot is a serverless email sequencing framework built on AWS. It handles onboarding drips, event-triggered sequences, and transactional emails.
 
 The entire management layer is Claude Code via a custom MCP server. Designing sequences, managing subscribers, checking engagement, deploying infrastructure. All of it through conversation.
 
@@ -23,7 +23,7 @@ You describe what you want. Claude Code generates the sequence config, the templ
 
 ```
 You:  "Create a 3-part re-engagement sequence for users inactive for 30 days."
-      Claude generates sequence config, React Email templates, and build files.
+      Claude generates sequence config, email templates, and build files.
 
 You:  "Preview the day-3 email for user@example.com"
       Claude renders the template with live subscriber data from DynamoDB.
@@ -37,16 +37,20 @@ You:  "Deploy"
 
 ## Why?
 
-Email SaaS pricing is based on subscriber count. That's $39 to $199/month for Kit, $30 to $270/month for Mailchimp, scaling with your list. For sending automated emails on infrastructure that costs AWS a fraction of a cent.
+Email platforms charge $30 to $300/month based on subscriber count for infrastructure that costs a few dollars to run. That's the obvious part.
+
+The less obvious part is the workflow. Configuring sequences on existing platforms means clicking through dated UIs, dragging blocks around, navigating dashboards built ten years ago. Every change is slower than it should be.
+
+If you're already using AI to write email copy, design templates, and plan sequences, it makes sense to have the entire workflow in one place. mailshot puts sequencing, subscriber management, engagement analytics, and deployment all inside Claude Code. When everything lives in AI, the things you can do with it compound. You're not copying output from one tool and pasting it into another.
 
 mailshot runs on your AWS account. Pay-per-use pricing. Under $5/month at 1,000 subscribers.
 
-| Subscribers | mailshot | Kit (ConvertKit) | Mailchimp Standard |
-| ----------- | -------- | ---------------- | ------------------ |
-| 1,000       | ~$5/mo   | $39/mo           | ~$30/mo            |
-| 5,000       | ~$8/mo   | $89/mo           | ~$100/mo           |
-| 10,000      | ~$12/mo  | $139/mo          | ~$135/mo           |
-| 25,000      | ~$20/mo  | $199/mo          | ~$270/mo           |
+| Subscribers | mailshot | Typical email platform |
+| ----------- | -------- | ---------------------- |
+| 1,000       | ~$5/mo   | $30 to $40/mo          |
+| 5,000       | ~$8/mo   | $75 to $100/mo         |
+| 10,000      | ~$12/mo  | $110 to $140/mo        |
+| 25,000      | ~$20/mo  | $200 to $270/mo        |
 
 ## Architecture
 
@@ -119,48 +123,40 @@ export default {
 } satisfies SequenceDefinition;
 ```
 
-Templates are React Email components with LiquidJS placeholders. Full Liquid syntax at runtime: variables, conditionals, loops, filters.
+Templates are HTML files with [LiquidJS](https://liquidjs.com/) for runtime variables. Use whatever you want to produce the HTML — React Email, MJML, Handlebars, raw HTML, a drag-and-drop builder. mailshot doesn't care.
+It stores your `.html` in S3 and renders Liquid placeholders (`{{ firstName }}`, `{{ unsubscribeUrl }}`, conditionals, loops, filters) at send time.
 
-```tsx
-export default function WelcomeEmail() {
-  return (
-    <Html>
-      <Body>
-        <Text>Hey {"{{ firstName }}"},</Text>
-        <Text>Welcome aboard. Here's what to do next...</Text>
-        <Button href={"{{ dashboardUrl }}"}>Go to dashboard</Button>
-        <Link href={"{{ unsubscribeUrl }}"}>Unsubscribe</Link>
-      </Body>
-    </Html>
-  );
-}
+```html
+<h1>Hey {{ firstName }},</h1>
+<p>Welcome aboard. Here's what to do next...</p>
+<a href="{{ dashboardUrl }}">Go to dashboard</a>
+<a href="{{ unsubscribeUrl }}">Unsubscribe</a>
 ```
+
+The scaffolded project uses React Email by default, but you can swap it out or just drop in `.html` files directly.
 
 ## Getting started
 
-### 1. Create a new project
+This repo is the framework source. To start building email sequences with mailshot:
 
 ```bash
 npx create-mailshot my-project
 cd my-project
-```
-
-### 2. Open Claude Code
-
-```bash
 claude
 ```
 
-```
-You:  "Set up my environment"
-      Claude discovers your AWS resources, writes .env, registers the MCP server.
+That scaffolds a new project with everything wired up — CDK infrastructure, sequence auto-discovery, and Claude Code skills for the full workflow.
 
-You:  "Create a 3-part welcome sequence triggered by customer.created"
-      Claude generates the sequence config, React Email templates, and build files.
+## Skills
 
-You:  "Deploy"
-      Claude validates, builds, and deploys to AWS.
-```
+Scaffolded projects ship with four Claude Code skills that handle the core workflow. You don't invoke these explicitly — just describe what you want and Claude uses the right one.
+
+| Skill                 | What it does                                                                     | Example prompt                                                   |
+| --------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **setup-env**         | Discovers AWS resources, writes `.env`, registers the MCP server                 | "Set up my environment"                                          |
+| **create-sequence**   | Generates sequence config, email templates, and render script from a description | "Create a 3-part welcome sequence triggered by customer.created" |
+| **deploy**            | Validates all sequences, builds everything, deploys to AWS                       | "Deploy"                                                         |
+| **validate-sequence** | Checks config, template references, types, and CDK synthesis                     | "Validate the onboarding sequence"                               |
 
 ## MCP tools
 
@@ -176,7 +172,9 @@ Once connected, Claude Code has access to:
 
 **System** failed executions, delivery stats
 
-## Project structure
+## Framework structure
+
+This repo contains the framework packages published to npm. User projects created with `npx create-mailshot` depend on these.
 
 ```
 packages/
@@ -184,7 +182,7 @@ packages/
   handlers/     Five Lambda functions + shared lib modules
   cdk/          AWS CDK infrastructure
   mcp/          MCP server for Claude Code
-  create/       CLI scaffolder
+  create/       CLI scaffolder (npx create-mailshot)
 examples/
   hello-world/  Starter templates and example sequence
 ```
@@ -198,12 +196,7 @@ examples/
 
 ## Contributing
 
-```bash
-git clone git@github.com:mdwt/mailshot.git
-cd mailshot
-pnpm install
-pnpm -r build
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Cost
 
