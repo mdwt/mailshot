@@ -1,5 +1,11 @@
 # create-mailshot
 
+## 0.4.0
+
+### Minor Changes
+
+- [`c6e982d`](https://github.com/mdwt/mailshot/commit/c6e982de16b546ce00292c90ba5d736efa99823a) Thanks [@mdwt](https://github.com/mdwt)! - Use dotenv-cli in scaffolded projects to load .env before CDK commands
+
 ## 0.2.9
 
 ### Patch Changes
