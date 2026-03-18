@@ -15,11 +15,12 @@
 
 ## What is mailshot?
 
-mailshot is a serverless email sequencing framework built on AWS. It handles onboarding drips, event-triggered sequences, and transactional emails.
+mailshot is a serverless email sequencing framework built on AWS. It handles event-triggered sequences like onboarding drips
+and evergreen mailers, all serverless and managed by AI.
 
-The entire management layer is Claude Code via a custom MCP server. Designing sequences, managing subscribers, checking engagement, deploying infrastructure. All of it through conversation.
+Designing sequences, deploying infrastructure, managing subscribers, checking engagement. All of it through conversation.
 
-You describe what you want. Claude Code generates the sequence config, the templates, validates everything, and deploys it to your AWS account.
+You describe what you want, Claude Code generates the sequence config, the templates, validates everything, and deploys it to your AWS account.
 
 ```
 You:  "Create a 3-part re-engagement sequence for users inactive for 30 days."
@@ -37,13 +38,13 @@ You:  "Deploy"
 
 ## Why?
 
-Email platforms charge $30 to $300/month based on subscriber count for infrastructure that costs a few dollars to run. That's the obvious part.
+Cost, convenience and effeciency.
 
-The less obvious part is the workflow. Configuring sequences on existing platforms means clicking through dated UIs, dragging blocks around, navigating dashboards built ten years ago. Every change is slower than it should be.
+- Email platforms charge $30 to $300/month based on subscriber count for infrastructure that costs a few dollars to run.
+- Configuring sequences on platforms means clicking through dated UIs, dragging blocks around, navigating dashboards built ten years ago.
+- You're already using AI to write email copy, design templates, and plan sequences, it makes sense to have the entire workflow in one place.
 
-If you're already using AI to write email copy, design templates, and plan sequences, it makes sense to have the entire workflow in one place. mailshot puts sequencing, subscriber management, engagement analytics, and deployment all inside Claude Code. When everything lives in AI, the things you can do with it compound. You're not copying output from one tool and pasting it into another.
-
-mailshot runs on your AWS account. Pay-per-use pricing. Under $5/month at 1,000 subscribers.
+Costs are low, you only pay for a few lambda executions and SES sends - i.e. $5/month at 1,000 subscribers. SES charges $0.10 per 1,000 emails. DynamoDB, Lambda, and Step Functions costs are negligible at that scale. Pay-per-use only.
 
 | Subscribers | mailshot | Typical email platform |
 | ----------- | -------- | ---------------------- |
@@ -195,10 +196,6 @@ packages/
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Cost
-
-Under $5/month at 1,000 subscribers. SES charges $0.10 per 1,000 emails. DynamoDB, Lambda, and Step Functions costs are negligible at that scale. Pay-per-use only.
 
 ## License
 
