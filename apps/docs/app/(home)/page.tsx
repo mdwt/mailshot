@@ -12,6 +12,7 @@ export default function HomePage() {
       <Architecture />
       <Packages />
       <CTA />
+      <Footer />
     </main>
   );
 }
@@ -449,6 +450,25 @@ function CTA() {
         </div>
       </div>
     </section>
+  );
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+
+function Footer() {
+  return (
+    <footer className="border-t border-fd-border/50 py-8 text-center text-sm text-fd-muted-foreground">
+      <p>
+        Made with ❤️ and ☕ by{" "}
+        <a
+          href="https://github.com/mdwt"
+          className="font-medium text-fd-foreground underline-offset-4 hover:underline"
+        >
+          @mdwt
+        </a>
+      </p>
+      <p className="mt-1">Free and open source, forever.</p>
+    </footer>
   );
 }
 
