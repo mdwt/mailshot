@@ -1,1 +1,1 @@
-{ "app": "npx tsx bin/app.ts" }
+{ "app": "npx tsx bin/app.ts", "output": "build/cdk.out" }
