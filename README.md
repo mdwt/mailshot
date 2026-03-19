@@ -1,5 +1,6 @@
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/20ea65a4-c2e7-44ee-9c1d-eb9cbd1e0dd8" alt="mailshot banner" width="800" />
+<div align="center"><img width="800"  alt="mailshot banner" src="https://github.com/user-attachments/assets/cc20b75f-68b0-49d7-a3e5-43f187e9244b" />
+
+
   <p align="center">
     <img src="https://img.shields.io/badge/AWS-Step%20Functions-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" />
     <img src="https://img.shields.io/badge/AWS-SES-FF9900?logo=amazonaws&logoColor=white&style=for-the-badge" />
