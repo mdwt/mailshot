@@ -1,3 +1,8 @@
+---
+description: Deploy the full stack to AWS. Use when the user wants to deploy, ship, push to AWS, run CDK deploy, or go live. Trigger phrases: "deploy", "ship it", "push to AWS", "deploy to AWS", "cdk deploy", "go live".
+disable-model-invocation: true
+---
+
 # Deploy
 
 Full deployment workflow: validate all sequences, build everything, generate all artifacts into `build/`, verify with the user, and deploy to AWS.

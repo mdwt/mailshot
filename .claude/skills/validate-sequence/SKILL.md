@@ -1,3 +1,7 @@
+---
+description: Validate email sequence configs for correctness. Use when the user wants to check, validate, verify, or lint a sequence config. Trigger phrases: "validate sequence", "check my sequence", "is my sequence config correct", "verify the config".
+---
+
 # Validate Sequence
 
 Validate that a sequence config is correct — checks types, required fields, template references, and CDK synthesis.

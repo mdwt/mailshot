@@ -1,3 +1,7 @@
+---
+description: Import an existing deployed sequence from AWS into local code. Use when the user wants to import, pull, download, or reconstruct a sequence from a live deployment. Trigger phrases: "import sequence", "pull sequence from AWS", "download sequence", "reconstruct sequence".
+---
+
 # Import Sequence
 
 Import a deployed sequence from AWS — reconstructs `sequence.config.ts`, HTML templates, and supporting files from live Step Functions + S3 + EventBridge resources.

@@ -1,5 +1,22 @@
 # @mailshot/handlers
 
+## 1.0.1
+
+### Patch Changes
+
+- Fix circular dependency in CDK deploy caused by UnsubscribeFn referencing its own Function URL
+
+## 1.0.0
+
+### Major Changes
+
+- Remove SSM Parameter Store in favour of Lambda environment variables for all runtime config
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @mailshot/shared@1.0.0
+
 ## 0.3.0
 
 ### Minor Changes

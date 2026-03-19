@@ -1,5 +1,11 @@
 # @mailshot/shared
 
+## 1.0.0
+
+### Major Changes
+
+- Remove SSM Parameter Store in favour of Lambda environment variables for all runtime config
+
 ## 0.2.3
 
 ### Patch Changes

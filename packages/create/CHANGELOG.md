@@ -1,5 +1,11 @@
 # create-mailshot
 
+## 1.0.0
+
+### Major Changes
+
+- Remove SSM Parameter Store in favour of Lambda environment variables for all runtime config
+
 ## 0.4.0
 
 ### Minor Changes

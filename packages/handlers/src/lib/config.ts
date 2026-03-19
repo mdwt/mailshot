@@ -27,7 +27,7 @@ export function resolveConfig(): ResolvedConfig {
     defaultFromName: required("DEFAULT_FROM_NAME"),
     replyToEmail: process.env.REPLY_TO_EMAIL ?? "",
     sesConfigSet: required("SES_CONFIG_SET"),
-    unsubscribeBaseUrl: required("UNSUBSCRIBE_BASE_URL"),
+    unsubscribeBaseUrl: process.env.UNSUBSCRIBE_BASE_URL ?? "",
     unsubscribeSecret: required("UNSUBSCRIBE_SECRET"),
   };
 }

@@ -130,9 +130,8 @@ export class LambdasConstruct extends Construct {
     });
     this.unsubscribeFnUrl = fnUrl.url;
 
-    // Set UNSUBSCRIBE_BASE_URL after the function URL is created
+    // Only SendEmailFn needs the unsubscribe URL (to generate links in emails)
     this.sendEmailFn.addEnvironment("UNSUBSCRIBE_BASE_URL", fnUrl.url);
-    this.unsubscribeFn.addEnvironment("UNSUBSCRIBE_BASE_URL", fnUrl.url);
 
     // ── BounceHandlerFn ────────────────────────────────────────────────
     this.bounceHandlerFn = new nodejs.NodejsFunction(this, "BounceHandlerFn", {

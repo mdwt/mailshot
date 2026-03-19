@@ -1,3 +1,7 @@
+---
+description: Interactive wizard to configure the .env file with AWS credentials and resource names. Use when the user wants to set up the environment, configure AWS, create a .env file, or connect to AWS. Trigger phrases: "setup env", "configure AWS", "set up environment", "create .env", "connect to AWS".
+---
+
 # Setup Environment
 
 Interactive setup wizard that configures the `.env` file by discovering AWS resources from a chosen profile. Queries STS, SES, and SNS to auto-populate account ID, region, verified domains, from addresses, and configuration sets.

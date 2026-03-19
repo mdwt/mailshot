@@ -1,3 +1,7 @@
+---
+description: Create a new email sequence with templates and config. Use when the user wants to create, add, build, or set up a new email sequence, drip campaign, onboarding flow, or any series of automated emails. Trigger phrases: "create a sequence", "add a sequence", "new sequence", "build an email flow", "set up emails", "I want to create a sequence", "make a drip campaign".
+---
+
 # Create Sequence
 
 Create a complete email sequence from a natural language description — generates a sequence config, React Email templates, and render script. Zero framework code changes needed. The CDK auto-discovers sequences from `sequences/*/sequence.config.ts`.

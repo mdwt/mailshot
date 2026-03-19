@@ -75,4 +75,20 @@ describe("resolveConfig", () => {
 
     expect(config.replyToEmail).toBe("");
   });
+
+  it("defaults unsubscribeBaseUrl to empty string when not set", async () => {
+    process.env.TABLE_NAME = "MainTable";
+    process.env.EVENTS_TABLE_NAME = "EventsTable";
+    process.env.TEMPLATE_BUCKET = "my-bucket";
+    process.env.DEFAULT_FROM_EMAIL = "noreply@example.com";
+    process.env.DEFAULT_FROM_NAME = "Example";
+    process.env.SES_CONFIG_SET = "my-config-set";
+    process.env.UNSUBSCRIBE_SECRET = "secret123";
+    delete process.env.UNSUBSCRIBE_BASE_URL;
+
+    const resolveConfig = await loadResolveConfig();
+    const config = resolveConfig();
+
+    expect(config.unsubscribeBaseUrl).toBe("");
+  });
 });
