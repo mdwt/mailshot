@@ -76,7 +76,7 @@ Report the full list of templateKeys found.
 
 ### Step 5: Check template HTML files exist
 
-For each templateKey, check that `templates/<templateKey>.html` exists. Report any missing templates. If templates are missing, suggest running the sequence's render script:
+For each templateKey, check that `build/<sequenceId>/templates/<templateKey>.html` exists. Report any missing templates. If templates are missing, suggest building the sequence first:
 
 ```
 pnpm --filter @mailshot/<sequenceId> build

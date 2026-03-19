@@ -2,13 +2,22 @@
 
 A [mailshot](https://github.com/mdwt/mailshot) project — serverless email sequences on AWS, managed through Claude Code.
 
-## Commands
+## Workflow
+
+This project is managed through Claude Code skills. When the user asks to deploy, create sequences, validate, etc., always use the corresponding skill — never run raw commands like `pnpm deploy` or `npx cdk deploy` directly.
+
+- `/setup-env` — configure AWS credentials and `.env` file
+- `/create-sequence` — scaffold a new email sequence from a description
+- `/validate-sequence` — check sequence configs, templates, types, and CDK synth
+- `/deploy` — full deployment workflow (validate → build → confirm → deploy to AWS)
+
+### Build commands (used internally by skills)
 
 ```bash
 pnpm build                    # Build all sequences (compiles TS + renders templates to build/)
 pnpm typecheck                # Typecheck all packages
 pnpm synth                    # Synthesize CloudFormation (loads .env automatically)
-pnpm deploy                   # Deploy to AWS (loads .env automatically)
+pnpm run cdk:deploy           # CDK deploy to AWS (loads .env automatically)
 ```
 
 Single sequence:
@@ -62,4 +71,6 @@ See `@mailshot/shared` for the full `SequenceDefinition` type.
 - TypeScript strict mode, target ES2022, Node 22 runtime
 - Sequence packages use `@mailshot/<sequenceId>` naming and `workspace:*` for shared deps
 - The CDK stack reads all config from `.env` — no hardcoded values in `bin/app.ts`
-- `pnpm synth` and `pnpm deploy` load `.env` automatically via `dotenv-cli` — never run `npx cdk` directly
+- `pnpm synth` and `pnpm run cdk:deploy` load `.env` automatically via `dotenv-cli` — never run `npx cdk` directly
+- IMPORTANT: `pnpm deploy` is a built-in pnpm command (not a script) and will fail. Use `pnpm run cdk:deploy` for raw CDK deploy, or better yet, use the `/deploy` skill which validates, builds, and confirms first
+- When the user says "deploy", always use the `/deploy` skill — never run `pnpm deploy` or `pnpm run cdk:deploy` directly

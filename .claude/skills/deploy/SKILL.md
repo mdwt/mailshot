@@ -1,5 +1,5 @@
 ---
-description: Deploy the full stack to AWS. Use when the user wants to deploy, ship, push to AWS, run CDK deploy, or go live. Trigger phrases: "deploy", "ship it", "push to AWS", "deploy to AWS", "cdk deploy", "go live".
+description: Deploy the full stack to AWS. ALWAYS use this skill when the user says "deploy" — never run `pnpm deploy` or `npx cdk deploy` directly. Trigger phrases: "deploy", "deploy onboarding", "ship it", "push to AWS", "deploy to AWS", "cdk deploy", "go live", "deploy <sequenceId>".
 disable-model-invocation: true
 ---
 

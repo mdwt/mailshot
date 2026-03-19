@@ -1,5 +1,5 @@
 ---
-description: Deploy the full stack to AWS. Use when the user wants to deploy, ship, push to AWS, run CDK deploy, or go live. Trigger phrases: "deploy", "ship it", "push to AWS", "deploy to AWS", "cdk deploy", "go live".
+description: Deploy the full stack to AWS. ALWAYS use this skill when the user says "deploy" — never run `pnpm deploy` or `npx cdk deploy` directly. Trigger phrases: "deploy", "deploy onboarding", "ship it", "push to AWS", "deploy to AWS", "cdk deploy", "go live", "deploy <sequenceId>".
 disable-model-invocation: true
 ---
 
@@ -69,10 +69,10 @@ Only proceed after the user confirms.
 ### Phase 6: Deploy
 
 ```bash
-pnpm deploy
+pnpm run cdk:deploy
 ```
 
-This loads `.env` automatically (including `AWS_PROFILE`) via `dotenv-cli`. Never run `npx cdk deploy` directly.
+This loads `.env` automatically (including `AWS_PROFILE`) via `dotenv-cli`. Never run `npx cdk deploy` or `pnpm deploy` directly (`pnpm deploy` is a built-in pnpm command and will fail).
 
 This command handles everything:
 
@@ -81,7 +81,6 @@ This command handles everything:
 - Creates/updates Step Functions state machines
 - Creates/updates EventBridge rules
 - Uploads all rendered HTML templates to S3 (via CDK BucketDeployment from `build/<sequenceId>/templates/`)
-- Updates SSM parameters
 - Updates SES configuration
 
 ### Phase 7: Post-deploy verification
