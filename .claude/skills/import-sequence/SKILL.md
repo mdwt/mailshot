@@ -4,7 +4,7 @@ description: Import an existing deployed sequence from AWS into local code. Use 
 
 # Import Sequence
 
-Import a deployed sequence from AWS — reconstructs `sequence.config.ts`, HTML templates, and supporting files from live Step Functions + S3 + EventBridge resources.
+Import a deployed sequence from AWS - reconstructs `sequence.config.ts`, HTML templates, and supporting files from live Step Functions + S3 + EventBridge resources.
 
 ## Usage
 
@@ -39,9 +39,9 @@ Check if `sequences/<sequenceId>/` already exists locally. If it does, warn the 
 
 Call the `export_sequence` MCP tool with the selected `sequenceId`. This returns:
 
-- `definition` — the `SequenceDefinition` object (trigger, steps, events, timeoutMinutes)
-- `templates` — array of `{ key, html }` pairs from S3
-- `warnings` — any issues encountered during export
+- `definition` - the `SequenceDefinition` object (trigger, steps, events, timeoutMinutes)
+- `templates` - array of `{ key, html }` pairs from S3
+- `warnings` - any issues encountered during export
 
 Display any warnings to the user.
 
@@ -74,7 +74,7 @@ Create the following files:
 }
 ```
 
-Note: No React Email dependencies or `dev` script — imported templates are plain HTML, not `.tsx`.
+Note: No React Email dependencies or `dev` script - imported templates are plain HTML, not `.tsx`.
 
 **`sequences/<sequenceId>/tsconfig.json`:**
 
@@ -182,4 +182,4 @@ Summarize what was imported:
 - Number of templates imported
 - Number of fire-and-forget events (if any)
 - Any warnings from the export
-- Remind the user that templates are HTML (not React Email `.tsx`) — they work for deployment but can't use `email dev`. They can be manually converted to React Email later.
+- Remind the user that templates are HTML (not React Email `.tsx`) - they work for deployment but can't use `email dev`. They can be manually converted to React Email later.

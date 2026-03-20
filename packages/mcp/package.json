@@ -1,7 +1,7 @@
 {
   "name": "@mailshot/mcp",
   "version": "1.0.3",
-  "description": "MCP server for mailshot — subscriber management, engagement analytics, and system health",
+  "description": "MCP server for mailshot - subscriber management, engagement analytics, and system health",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",

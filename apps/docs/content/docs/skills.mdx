@@ -34,16 +34,16 @@ Interactive wizard that configures the `.env` file by discovering real AWS resou
 Generates a complete email sequence from a natural language description.
 
 ```
-/create-sequence A trial expiring sequence triggered by trial.expiring — send a
+/create-sequence A trial expiring sequence triggered by trial.expiring - send a
 "trial ending soon" email immediately, then a "last chance" email after 2 days,
 then a "trial expired" email after 3 more days
 ```
 
 **What it generates:**
 
-- `sequences/<sequenceId>/sequence.config.ts` — Step definitions
-- `sequences/<sequenceId>/src/emails/*.tsx` — React Email templates
-- `sequences/<sequenceId>/src/render.ts` — Build script
+- `sequences/<sequenceId>/sequence.config.ts` - Step definitions
+- `sequences/<sequenceId>/src/emails/*.tsx` - React Email templates
+- `sequences/<sequenceId>/src/render.ts` - Build script
 - `sequences/<sequenceId>/package.json` and `tsconfig.json`
 
 **What you don't need to edit:**
@@ -52,11 +52,11 @@ then a "trial expired" email after 3 more days
 
 **Step types it supports:**
 
-- `send` — Email with template and subject
-- `wait` — Delay (days, hours, minutes)
-- `choice` — Branch on subscriber attributes (native Step Functions)
-- `condition` — Lambda-based DynamoDB check (has_been_sent, field_exists, field_equals)
-- `events` — Fire-and-forget emails triggered during the sequence
+- `send` - Email with template and subject
+- `wait` - Delay (days, hours, minutes)
+- `choice` - Branch on subscriber attributes (native Step Functions)
+- `condition` - Lambda-based DynamoDB check (has_been_sent, field_exists, field_equals)
+- `events` - Fire-and-forget emails triggered during the sequence
 
 ### /validate-sequence
 
@@ -122,7 +122,7 @@ Describe a sequence in English
 MCP tools ──→ manage subscribers, query engagement, preview templates
 ```
 
-No code editor needed. No AWS console needed. No email SaaS dashboard needed. You describe what you want, Claude generates the code, validates it, deploys it, and then manages it — all through conversation.
+No code editor needed. No AWS console needed. No email SaaS dashboard needed. You describe what you want, Claude generates the code, validates it, deploys it, and then manages it - all through conversation.
 
 ## How skills work
 

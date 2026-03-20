@@ -71,7 +71,7 @@ async function handleRegister(
   // Guard: don't start a sequence for unsubscribed or suppressed subscribers
   const profile = await getSubscriberProfile(config.tableName, event.subscriber.email);
   if (profile?.unsubscribed) {
-    logger.info("Skipping registration — subscriber unsubscribed", {
+    logger.info("Skipping registration - subscriber unsubscribed", {
       email: event.subscriber.email,
       sequenceId: event.sequenceId,
     });
@@ -80,7 +80,7 @@ async function handleRegister(
     );
   }
   if (profile?.suppressed) {
-    logger.info("Skipping registration — subscriber suppressed", {
+    logger.info("Skipping registration - subscriber suppressed", {
       email: event.subscriber.email,
       sequenceId: event.sequenceId,
     });
@@ -141,11 +141,11 @@ async function handleSend(
 
   // Pre-send checks
   if (profile?.unsubscribed) {
-    logger.info("Skipping send — subscriber unsubscribed", { email: event.subscriber.email });
+    logger.info("Skipping send - subscriber unsubscribed", { email: event.subscriber.email });
     return { sent: false, reason: "unsubscribed" };
   }
   if (profile?.suppressed) {
-    logger.info("Skipping send — subscriber suppressed", { email: event.subscriber.email });
+    logger.info("Skipping send - subscriber suppressed", { email: event.subscriber.email });
     return { sent: false, reason: "suppressed" };
   }
 

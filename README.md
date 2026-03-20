@@ -73,7 +73,7 @@ Your App → EventBridge → Step Functions → Lambda → SES → Recipient
 
 ## Sequences as code
 
-Describe the sequence you want and Claude Code generates the full config — triggers, steps, delays, branches, and email templates. The output is a structured definition you can read, diff, and review.
+Describe the sequence you want and Claude Code generates the full config - triggers, steps, delays, branches, and email templates. The output is a structured definition you can read, diff, and review.
 
 ```typescript
 import type { SequenceDefinition } from "@mailshot/shared";
@@ -124,7 +124,7 @@ export default {
 } satisfies SequenceDefinition;
 ```
 
-Templates are HTML files with [LiquidJS](https://liquidjs.com/) for runtime variables. Use whatever you want to produce the HTML — React Email, MJML, Handlebars, raw HTML, a drag-and-drop builder. mailshot doesn't care.
+Templates are HTML files with [LiquidJS](https://liquidjs.com/) for runtime variables. Use whatever you want to produce the HTML - React Email, MJML, Handlebars, raw HTML, a drag-and-drop builder. mailshot doesn't care.
 It stores your `.html` in S3 and renders Liquid placeholders (`{{ firstName }}`, `{{ unsubscribeUrl }}`, conditionals, loops, filters) at send time.
 
 ```html
@@ -146,11 +146,11 @@ cd my-project
 claude
 ```
 
-That scaffolds a new project with everything wired up — CDK infrastructure, sequence auto-discovery, and Claude Code skills for the full workflow.
+That scaffolds a new project with everything wired up - CDK infrastructure, sequence auto-discovery, and Claude Code skills for the full workflow.
 
 ## Skills
 
-Scaffolded projects ship with four Claude Code skills that handle the core workflow. You don't invoke these explicitly — just describe what you want and Claude uses the right one.
+Scaffolded projects ship with four Claude Code skills that handle the core workflow. You don't invoke these explicitly - just describe what you want and Claude uses the right one.
 
 | Skill                 | What it does                                                                     | Example prompt                                                   |
 | --------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- |

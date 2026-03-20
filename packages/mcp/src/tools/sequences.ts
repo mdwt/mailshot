@@ -192,7 +192,7 @@ function parseSteps(
       continue;
     }
 
-    // Structural states — skip/break
+    // Structural states - skip/break
     if (
       name.includes("Complete") ||
       name.includes("Done") ||
@@ -202,7 +202,7 @@ function parseSteps(
       break;
     }
 
-    // Unknown state — skip
+    // Unknown state - skip
     current = state.Next;
   }
 
@@ -428,7 +428,7 @@ export async function exportSequence(
             subscriberMapping = parsed;
           } else {
             warnings.push(
-              "Could not fully parse EventBridge input transformer — using default subscriber mapping",
+              "Could not fully parse EventBridge input transformer - using default subscriber mapping",
             );
           }
         }

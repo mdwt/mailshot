@@ -18,7 +18,7 @@ All subscriber data (emails, names, custom attributes) is stored in clear text i
 
 ### S3 templates
 
-The template bucket uses SSE-S3 (AWS-managed server-side encryption) with all public access blocked. Templates contain HTML with Liquid placeholders — no subscriber PII.
+The template bucket uses SSE-S3 (AWS-managed server-side encryption) with all public access blocked. Templates contain HTML with Liquid placeholders - no subscriber PII.
 
 ### Data in transit
 
@@ -26,7 +26,7 @@ All AWS SDK calls use HTTPS by default. No additional configuration needed.
 
 ## IAM permissions
 
-Every Lambda function follows least-privilege — each gets only the actions and resources it needs. No function has `dynamodb:*` or `s3:*`.
+Every Lambda function follows least-privilege - each gets only the actions and resources it needs. No function has `dynamodb:*` or `s3:*`.
 
 ### SendEmailFn
 
@@ -35,7 +35,7 @@ Every Lambda function follows least-privilege — each gets only the actions and
 | `dynamodb:GetItem`, `PutItem`, `UpdateItem`, `Query` | Main table |
 | `s3:GetObject` | Template bucket |
 | `ses:SendEmail` | SES identity ARNs and configuration set |
-| `states:StopExecution` | All execution ARNs (required — execution ARNs contain random IDs) |
+| `states:StopExecution` | All execution ARNs (required - execution ARNs contain random IDs) |
 | `states:DescribeStateMachine`, `ListExecutions` | Sequence state machine ARNs |
 | `states:DescribeExecution`, `GetExecutionHistory` | Execution ARNs under sequence state machines |
 
@@ -72,7 +72,7 @@ Every Lambda function follows least-privilege — each gets only the actions and
 | Feature | Status |
 | --- | --- |
 | **Point-in-time recovery** | Enabled on both tables |
-| **Removal policy** | `RETAIN` — tables persist if the CloudFormation stack is deleted |
+| **Removal policy** | `RETAIN` - tables persist if the CloudFormation stack is deleted |
 | **Send log TTL** | 90 days (automatic cleanup) |
 | **Engagement event TTL** | 365 days (automatic cleanup) |
 
@@ -86,22 +86,22 @@ Lambda functions run in the default Lambda execution environment (no VPC). If yo
 2. Add a DynamoDB **gateway VPC endpoint**
 3. Add an S3 gateway endpoint
 
-This is not required for most deployments — all SDK traffic already uses HTTPS.
+This is not required for most deployments - all SDK traffic already uses HTTPS.
 
 ## GDPR and data deletion
 
 Mailshot stores subscriber PII (email, first name, custom attributes) in DynamoDB. To support data subject access requests:
 
-- **Delete a subscriber** — Use the `delete_subscriber` MCP tool or call the DynamoDB delete operations directly. This removes the profile, all execution records, and send logs.
-- **Engagement events** — The Events table has a 365-day TTL. For immediate deletion, query by `PK = SUB#{email}` and delete all matching items.
-- **SES suppression list** — Use the `remove_suppression` MCP tool to remove an email from the account-level suppression list.
+- **Delete a subscriber** - Use the `delete_subscriber` MCP tool or call the DynamoDB delete operations directly. This removes the profile, all execution records, and send logs.
+- **Engagement events** - The Events table has a 365-day TTL. For immediate deletion, query by `PK = SUB#{email}` and delete all matching items.
+- **SES suppression list** - Use the `remove_suppression` MCP tool to remove an email from the account-level suppression list.
 
 ## What not to store
 
-Subscriber attributes are flexible — any key-value pair can be stored as a top-level DynamoDB column. However, do not store:
+Subscriber attributes are flexible - any key-value pair can be stored as a top-level DynamoDB column. However, do not store:
 
-- **Payment data** (card numbers, bank accounts) — use a PCI-compliant vault
-- **Passwords or secrets** — these belong in Cognito, Auth0, or similar
-- **Health information** — requires HIPAA-compliant storage with BAA
+- **Payment data** (card numbers, bank accounts) - use a PCI-compliant vault
+- **Passwords or secrets** - these belong in Cognito, Auth0, or similar
+- **Health information** - requires HIPAA-compliant storage with BAA
 
 Subscriber attributes are meant for personalization and segmentation: platform, country, plan, signup date, etc.

@@ -88,7 +88,7 @@ export async function upsertSubscriberProfile(
     attributeCount: Object.keys(attrs).length,
   });
 
-  // Build SET expressions — never overwrite unsubscribed or suppressed
+  // Build SET expressions - never overwrite unsubscribed or suppressed
   const expressionParts = ["email = :email", "firstName = :firstName", "updatedAt = :updatedAt"];
   const expressionValues: Record<string, unknown> = {
     ":email": subscriber.email,

@@ -4,7 +4,7 @@ description: Create a new email sequence with templates and config. Use when the
 
 # Create Sequence
 
-Create a complete email sequence from a natural language description — generates a sequence config, React Email templates, and render script. Zero framework code changes needed. The CDK auto-discovers sequences from `sequences/*/sequence.config.ts`.
+Create a complete email sequence from a natural language description - generates a sequence config, React Email templates, and render script. Zero framework code changes needed. The CDK auto-discovers sequences from `sequences/*/sequence.config.ts`.
 
 ## Usage
 
@@ -12,7 +12,7 @@ Create a complete email sequence from a natural language description — generat
 /create-sequence <description of your email sequence>
 ```
 
-Example: `/create-sequence A trial expiring sequence triggered by trial.expiring — send a "trial ending soon" email immediately, then a "last chance" email after 2 days, then a "trial expired" email after 3 more days`
+Example: `/create-sequence A trial expiring sequence triggered by trial.expiring - send a "trial ending soon" email immediately, then a "last chance" email after 2 days, then a "trial expired" email after 3 more days`
 
 ## Instructions
 
@@ -22,18 +22,18 @@ You are generating all the code needed to deploy a new email sequence. Follow th
 
 Extract from the user's description:
 
-- **sequenceId** — unique kebab-case ID (e.g., `trial-expiring`, `onboarding`)
-- **triggerEvent** — EventBridge detail-type (e.g., `trial.expiring`, `customer.created`)
-- **subscriberMapping** — how to extract subscriber fields from the event (defaults to `$.detail.email`, `$.detail.firstName`, `$.detail` for attributes)
-- **timeoutMinutes** — how long the Step Function execution can run before timing out
-- **emails** — ordered list, each with:
-  - `templateName` — kebab-case slug (e.g., `trial-ending-soon`)
-  - `subject` — email subject line
-  - `previewText` — preview/preheader text
-  - `body` — paragraphs and content for the email body
-  - `delayBefore` — delay before this email (`0` for immediate, or e.g. `2 days`, `1 week`)
-- **branching** (optional) — any choice/condition logic (e.g., "different welcome email per platform", "skip if already sent")
-- **events** (optional) — one-off fire-and-forget emails triggered by events during the sequence (e.g., "send congrats on first sale")
+- **sequenceId** - unique kebab-case ID (e.g., `trial-expiring`, `onboarding`)
+- **triggerEvent** - EventBridge detail-type (e.g., `trial.expiring`, `customer.created`)
+- **subscriberMapping** - how to extract subscriber fields from the event (defaults to `$.detail.email`, `$.detail.firstName`, `$.detail` for attributes)
+- **timeoutMinutes** - how long the Step Function execution can run before timing out
+- **emails** - ordered list, each with:
+  - `templateName` - kebab-case slug (e.g., `trial-ending-soon`)
+  - `subject` - email subject line
+  - `previewText` - preview/preheader text
+  - `body` - paragraphs and content for the email body
+  - `delayBefore` - delay before this email (`0` for immediate, or e.g. `2 days`, `1 week`)
+- **branching** (optional) - any choice/condition logic (e.g., "different welcome email per platform", "skip if already sent")
+- **events** (optional) - one-off fire-and-forget emails triggered by events during the sequence (e.g., "send congrats on first sale")
 
 If any of these are missing or ambiguous, ask the user to clarify before generating code. Present your parsed interpretation to the user and confirm before proceeding.
 
@@ -92,7 +92,7 @@ Create `sequences/<sequenceId>/` with the following files. Pay attention to exac
 
 ### Step 3: Create `sequence.config.ts`
 
-**CRITICAL:** This file MUST be at `sequences/<sequenceId>/sequence.config.ts` — NOT inside `src/`. CDK auto-discovers sequences by looking for `sequences/*/sequence.config.ts` at the sequence root. If it's inside `src/`, CDK won't find it and no state machine will be created.
+**CRITICAL:** This file MUST be at `sequences/<sequenceId>/sequence.config.ts` - NOT inside `src/`. CDK auto-discovers sequences by looking for `sequences/*/sequence.config.ts` at the sequence root. If it's inside `src/`, CDK won't find it and no state machine will be created.
 
 The config must satisfy the `SequenceDefinition` type from `@mailshot/shared`. Here is the full shape:
 
@@ -128,13 +128,13 @@ export default {
 
 #### Step types
 
-**Send** — sends an email via the SendEmailFn Lambda:
+**Send** - sends an email via the SendEmailFn Lambda:
 
 ```typescript
 { type: "send", templateKey: `${id}/<templateName>`, subject: "..." }
 ```
 
-**Wait** — pauses the Step Function execution:
+**Wait** - pauses the Step Function execution:
 
 ```typescript
 { type: "wait", days: 2 }
@@ -142,7 +142,7 @@ export default {
 { type: "wait", minutes: 30 }
 ```
 
-**Choice** — native Step Functions branching on a field in the execution input. No Lambda invocation — evaluated directly in the state machine. Use this for branching on subscriber attributes passed in via the event:
+**Choice** - native Step Functions branching on a field in the execution input. No Lambda invocation - evaluated directly in the state machine. Use this for branching on subscriber attributes passed in via the event:
 
 ```typescript
 {
@@ -156,9 +156,9 @@ export default {
 }
 ```
 
-Choices can be nested (e.g., branch on platform, then on country within each platform). All branches converge automatically — steps after a choice run for all branches.
+Choices can be nested (e.g., branch on platform, then on country within each platform). All branches converge automatically - steps after a choice run for all branches.
 
-**Condition** — Lambda-based check that queries DynamoDB. Use this only when the data isn't in the execution input (e.g., checking send history or subscriber profile fields that changed after the sequence started):
+**Condition** - Lambda-based check that queries DynamoDB. Use this only when the data isn't in the execution input (e.g., checking send history or subscriber profile fields that changed after the sequence started):
 
 ```typescript
 {
@@ -172,9 +172,9 @@ Choices can be nested (e.g., branch on platform, then on country within each pla
 
 Available checks:
 
-- `has_been_sent` — requires `templateKey`. True if the subscriber has already been sent this template.
-- `subscriber_field_exists` — requires `field`. True if the field exists on the subscriber's DynamoDB profile attributes.
-- `subscriber_field_equals` — requires `field` and `value`. True if the profile attribute matches the value.
+- `has_been_sent` - requires `templateKey`. True if the subscriber has already been sent this template.
+- `subscriber_field_exists` - requires `field`. True if the field exists on the subscriber's DynamoDB profile attributes.
+- `subscriber_field_equals` - requires `field` and `value`. True if the profile attribute matches the value.
 
 **When to use `choice` vs `condition`:** Use `choice` for branching on data that's available in the execution input (subscriber attributes from the triggering event). Use `condition` only when you need to query DynamoDB at runtime (send history, profile changes after sequence start).
 
@@ -191,7 +191,7 @@ If using React Email:
 
 ### Step 5: Create render script
 
-Create `sequences/<sequenceId>/src/render.ts`. The `OUT_DIR` MUST be derived from the sequence config's `id` field — never hardcode the sequence ID in the path. Use `__dirname` to resolve relative to the file, not `process.cwd()`:
+Create `sequences/<sequenceId>/src/render.ts`. The `OUT_DIR` MUST be derived from the sequence config's `id` field - never hardcode the sequence ID in the path. Use `__dirname` to resolve relative to the file, not `process.cwd()`:
 
 ```typescript
 import config from "../sequence.config.js";
@@ -199,7 +199,7 @@ import config from "../sequence.config.js";
 const OUT_DIR = path.join(__dirname, `../../../build/${config.id}/templates`);
 ```
 
-This ensures renaming a sequence only requires changing the `id` in `sequence.config.ts` — the render script picks it up automatically.
+This ensures renaming a sequence only requires changing the `id` in `sequence.config.ts` - the render script picks it up automatically.
 
 ### Step 6: Install and verify
 
@@ -214,7 +214,7 @@ All commands must succeed before the skill is complete.
 
 ### What you do NOT need to edit
 
-- `packages/cdk/lib/constructs/state-machines.ts` — auto-discovers sequences
-- `packages/cdk/lib/constructs/event-bus.ts` — auto-discovers sequences
-- `packages/cdk/lib/mailshot-stack.ts` — auto-discovers sequences
-- `packages/cdk/bin/app.ts` — auto-discovers sequences
+- `packages/cdk/lib/constructs/state-machines.ts` - auto-discovers sequences
+- `packages/cdk/lib/constructs/event-bus.ts` - auto-discovers sequences
+- `packages/cdk/lib/mailshot-stack.ts` - auto-discovers sequences
+- `packages/cdk/bin/app.ts` - auto-discovers sequences

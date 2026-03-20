@@ -4,7 +4,7 @@ description: Validate email sequence configs for correctness. Use when the user 
 
 # Validate Sequence
 
-Validate that a sequence config is correct — checks types, required fields, template references, and CDK synthesis.
+Validate that a sequence config is correct - checks types, required fields, template references, and CDK synthesis.
 
 ## Usage
 
@@ -25,12 +25,12 @@ Check that `sequences/<sequenceId>/sequence.config.ts` exists. If validating all
 
 Read the config file and verify:
 
-- `id` — must be a non-empty string
-- `trigger.detailType` — must be a non-empty string
-- `trigger.subscriberMapping.email` — must be a JSONPath string starting with `$.`
-- `trigger.subscriberMapping.firstName` — must be a JSONPath string starting with `$.`
-- `timeoutMinutes` — must be a positive number
-- `steps` — must be a non-empty array
+- `id` - must be a non-empty string
+- `trigger.detailType` - must be a non-empty string
+- `trigger.subscriberMapping.email` - must be a JSONPath string starting with `$.`
+- `trigger.subscriberMapping.firstName` - must be a JSONPath string starting with `$.`
+- `timeoutMinutes` - must be a positive number
+- `steps` - must be a non-empty array
 
 ### Step 3: Validate steps recursively
 

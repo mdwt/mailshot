@@ -64,7 +64,7 @@ Invokes SendEmailFn to deliver an email:
 ```
 
 - `templateKey` maps to an S3 path: `s3://bucket/onboarding/welcome.html`
-- Pre-send checks run automatically (unsubscribed, suppressed). If a check fails, the step returns `{ sent: false }` and the sequence continues — it does not throw.
+- Pre-send checks run automatically (unsubscribed, suppressed). If a check fails, the step returns `{ sent: false }` and the sequence continues - it does not throw.
 
 ### Wait
 
@@ -78,7 +78,7 @@ Pauses the Step Functions execution until the specified duration elapses.
 
 ### Choice
 
-Native Step Functions branching on a field in the execution input. No Lambda invocation — the state machine evaluates this directly. Use for data that's available when the sequence starts (subscriber attributes from the triggering event).
+Native Step Functions branching on a field in the execution input. No Lambda invocation - the state machine evaluates this directly. Use for data that's available when the sequence starts (subscriber attributes from the triggering event).
 
 ```typescript
 {
@@ -92,7 +92,7 @@ Native Step Functions branching on a field in the execution input. No Lambda inv
 }
 ```
 
-Choices can be nested. All branches converge automatically — steps after a choice run for every branch.
+Choices can be nested. All branches converge automatically - steps after a choice run for every branch.
 
 ### Condition
 
@@ -110,9 +110,9 @@ Lambda-based check that queries DynamoDB at runtime. Use when the data isn't in 
 
 Available checks:
 
-- `has_been_sent` — requires `templateKey`. True if subscriber has received this template.
-- `subscriber_field_exists` — requires `field`. True if the attribute exists and is non-empty.
-- `subscriber_field_equals` — requires `field` and `value`. True if the attribute matches.
+- `has_been_sent` - requires `templateKey`. True if subscriber has received this template.
+- `subscriber_field_exists` - requires `field`. True if the attribute exists and is non-empty.
+- `subscriber_field_equals` - requires `field` and `value`. True if the attribute matches.
 
 ### Choice vs Condition
 
@@ -141,7 +141,7 @@ These create separate EventBridge rules that invoke SendEmailFn directly (no Ste
 
 ## Auto-discovery
 
-CDK scans `sequences/*/sequence.config.ts` at deploy time. You never need to manually register a sequence — just create the folder and deploy. The CDK constructs automatically:
+CDK scans `sequences/*/sequence.config.ts` at deploy time. You never need to manually register a sequence - just create the folder and deploy. The CDK constructs automatically:
 
 1. Create a Step Functions state machine from the config
 2. Create EventBridge rules for the trigger and any fire-and-forget events

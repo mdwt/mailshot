@@ -78,16 +78,16 @@ AWS_PROFILE=<profile> aws stepfunctions stop-execution --execution-arn <arn> --c
 
 Present the user with two teardown options:
 
-1. **Stack only** — destroys the CloudFormation stack but leaves the 3 retained data resources:
+1. **Stack only** - destroys the CloudFormation stack but leaves the 3 retained data resources:
    - DynamoDB table: `<TABLE_NAME>`
    - DynamoDB events table: `<EVENTS_TABLE_NAME>`
    - S3 template bucket: `<TEMPLATE_BUCKET_NAME>`
 
-2. **Full teardown** — destroys the stack AND deletes all 3 retained data resources. **This permanently deletes all subscriber data, engagement events, and uploaded templates.**
+2. **Full teardown** - destroys the stack AND deletes all 3 retained data resources. **This permanently deletes all subscriber data, engagement events, and uploaded templates.**
 
 Show exactly what will be deleted and what will be retained for the chosen option.
 
-Then ask the user to **type the stack name** (`<STACK_NAME>`) to confirm. This is a destructive operation — do not accept "yes", "y", or any other shorthand. Only proceed if the typed value exactly matches the stack name.
+Then ask the user to **type the stack name** (`<STACK_NAME>`) to confirm. This is a destructive operation - do not accept "yes", "y", or any other shorthand. Only proceed if the typed value exactly matches the stack name.
 
 ### Phase 5: Execute stack destruction
 
@@ -144,11 +144,11 @@ Print a final summary:
 
 ```
 Teardown complete.
-- Stack: <stackName> — deleted
-- DynamoDB table (<TABLE_NAME>) — deleted / retained
-- DynamoDB events table (<EVENTS_TABLE_NAME>) — deleted / retained
-- S3 bucket (<TEMPLATE_BUCKET_NAME>) — deleted / retained
-- .env file — kept (run /setup-env to reconfigure, or /deploy to redeploy)
+- Stack: <stackName> - deleted
+- DynamoDB table (<TABLE_NAME>) - deleted / retained
+- DynamoDB events table (<EVENTS_TABLE_NAME>) - deleted / retained
+- S3 bucket (<TEMPLATE_BUCKET_NAME>) - deleted / retained
+- .env file - kept (run /setup-env to reconfigure, or /deploy to redeploy)
 ```
 
 If any resources were retained, remind the user they can run `/teardown` again to clean them up later.

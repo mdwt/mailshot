@@ -214,7 +214,7 @@ async function main() {
     );
     console.log(`Diagram: ${pngPath}`);
   } catch (err: any) {
-    console.error("mmdc failed — falling back to .mmd file only");
+    console.error("mmdc failed - falling back to .mmd file only");
     console.error(err.stderr?.toString() || err.message);
     console.log(`Mermaid source: ${mmdPath}`);
     console.log("Paste into https://mermaid.live to render");

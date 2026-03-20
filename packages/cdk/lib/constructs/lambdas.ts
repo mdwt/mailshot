@@ -118,7 +118,7 @@ export class LambdasConstruct extends Construct {
     });
 
     props.table.grantReadWriteData(this.unsubscribeFn);
-    // ses:PutSuppressedDestination does not support resource-level permissions — * is required
+    // ses:PutSuppressedDestination does not support resource-level permissions - * is required
     this.unsubscribeFn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:PutSuppressedDestination"],
@@ -146,7 +146,7 @@ export class LambdasConstruct extends Construct {
     });
 
     props.table.grantReadWriteData(this.bounceHandlerFn);
-    // ses:PutSuppressedDestination does not support resource-level permissions — * is required
+    // ses:PutSuppressedDestination does not support resource-level permissions - * is required
     this.bounceHandlerFn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:PutSuppressedDestination"],

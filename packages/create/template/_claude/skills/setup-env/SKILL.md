@@ -24,8 +24,8 @@ Run `aws configure list-profiles` to get available profiles. Use `AskUserQuestio
 
 Options:
 
-1. **Use existing profile** — present the available profiles (pick the most likely 3-4, or ask the user to type theirs if many exist)
-2. **Create new profile** — create a new IAM user with the minimum permissions needed for this project (MCP server, CDK deploy, test events)
+1. **Use existing profile** - present the available profiles (pick the most likely 3-4, or ask the user to type theirs if many exist)
+2. **Create new profile** - create a new IAM user with the minimum permissions needed for this project (MCP server, CDK deploy, test events)
 
 #### Option 1: Use existing profile
 
@@ -40,7 +40,7 @@ Extract the **account ID** and **region**. If the STS call fails (expired creds,
 
 #### Option 2: Create new profile with least-privilege permissions
 
-Ask the user for an **admin profile** — an existing profile with IAM permissions to create users and policies. This will only be used during setup.
+Ask the user for an **admin profile** - an existing profile with IAM permissions to create users and policies. This will only be used during setup.
 
 ```bash
 aws sts get-caller-identity --profile <admin-profile> --output json
@@ -157,13 +157,13 @@ If no verified identities are found, warn the user that SES is not set up in thi
 
 Present the verified domains and email addresses to the user via `AskUserQuestion`:
 
-**"Which domain should emails be sent from?"** — list verified domains. This determines what `DEFAULT_FROM_EMAIL` will use (e.g., choosing `example.com` means the from address will be `something@example.com`).
+**"Which domain should emails be sent from?"** - list verified domains. This determines what `DEFAULT_FROM_EMAIL` will use (e.g., choosing `example.com` means the from address will be `something@example.com`).
 
-Then ask: **"What should the default from email address be?"** — offer suggestions based on the chosen domain (e.g., `hello@<domain>`, `noreply@<domain>`) plus any verified individual email addresses on that domain.
+Then ask: **"What should the default from email address be?"** - offer suggestions based on the chosen domain (e.g., `hello@<domain>`, `noreply@<domain>`) plus any verified individual email addresses on that domain.
 
-Then ask: **"What should the default from display name be?"** — suggest the domain name titlecased, or common patterns.
+Then ask: **"What should the default from display name be?"** - suggest the domain name titlecased, or common patterns.
 
-Then ask: **"What reply-to email address should be used? (optional)"** — suggest `support@<domain>`, `help@<domain>`, or leave blank. This sets `REPLY_TO_EMAIL`, which adds a `Reply-To` header to all outgoing emails. If left blank, the variable is omitted from `.env`.
+Then ask: **"What reply-to email address should be used? (optional)"** - suggest `support@<domain>`, `help@<domain>`, or leave blank. This sets `REPLY_TO_EMAIL`, which adds a `Reply-To` header to all outgoing emails. If left blank, the variable is omitted from `.env`.
 
 ### Step 4: Discover existing SES configuration sets
 
@@ -244,7 +244,7 @@ Environment configured:
 - From: <fromName> <fromEmail>
 - Stack: <stackName>
 - SES Config Set: <sesConfigSetName> (existing/new)
-- IAM user: <new-profile-name> (least-privilege) — if created
+- IAM user: <new-profile-name> (least-privilege) - if created
 - MCP server: registered (restart Claude Code to activate)
 
 Next steps:

@@ -35,11 +35,11 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 
 ### Monorepo packages (pnpm workspaces)
 
-- **`shared`** — Types and constants consumed by handlers and CDK. Must build first. Exports key helpers like `subscriberPK()`, `executionSK()`, `sentSK()` for DynamoDB key construction.
-- **`handlers`** — Five Lambda functions + shared lib modules. All handlers read config from Lambda environment variables (via `lib/config.ts`).
-- **`cdk`** — AWS CDK infrastructure. Config is loaded from a root `.env` file (see `.env.example`). All config values are passed as Lambda environment variables at deploy time. Entry point: `bin/app.ts`.
-- **`mcp`** — MCP server (`@mailshot/mcp`) for interacting with the email system from Claude Code. Provides tools for subscriber management, engagement analytics, template preview, and system health. Spawned over stdio, uses local AWS credentials. Setup: `claude mcp add mailshot -e AWS_PROFILE=<profile> -- npx @mailshot/mcp` (reads config from `.env`).
-- **`create`** — `create-mailshot` CLI that scaffolds new user projects. Run with `npx create-mailshot my-project`. Template files are embedded in the package.
+- **`shared`** - Types and constants consumed by handlers and CDK. Must build first. Exports key helpers like `subscriberPK()`, `executionSK()`, `sentSK()` for DynamoDB key construction.
+- **`handlers`** - Five Lambda functions + shared lib modules. All handlers read config from Lambda environment variables (via `lib/config.ts`).
+- **`cdk`** - AWS CDK infrastructure. Config is loaded from a root `.env` file (see `.env.example`). All config values are passed as Lambda environment variables at deploy time. Entry point: `bin/app.ts`.
+- **`mcp`** - MCP server (`@mailshot/mcp`) for interacting with the email system from Claude Code. Provides tools for subscriber management, engagement analytics, template preview, and system health. Spawned over stdio, uses local AWS credentials. Setup: `claude mcp add mailshot -e AWS_PROFILE=<profile> -- npx @mailshot/mcp` (reads config from `.env`).
+- **`create`** - `create-mailshot` CLI that scaffolds new user projects. Run with `npx create-mailshot my-project`. Template files are embedded in the package.
 
 ### Data flow
 
@@ -53,48 +53,48 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 
 ### DynamoDB tables
 
-**Main table** (single-table design): All items keyed by `PK = SUB#<email>`. Sort keys: `PROFILE`, `EXEC#<sequenceId>`, `SENT#<timestamp>`, `SUPPRESSION`. No GSIs. Subscriber attributes (platform, country, gateway, etc.) are stored as **top-level columns** on the PROFILE item — not nested under an `attributes` map. System columns (`PK`, `SK`, `email`, `firstName`, `unsubscribed`, `suppressed`, `createdAt`, `updatedAt`) are fixed; everything else is a dynamic attribute. Use `extractAttributes(profile)` from `dynamo-client.ts` to separate custom attributes from system columns.
+**Main table** (single-table design): All items keyed by `PK = SUB#<email>`. Sort keys: `PROFILE`, `EXEC#<sequenceId>`, `SENT#<timestamp>`, `SUPPRESSION`. No GSIs. Subscriber attributes (platform, country, gateway, etc.) are stored as **top-level columns** on the PROFILE item - not nested under an `attributes` map. System columns (`PK`, `SK`, `email`, `firstName`, `unsubscribed`, `suppressed`, `createdAt`, `updatedAt`) are fixed; everything else is a dynamic attribute. Use `extractAttributes(profile)` from `dynamo-client.ts` to separate custom attributes from system columns.
 
 **Events table** (engagement tracking): `PK = SUB#<email>`, `SK = EVT#<timestamp>#<eventType>`. GSI `TemplateIndex` on `templateKey` + `SK` for cross-subscriber template queries. TTL-enabled (365 days).
 
 ### CDK constructs (in `lib/constructs/`)
 
-- **storage** — DynamoDB main table + events table + S3 template bucket + BucketDeployment
-- **lambdas** — Five NodejsFunction Lambdas with esbuild bundling (AWS SDK externalized). Config passed as environment variables
-- **ses-config** — SES configuration set + SNS topics for bounce/complaint and engagement events
-- **state-machines** — Step Functions definitions (auto-discovered from sequences)
-- **event-bus** — Custom EventBridge bus + routing rules
+- **storage** - DynamoDB main table + events table + S3 template bucket + BucketDeployment
+- **lambdas** - Five NodejsFunction Lambdas with esbuild bundling (AWS SDK externalized). Config passed as environment variables
+- **ses-config** - SES configuration set + SNS topics for bounce/complaint and engagement events
+- **state-machines** - Step Functions definitions (auto-discovered from sequences)
+- **event-bus** - Custom EventBridge bus + routing rules
 
 ### Handler lib modules
 
-- **config** — Resolves all config from Lambda environment variables
-- **dynamo-client** — All DynamoDB operations (profile CRUD, execution tracking, send log, suppression). Exports `extractAttributes(profile)` to separate custom attributes from system columns
-- **template-renderer** — S3 fetch + LiquidJS render with 10min cache
-- **ses-sender** — SES v2 SendEmail with List-Unsubscribe headers. `templateKey` and `sequenceId` are sent as custom headers (`X-Template-Key`, `X-Sequence-Id`) for engagement tracking, and as SES EmailTags (with `/` replaced by `--` in tag values since SES doesn't allow `/` in tags)
-- **unsubscribe-token** — HMAC-SHA256 token generation/validation (90-day expiry)
-- **display-names** — Optional value→display name mappings loaded from S3
-- **execution-stopper** — Stops all Step Functions executions for a subscriber
+- **config** - Resolves all config from Lambda environment variables
+- **dynamo-client** - All DynamoDB operations (profile CRUD, execution tracking, send log, suppression). Exports `extractAttributes(profile)` to separate custom attributes from system columns
+- **template-renderer** - S3 fetch + LiquidJS render with 10min cache
+- **ses-sender** - SES v2 SendEmail with List-Unsubscribe headers. `templateKey` and `sequenceId` are sent as custom headers (`X-Template-Key`, `X-Sequence-Id`) for engagement tracking, and as SES EmailTags (with `/` replaced by `--` in tag values since SES doesn't allow `/` in tags)
+- **unsubscribe-token** - HMAC-SHA256 token generation/validation (90-day expiry)
+- **display-names** - Optional value→display name mappings loaded from S3
+- **execution-stopper** - Stops all Step Functions executions for a subscriber
 
 ## Key Conventions
 
 - All packages use CommonJS (`"type": "commonjs"`) with `Node16` module resolution
 - TypeScript strict mode, target ES2022, Node 22 runtime
 - Imports between workspace packages use `@mailshot/<pkg>` with `.js` extensions
-- CDK uses `NodejsFunction` — handlers are bundled with esbuild at deploy time, AWS SDK is externalized
-- Pre-send check failures (unsubscribed, suppressed, rate-limited) return `{ sent: false }` — they don't throw. Sequences continue, emails are skipped.
-- The `unsubscribed` and `suppressed` flags on subscriber profiles are never overwritten by upsert — only their respective handlers can set them to `true`
-- Subscriber attributes are top-level DynamoDB columns, not nested under an `attributes` map. The `Subscriber` type (event input) still has `attributes?: Record<string, unknown>` — these are flattened to top-level columns on write, with system keys filtered out
+- CDK uses `NodejsFunction` - handlers are bundled with esbuild at deploy time, AWS SDK is externalized
+- Pre-send check failures (unsubscribed, suppressed, rate-limited) return `{ sent: false }` - they don't throw. Sequences continue, emails are skipped.
+- The `unsubscribed` and `suppressed` flags on subscriber profiles are never overwritten by upsert - only their respective handlers can set them to `true`
+- Subscriber attributes are top-level DynamoDB columns, not nested under an `attributes` map. The `Subscriber` type (event input) still has `attributes?: Record<string, unknown>` - these are flattened to top-level columns on write, with system keys filtered out
 - `AWS_PROFILE` is set in `.env` and must be passed to CDK commands and the MCP server. The MCP server reads `.env` automatically for table/bucket names
-- SES EmailTags don't allow `/` in values — `templateKey` is stored with `/` replaced by `--` in tags only. Headers and DynamoDB use the original key with `/`
+- SES EmailTags don't allow `/` in values - `templateKey` is stored with `/` replaced by `--` in tags only. Headers and DynamoDB use the original key with `/`
 - Commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format (enforced by commitlint). Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
 ## Versioning & Change Management
 
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated changelog generation. Core packages (shared, handlers, cdk, mcp, create-mailshot) are **linked** — they always version together. All packages are published to npm as public packages.
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated changelog generation. Core packages (shared, handlers, cdk, mcp, create-mailshot) are **linked** - they always version together. All packages are published to npm as public packages.
 
 ### When to create a changeset
 
-Create a changeset for any code change that affects package behavior — features, fixes, refactors, breaking changes. Skip changesets for docs-only, CI, or tooling changes that don't affect package code.
+Create a changeset for any code change that affects package behavior - features, fixes, refactors, breaking changes. Skip changesets for docs-only, CI, or tooling changes that don't affect package code.
 
 ### How to create a changeset (non-interactive, for AI use)
 

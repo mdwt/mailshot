@@ -16,13 +16,13 @@ SK: PROFILE
 
 Fields:
 
-- `email` — Primary identifier
-- `firstName` — Used in template rendering
-- `attributes` — Arbitrary key-value pairs (platform, country, plan, etc.)
-- `unsubscribed` — Boolean, set by UnsubscribeFn
-- `suppressed` — Boolean, set by BounceHandlerFn
-- `createdAt` — ISO timestamp
-- `updatedAt` — ISO timestamp
+- `email` - Primary identifier
+- `firstName` - Used in template rendering
+- `attributes` - Arbitrary key-value pairs (platform, country, plan, etc.)
+- `unsubscribed` - Boolean, set by UnsubscribeFn
+- `suppressed` - Boolean, set by BounceHandlerFn
+- `createdAt` - ISO timestamp
+- `updatedAt` - ISO timestamp
 
 ### Upsert behavior
 
@@ -30,7 +30,7 @@ When a new event triggers a sequence, SendEmailFn upserts the subscriber profile
 
 - Creates the profile if it doesn't exist
 - Updates `firstName` and `attributes` if it does exist
-- **Never overwrites** `unsubscribed` or `suppressed` flags — only their respective handlers can set these to `true`
+- **Never overwrites** `unsubscribed` or `suppressed` flags - only their respective handlers can set these to `true`
 
 This means a subscriber who unsubscribes can't be accidentally re-subscribed by a new event.
 
@@ -62,7 +62,7 @@ A permanent bounce or complaint was received. The `suppressed` flag is set to `t
 
 ### Completed
 
-A sequence execution finished normally. The execution record is deleted. The subscriber profile remains — they can still receive future sequences or fire-and-forget emails.
+A sequence execution finished normally. The execution record is deleted. The subscriber profile remains - they can still receive future sequences or fire-and-forget emails.
 
 ## Safety checks
 
@@ -70,7 +70,7 @@ The system prevents emails to unsubscribed or suppressed subscribers at two leve
 
 ### Registration guard
 
-When a sequence is triggered, the `register` action checks the subscriber's `unsubscribed` and `suppressed` flags **before** creating the execution. If either flag is `true`, registration throws an error and the Step Functions execution fails immediately — no execution record is created, no steps run.
+When a sequence is triggered, the `register` action checks the subscriber's `unsubscribed` and `suppressed` flags **before** creating the execution. If either flag is `true`, registration throws an error and the Step Functions execution fails immediately - no execution record is created, no steps run.
 
 This prevents zombie executions that would sit in wait states doing nothing useful.
 
@@ -78,16 +78,16 @@ This prevents zombie executions that would sit in wait states doing nothing usef
 
 Before every email, SendEmailFn runs these checks in order:
 
-1. **Unsubscribed** — If `subscriber.unsubscribed === true`, return `{ sent: false }`
-2. **Suppressed** — If `subscriber.suppressed === true`, return `{ sent: false }`
+1. **Unsubscribed** - If `subscriber.unsubscribed === true`, return `{ sent: false }`
+2. **Suppressed** - If `subscriber.suppressed === true`, return `{ sent: false }`
 
-Pre-send failures never throw. The sequence continues, the email is simply skipped. This catches cases where a subscriber unsubscribes mid-sequence — emails after the unsubscribe are skipped gracefully while the execution completes normally.
+Pre-send failures never throw. The sequence continues, the email is simply skipped. This catches cases where a subscriber unsubscribes mid-sequence - emails after the unsubscribe are skipped gracefully while the execution completes normally.
 
 ### SES account-level suppression list
 
 As a final safety net, unsubscribed and suppressed subscribers are also added to the [SES account-level suppression list](https://docs.aws.amazon.com/ses/latest/dg/sending-email-suppression-list.html). This is a hard block at the AWS level that prevents email delivery even if the application-level checks are bypassed due to a bug.
 
-The SES API only accepts `BOUNCE` or `COMPLAINT` as suppression reasons — there is no `UNSUBSCRIBE` option. Unsubscribes are stored as `COMPLAINT` (the closer of the two). This is purely a label on the suppression entry and does **not** count toward your SES complaint rate or affect sender reputation.
+The SES API only accepts `BOUNCE` or `COMPLAINT` as suppression reasons - there is no `UNSUBSCRIBE` option. Unsubscribes are stored as `COMPLAINT` (the closer of the two). This is purely a label on the suppression entry and does **not** count toward your SES complaint rate or affect sender reputation.
 
 ## Active executions
 

@@ -1,6 +1,6 @@
 ---
 title: Templates
-description: Bring your own email templates — React Email, Maizzle, MJML, plain HTML, or any tool. LiquidJS handles variables at send time.
+description: Bring your own email templates - React Email, Maizzle, MJML, plain HTML, or any tool. LiquidJS handles variables at send time.
 ---
 
 Templates are HTML files with [LiquidJS](https://liquidjs.com/) placeholders. At runtime, LiquidJS fills in subscriber data before sending. How you produce the HTML is entirely up to you.
@@ -9,18 +9,18 @@ Templates are HTML files with [LiquidJS](https://liquidjs.com/) placeholders. At
 
 mailshot doesn't care how your HTML is created. Use whatever tool or workflow you prefer:
 
-- **[React Email](https://react.email)** — JSX components, included in the scaffolded project
-- **[Maizzle](https://maizzle.com)** — Tailwind CSS for email
-- **[MJML](https://mjml.io)** — responsive email markup language
-- **Drag-and-drop builders** — export HTML from Beefree, Stripo, Mailchimp, or any builder
-- **Plain HTML** — hand-write it, copy it from an existing system, or generate it with AI
-- **Existing templates** — already have email templates? Drop them in as-is
+- **[React Email](https://react.email)** - JSX components, included in the scaffolded project
+- **[Maizzle](https://maizzle.com)** - Tailwind CSS for email
+- **[MJML](https://mjml.io)** - responsive email markup language
+- **Drag-and-drop builders** - export HTML from Beefree, Stripo, Mailchimp, or any builder
+- **Plain HTML** - hand-write it, copy it from an existing system, or generate it with AI
+- **Existing templates** - already have email templates? Drop them in as-is
 
-The only contract: your build step must output `.html` files to `build/<sequenceId>/templates/`. Those HTML files can contain [LiquidJS](https://liquidjs.com/) syntax (`{{ firstName }}`, `{% if ... %}`, etc.) for personalization — that's the one thing that's fixed. Everything else is your choice.
+The only contract: your build step must output `.html` files to `build/<sequenceId>/templates/`. Those HTML files can contain [LiquidJS](https://liquidjs.com/) syntax (`{{ firstName }}`, `{% if ... %}`, etc.) for personalization - that's the one thing that's fixed. Everything else is your choice.
 
 ### What the render step does
 
-Each sequence has a `src/render.ts` script. Its job is simple: take your source files (whatever format they're in) and write `.html` files to the build directory. The scaffolded project uses React Email by default, but you can swap this out for any build pipeline — or skip it entirely and just copy pre-built HTML files.
+Each sequence has a `src/render.ts` script. Its job is simple: take your source files (whatever format they're in) and write `.html` files to the build directory. The scaffolded project uses React Email by default, but you can swap this out for any build pipeline - or skip it entirely and just copy pre-built HTML files.
 
 ## Lifecycle
 
@@ -109,7 +109,7 @@ mkdirSync(out, { recursive: true });
 copyFileSync(resolve(src, "welcome.html"), resolve(out, "welcome.html"));
 ```
 
-This works identically — the same Liquid variables, the same S3 upload, the same send pipeline. The source format doesn't matter, only the final `.html` output.
+This works identically - the same Liquid variables, the same S3 upload, the same send pipeline. The source format doesn't matter, only the final `.html` output.
 
 ## Liquid syntax at runtime
 
@@ -123,7 +123,7 @@ The rendered HTML contains Liquid placeholders that LiquidJS evaluates at send t
 {% endif %}
 
 {% for item in cartItems %}
-<p>{{ item.name }} — ${{ item.price }}</p>
+<p>{{ item.name }} - ${{ item.price }}</p>
 {% endfor %}
 
 <a href="{{ unsubscribeUrl }}">Unsubscribe</a>
@@ -161,7 +161,7 @@ Each sequence has a `render.ts` script that converts source files to `.html`:
 pnpm --filter <sequenceId> build
 ```
 
-This runs `tsc` (compile TypeScript) then `pnpm render` (execute render.ts). Output goes to `build/<sequenceId>/templates/`. The default scaffolded project uses `@react-email/render`, but you can replace render.ts with any pipeline — Maizzle build, MJML compile, or a simple file copy.
+This runs `tsc` (compile TypeScript) then `pnpm render` (execute render.ts). Output goes to `build/<sequenceId>/templates/`. The default scaffolded project uses `@react-email/render`, but you can replace render.ts with any pipeline - Maizzle build, MJML compile, or a simple file copy.
 
 ## Dev server
 

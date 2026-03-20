@@ -179,7 +179,7 @@ export interface ConditionStep {
   else?: SequenceStep[]; // branch when condition is false (optional)
 }
 
-// Native Step Functions Choice — no Lambda invocation, evaluated in the
+// Native Step Functions Choice - no Lambda invocation, evaluated in the
 // state machine using sfn.Condition.stringEquals on the execution input.
 export interface ChoiceBranch {
   value: string;

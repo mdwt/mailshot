@@ -57,7 +57,7 @@ UNSUBSCRIBE_SECRET=<generate with: openssl rand -hex 32>
 
 ## Build pipeline
 
-Build order matters — `shared` must build first:
+Build order matters - `shared` must build first:
 
 ```bash
 pnpm install
@@ -106,13 +106,13 @@ pnpm --filter @mailshot/cdk deploy
 
 A single `cdk deploy` creates/updates everything:
 
-- **DynamoDB** — Main table + Events table (with TemplateIndex GSI)
-- **S3** — Template bucket + BucketDeployment (uploads `build/<sequenceId>/templates/` per sequence)
-- **Lambda** — 5 functions (SendEmail, CheckCondition, Unsubscribe, BounceHandler, EngagementHandler)
-- **Step Functions** — One state machine per sequence (auto-discovered from `sequences/*/`)
-- **EventBridge** — Custom bus + routing rules for triggers and fire-and-forget events
-- **SES** — Configuration set + SNS event destinations
-- **SNS** — Topics for bounce/complaint and engagement notifications
+- **DynamoDB** - Main table + Events table (with TemplateIndex GSI)
+- **S3** - Template bucket + BucketDeployment (uploads `build/<sequenceId>/templates/` per sequence)
+- **Lambda** - 5 functions (SendEmail, CheckCondition, Unsubscribe, BounceHandler, EngagementHandler)
+- **Step Functions** - One state machine per sequence (auto-discovered from `sequences/*/`)
+- **EventBridge** - Custom bus + routing rules for triggers and fire-and-forget events
+- **SES** - Configuration set + SNS event destinations
+- **SNS** - Topics for bounce/complaint and engagement notifications
 ## Build artifacts
 
 After building, all artifacts are in `build/`:
@@ -134,8 +134,8 @@ build/
 
 The stack is composed of 5 constructs, instantiated in order:
 
-1. **StorageConstruct** — Tables + bucket
-2. **SesConfigConstruct** — SES config set + SNS topics
-3. **LambdasConstruct** — Lambda functions with IAM permissions
-4. **StateMachinesConstruct** — Step Functions state machines (auto-discovers sequences)
-5. **EventBusConstruct** — EventBridge bus + rules (auto-discovers sequences)
+1. **StorageConstruct** - Tables + bucket
+2. **SesConfigConstruct** - SES config set + SNS topics
+3. **LambdasConstruct** - Lambda functions with IAM permissions
+4. **StateMachinesConstruct** - Step Functions state machines (auto-discovers sequences)
+5. **EventBusConstruct** - EventBridge bus + rules (auto-discovers sequences)

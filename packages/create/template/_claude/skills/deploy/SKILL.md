@@ -1,5 +1,5 @@
 ---
-description: Deploy the full stack to AWS. ALWAYS use this skill when the user says "deploy" — never run `pnpm deploy` or `npx cdk deploy` directly. Trigger phrases: "deploy", "deploy onboarding", "ship it", "push to AWS", "deploy to AWS", "cdk deploy", "go live", "deploy <sequenceId>".
+description: Deploy the full stack to AWS. ALWAYS use this skill when the user says "deploy" - never run `pnpm deploy` or `npx cdk deploy` directly. Trigger phrases: "deploy", "deploy onboarding", "ship it", "push to AWS", "deploy to AWS", "cdk deploy", "go live", "deploy <sequenceId>".
 disable-model-invocation: true
 ---
 
@@ -19,7 +19,7 @@ Run through each phase below in order. Stop at the first failure with a clear er
 
 ### Phase 1: Validate all sequences
 
-Run `/validate-sequence` (no argument — validates all sequences). If any sequence fails validation, stop and report the errors. Do not proceed to build/deploy with invalid configs.
+Run `/validate-sequence` (no argument - validates all sequences). If any sequence fails validation, stop and report the errors. Do not proceed to build/deploy with invalid configs.
 
 ### Phase 2: Build shared dependencies
 

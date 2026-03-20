@@ -95,12 +95,12 @@ SK: EVT#2026-03-17T10:30:00.000Z#delivery
 
 Each event record includes:
 
-- `eventType` — delivery, open, click, bounce, complaint
-- `templateKey` — Which template was sent
-- `sequenceId` — Which sequence the email belonged to
-- `subject` — Email subject line
-- `timestamp` — When the event occurred
-- `ttl` — 365 days from creation (auto-deleted)
+- `eventType` - delivery, open, click, bounce, complaint
+- `templateKey` - Which template was sent
+- `sequenceId` - Which sequence the email belonged to
+- `subject` - Email subject line
+- `timestamp` - When the event occurred
+- `ttl` - 365 days from creation (auto-deleted)
 
 ### TemplateIndex GSI
 
@@ -117,8 +117,8 @@ This powers cross-subscriber analytics: "How many people opened the welcome emai
 
 Bounces and complaints flow through two paths:
 
-1. **EngagementHandlerFn** — Records the event in the Events table for analytics
-2. **BounceHandlerFn** — Suppresses the subscriber and stops all executions
+1. **EngagementHandlerFn** - Records the event in the Events table for analytics
+2. **BounceHandlerFn** - Suppresses the subscriber and stops all executions
 
 BounceHandlerFn only acts on permanent bounces and complaints. Transient bounces are recorded but don't trigger suppression.
 

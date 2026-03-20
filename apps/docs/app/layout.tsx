@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
     template: "%s | mailshot",
-    default: "mailshot — Serverless email sequences on AWS",
+    default: "mailshot - Serverless email sequences on AWS",
   },
   description:
-    "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage subscribers and analytics — all through Claude Code.",
+    "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage subscribers and analytics - all through Claude Code.",
   keywords: [
     "email sequences",
     "AWS email",
@@ -41,19 +41,19 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: baseUrl,
     siteName: "mailshot",
-    title: "mailshot — Serverless email sequences on AWS",
+    title: "mailshot - Serverless email sequences on AWS",
     description:
       "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage everything through Claude Code.",
     images: [
       {
         url: "/og-image.png",
-        alt: "mailshot — Serverless email sequences on AWS",
+        alt: "mailshot - Serverless email sequences on AWS",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "mailshot — Serverless email sequences on AWS",
+    title: "mailshot - Serverless email sequences on AWS",
     description:
       "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage everything through Claude Code.",
     images: ["/og-image.png"],

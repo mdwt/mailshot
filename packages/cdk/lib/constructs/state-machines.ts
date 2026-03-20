@@ -190,7 +190,7 @@ export class StateMachinesConstruct extends Construct {
     });
   }
 
-  // Lambda-based condition check (reads from DynamoDB — for has_been_sent etc.)
+  // Lambda-based condition check (reads from DynamoDB - for has_been_sent etc.)
   private buildConditionStep(
     prefix: string,
     n: number,
@@ -249,7 +249,7 @@ export class StateMachinesConstruct extends Construct {
     return sfn.Chain.custom(checkChain.startState, [converge], converge);
   }
 
-  // Native Step Functions Choice — no Lambda, evaluates JSONPath directly
+  // Native Step Functions Choice - no Lambda, evaluates JSONPath directly
   private buildChoiceStep(
     prefix: string,
     n: number,

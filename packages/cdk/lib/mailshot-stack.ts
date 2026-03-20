@@ -63,7 +63,7 @@ export class MailshotStack extends cdk.Stack {
     });
 
     // Grant permissions to stop executions.
-    // states:StopExecution targets execution ARNs which contain random IDs —
+    // states:StopExecution targets execution ARNs which contain random IDs -
     // scoping to arn:aws:states:*:*:execution:* is functionally equivalent to *,
     // so we keep * for clarity.
     lambdas.sendEmailFn.addToRolePolicy(
@@ -91,7 +91,7 @@ export class MailshotStack extends cdk.Stack {
       }),
     );
 
-    // Grant read on state machines — construct ARNs manually to avoid circular
+    // Grant read on state machines - construct ARNs manually to avoid circular
     // dependency between StateMachine → Lambda → StateMachine via EventBridge
     const smArns = definitions.map((d) => {
       const name =

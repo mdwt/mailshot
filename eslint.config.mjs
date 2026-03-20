@@ -59,7 +59,7 @@ export default tseslint.config(
     },
   },
 
-  // Test files — relax rules
+  // Test files - relax rules
   {
     files: ["**/__tests__/**/*.ts", "**/*.test.ts", "**/*.spec.ts"],
     rules: {
@@ -68,7 +68,7 @@ export default tseslint.config(
     },
   },
 
-  // CLI scripts and build tools — allow console and any
+  // CLI scripts and build tools - allow console and any
   {
     files: ["tools/**/*.ts", "**/render.ts"],
     rules: {

@@ -74,7 +74,7 @@ List every package you changed. Use `patch` for bug fixes, `minor` for new featu
 
 | Package             | What it is                                                       |
 | ------------------- | ---------------------------------------------------------------- |
-| `packages/shared`   | Types and constants — must build first, everything depends on it |
+| `packages/shared`   | Types and constants - must build first, everything depends on it |
 | `packages/handlers` | Lambda functions and shared lib modules                          |
 | `packages/cdk`      | AWS CDK infrastructure                                           |
 | `packages/mcp`      | MCP server for Claude Code integration                           |

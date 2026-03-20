@@ -20,7 +20,7 @@ export const handler = async (event: CheckConditionInput): Promise<CheckConditio
     case "subscriber_field_exists": {
       const profile = await getSubscriberProfile(config.tableName, event.subscriber.email);
       if (!profile || !event.field) {
-        logger.debug("Field exists check — no profile or no field", {
+        logger.debug("Field exists check - no profile or no field", {
           profileFound: !!profile,
           field: event.field,
         });
@@ -39,7 +39,7 @@ export const handler = async (event: CheckConditionInput): Promise<CheckConditio
     case "subscriber_field_equals": {
       const profile = await getSubscriberProfile(config.tableName, event.subscriber.email);
       if (!profile || !event.field) {
-        logger.debug("Field equals check — no profile or no field", {
+        logger.debug("Field equals check - no profile or no field", {
           profileFound: !!profile,
           field: event.field,
         });
@@ -58,7 +58,7 @@ export const handler = async (event: CheckConditionInput): Promise<CheckConditio
 
     case "has_been_sent": {
       if (!event.templateKey) {
-        logger.debug("Has been sent check — no templateKey provided");
+        logger.debug("Has been sent check - no templateKey provided");
         return { result: false };
       }
       const sent = await hasBeenSent(config.tableName, event.subscriber.email, event.templateKey);

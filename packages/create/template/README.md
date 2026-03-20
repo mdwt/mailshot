@@ -24,15 +24,15 @@ npx cdk deploy                    # Deploy to AWS
 
 Each sequence lives in `sequences/<name>/` and is auto-discovered by CDK. A sequence has:
 
-- **`sequence.config.ts`** — defines the trigger event, email steps, delays, and branching logic
-- **`src/emails/`** — email templates (HTML with Liquid variables for personalization)
-- **`src/render.ts`** — renders templates to static HTML for deployment
+- **`sequence.config.ts`** - defines the trigger event, email steps, delays, and branching logic
+- **`src/emails/`** - email templates (HTML with Liquid variables for personalization)
+- **`src/render.ts`** - renders templates to static HTML for deployment
 
-Ask Claude Code to create one — just describe your sequence and it generates everything.
+Ask Claude Code to create one - just describe your sequence and it generates everything.
 
 ## Templates
 
-Templates are HTML files. Use any tool to produce them — React Email, MJML, raw HTML, a drag-and-drop builder. At send time, mailshot renders [LiquidJS](https://liquidjs.com/) variables:
+Templates are HTML files. Use any tool to produce them - React Email, MJML, raw HTML, a drag-and-drop builder. At send time, mailshot renders [LiquidJS](https://liquidjs.com/) variables:
 
 ```html
 <h1>Hey {{ firstName }},</h1>
@@ -77,12 +77,12 @@ If you ran `/setup-env` (or manually added the MCP server), Claude Code has acce
 
 Everything runs on your AWS account. The CDK stack creates:
 
-- **DynamoDB** — subscriber profiles, execution tracking, engagement events
-- **Lambda** — send email, check conditions, handle bounces/unsubscribes, track engagement
-- **Step Functions** — orchestrates multi-step sequences
-- **EventBridge** — receives events from your app, routes to sequences
-- **S3** — stores rendered HTML templates
-- **SES** — sends emails, tracks opens/clicks
+- **DynamoDB** - subscriber profiles, execution tracking, engagement events
+- **Lambda** - send email, check conditions, handle bounces/unsubscribes, track engagement
+- **Step Functions** - orchestrates multi-step sequences
+- **EventBridge** - receives events from your app, routes to sequences
+- **S3** - stores rendered HTML templates
+- **SES** - sends emails, tracks opens/clicks
 
 ## Links
 

@@ -318,7 +318,7 @@ server.registerTool(
   "export_sequence",
   {
     description:
-      "Export a deployed sequence — reverse-parses ASL to SequenceDefinition, fetches templates and EventBridge trigger config",
+      "Export a deployed sequence - reverse-parses ASL to SequenceDefinition, fetches templates and EventBridge trigger config",
     inputSchema: {
       sequenceId: z.string().describe("The sequence ID to export (kebab-case)"),
     },
