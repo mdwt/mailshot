@@ -66,7 +66,7 @@ Create `sequences/<sequenceId>/` with the following files. Pay attention to exac
   },
   "devDependencies": {
     "@react-email/render": "^2.0.4",
-    "@mailshot/shared": "^0.2.0",
+    "@mailshot/shared": "^1.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

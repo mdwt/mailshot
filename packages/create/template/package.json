@@ -8,8 +8,8 @@
     "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "@mailshot/cdk": "^0.2.0",
-    "@mailshot/shared": "^0.2.0",
+    "@mailshot/cdk": "^1.0.0",
+    "@mailshot/shared": "^1.0.0",
     "@types/node": "^22.0.0",
     "aws-cdk": "^2.1111.0",
     "aws-cdk-lib": "^2.243.0",
