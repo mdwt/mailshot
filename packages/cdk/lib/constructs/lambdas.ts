@@ -29,6 +29,7 @@ export class LambdasConstruct extends Construct {
   public readonly unsubscribeFn: nodejs.NodejsFunction;
   public readonly bounceHandlerFn: nodejs.NodejsFunction;
   public readonly engagementHandlerFn: nodejs.NodejsFunction;
+  public readonly sequenceExitFn: nodejs.NodejsFunction;
   public readonly unsubscribeFnUrl: string;
 
   constructor(scope: Construct, id: string, props: LambdasProps) {
@@ -168,5 +169,18 @@ export class LambdasConstruct extends Construct {
     });
 
     props.eventsTable.grantWriteData(this.engagementHandlerFn);
+
+    // ── SequenceExitFn ─────────────────────────────────────────────
+    this.sequenceExitFn = new nodejs.NodejsFunction(this, "SequenceExitFn", {
+      entry: path.join(handlersPath, "handlers/sequence-exit.ts"),
+      handler: "handler",
+      runtime: lambda.Runtime.NODEJS_22_X,
+      memorySize: 128,
+      timeout: cdk.Duration.seconds(10),
+      environment: commonEnv,
+      bundling: commonBundling,
+    });
+
+    props.table.grantReadWriteData(this.sequenceExitFn);
   }
 }

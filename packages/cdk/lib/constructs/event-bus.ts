@@ -10,6 +10,7 @@ export interface EventBusProps {
   definitions: SequenceDefinition[];
   stateMachines: Map<string, sfn.StateMachine>;
   sendEmailFn: lambda.IFunction;
+  sequenceExitFn: lambda.IFunction;
 }
 
 function pascalCase(id: string): string {
@@ -92,6 +93,32 @@ export class EventBusConstruct extends Construct {
                   templateKey: evt.templateKey,
                   subject: evt.subject,
                   subscriber: evtSubscriber,
+                }),
+              }),
+            ],
+          });
+        }
+      }
+
+      // ── Exit events → SequenceExitFn ─────────────────────────────
+      if (def.exitOn) {
+        for (let i = 0; i < def.exitOn.length; i++) {
+          const exit = def.exitOn[i];
+          const exitSlug = exit.detailType.replace(/[^a-zA-Z0-9]/g, "-");
+
+          const exitMapping = exit.subscriberMapping ?? def.trigger.subscriberMapping;
+
+          new events.Rule(this, `${prefix}Exit${i + 1}Rule`, {
+            eventBus: this.eventBus,
+            ruleName: `${def.id}-exit-${exitSlug}`,
+            eventPattern: {
+              detailType: [exit.detailType],
+            },
+            targets: [
+              new targets.LambdaFunction(props.sequenceExitFn, {
+                event: events.RuleTargetInput.fromObject({
+                  email: events.EventField.fromPath(exitMapping.email),
+                  sequenceId: def.id,
                 }),
               }),
             ],
