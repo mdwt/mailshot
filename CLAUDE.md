@@ -57,6 +57,15 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 
 **Events table** (engagement tracking): `PK = SUB#<email>`, `SK = EVT#<timestamp>#<eventType>`. GSI `TemplateIndex` on `templateKey` + `SK` for cross-subscriber template queries. TTL-enabled (365 days).
 
+### Resource tags
+
+All resources in the stack are tagged automatically via `cdk.Tags.of(this)` in `MailshotStack`:
+
+- `application: mailshot` — identifies mailshot-created resources across the AWS account
+- `stack: <STACK_NAME>` — identifies which deployment owns the resource
+
+These tags can be activated as **cost allocation tags** in AWS Billing to track per-stack costs in Cost Explorer.
+
 ### CDK constructs (in `lib/constructs/`)
 
 - **storage** - DynamoDB main table + events table + S3 template bucket + BucketDeployment

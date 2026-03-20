@@ -186,6 +186,25 @@ packages/
   create/       CLI scaffolder (npx create-mailshot)
 ```
 
+## Resource tagging & cost tracking
+
+Every resource in the stack is automatically tagged with:
+
+| Tag           | Value             | Purpose                                      |
+| ------------- | ----------------- | -------------------------------------------- |
+| `application` | `mailshot`        | Identifies all resources created by mailshot |
+| `stack`       | Your `STACK_NAME` | Identifies which specific deployment owns it |
+
+These tags propagate to all child resources (DynamoDB tables, S3 buckets, Lambdas, Step Functions, EventBridge bus, SNS topics, IAM roles, etc.).
+
+**To track costs per stack in AWS Cost Explorer:**
+
+1. Go to **AWS Billing → Cost Allocation Tags**
+2. Activate the `application` and `stack` tags as cost allocation tags
+3. After ~24 hours, open **Cost Explorer** → Group by → Tag → `stack`
+
+This lets you see the full cost of each mailshot deployment. Use the `application` tag to see combined costs across all mailshot stacks, or filter by `stack` to drill into a single deployment.
+
 ## Requirements
 
 - AWS account with SES in production mode
