@@ -84,6 +84,12 @@ export class MailshotStack extends cdk.Stack {
         resources: ["*"],
       }),
     );
+    lambdas.sequenceExitFn.addToRolePolicy(
+      new cdk.aws_iam.PolicyStatement({
+        actions: ["states:StopExecution"],
+        resources: ["*"],
+      }),
+    );
 
     // Grant read on state machines — construct ARNs manually to avoid circular
     // dependency between StateMachine → Lambda → StateMachine via EventBridge
@@ -120,6 +126,7 @@ export class MailshotStack extends cdk.Stack {
       definitions,
       stateMachines: stateMachines.stateMachines,
       sendEmailFn: lambdas.sendEmailFn,
+      sequenceExitFn: lambdas.sequenceExitFn,
     });
 
     // ── Outputs ──────────────────────────────────────────────────────────

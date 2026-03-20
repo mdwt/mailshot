@@ -1,9 +1,45 @@
 import { SFNClient, StopExecutionCommand } from "@aws-sdk/client-sfn";
-import { getAllExecutions, deleteExecution } from "./dynamo-client.js";
+import { getExecution, getAllExecutions, deleteExecution } from "./dynamo-client.js";
 import { createLogger } from "./logger.js";
 
 const logger = createLogger("execution-stopper");
 const sfn = new SFNClient({});
+
+export async function stopSequenceExecution(
+  tableName: string,
+  email: string,
+  sequenceId: string,
+): Promise<boolean> {
+  const exec = await getExecution(tableName, email, sequenceId);
+  if (!exec) {
+    logger.info("No active execution found for sequence", { email, sequenceId });
+    return false;
+  }
+
+  try {
+    await sfn.send(
+      new StopExecutionCommand({
+        executionArn: exec.executionArn,
+        cause: "Exit event received",
+      }),
+    );
+    logger.info("Stopped execution for exit event", {
+      email,
+      sequenceId,
+      executionArn: exec.executionArn,
+    });
+  } catch (err) {
+    logger.warn("Failed to stop execution (may already be stopped)", {
+      email,
+      sequenceId,
+      executionArn: exec.executionArn,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
+  await deleteExecution(tableName, email, sequenceId);
+  return true;
+}
 
 export async function stopAllExecutions(tableName: string, email: string): Promise<void> {
   const executions = await getAllExecutions(tableName, email);

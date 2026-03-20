@@ -203,12 +203,19 @@ export interface EventEmail {
   subscriberMapping?: SubscriberMapping; // override sequence-level mapping
 }
 
+// Exit event — removes a subscriber from this sequence when the event fires
+export interface ExitEvent {
+  detailType: string; // EventBridge detail-type to match
+  subscriberMapping?: SubscriberMapping; // override sequence-level mapping (only email is used)
+}
+
 export interface SequenceDefinition {
   id: string;
   trigger: SequenceTrigger;
   timeoutMinutes: number;
   steps: SequenceStep[];
   events?: EventEmail[]; // fire-and-forget emails triggered by events
+  exitOn?: ExitEvent[]; // exit subscriber from this sequence on these events
 }
 
 // ── CDK context config ──────────────────────────────────────────────────────
