@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     default: "mailshot - Serverless email sequences on AWS",
   },
   description:
-    "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage subscribers and analytics - all through Claude Code.",
+    "Open-source serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
   keywords: [
     "email sequences",
     "AWS email",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     siteName: "mailshot",
     title: "mailshot - Serverless email sequences on AWS",
     description:
-      "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage everything through Claude Code.",
+      "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
     images: [
       {
         url: "/og-image.png",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "mailshot - Serverless email sequences on AWS",
     description:
-      "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage everything through Claude Code.",
+      "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
     images: ["/og-image.png"],
   },
   alternates: {
@@ -70,7 +70,7 @@ const jsonLd = {
   applicationCategory: "DeveloperApplication",
   operatingSystem: "AWS",
   description:
-    "Open-source email sequencing framework for AWS. Define sequences in TypeScript, render templates with React Email, manage everything through Claude Code.",
+    "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
   url: baseUrl,
   license: "https://opensource.org/licenses/MIT",
   offers: {
