@@ -2,6 +2,15 @@
 
 A [mailshot](https://github.com/mdwt/mailshot) project - serverless email sequences on AWS, managed through Claude Code.
 
+## Framework documentation
+
+For questions about how mailshot works (sequences, templates, deployment, DynamoDB schema, engagement tracking, A/B testing, etc.), **fetch the documentation from the website** instead of reading framework source code in `node_modules`:
+
+- **Full docs**: https://mailshot.dev/docs (human-readable, covers all topics)
+- **LLM-optimized index**: https://mailshot.dev/llms.txt (concise reference with links to each page)
+
+Use WebFetch on `https://mailshot.dev/llms.txt` to get an overview, then fetch specific doc pages as needed. This is faster and more reliable than digging through `@mailshot/*` package source.
+
 ## Workflow
 
 This project is managed through Claude Code skills. When the user asks to deploy, create sequences, validate, etc., always use the corresponding skill - never run raw commands like `pnpm deploy` or `npx cdk deploy` directly.
