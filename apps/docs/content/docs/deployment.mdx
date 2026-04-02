@@ -124,6 +124,7 @@ A single `cdk deploy` creates/updates everything:
 - **EventBridge** - Custom bus + routing rules for triggers and fire-and-forget events
 - **SES** - Configuration set + SNS event destinations + receipt rule set (if `REPLY_TO_EMAIL` is set)
 - **SNS** - Topics for bounce/complaint, engagement, and reply notifications
+
 ## Build artifacts
 
 After building, all artifacts are in `build/`:

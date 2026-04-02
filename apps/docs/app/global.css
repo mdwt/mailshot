@@ -1,14 +1,14 @@
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   /* mailshot brand palette */
-  --color-ms-orange: #FF8C37;
-  --color-ms-blue: #4D90FE;
-  --color-ms-deep: #0F172A;
-  --color-ms-cyan: #22D3EE;
+  --color-ms-orange: #ff8c37;
+  --color-ms-blue: #4d90fe;
+  --color-ms-deep: #0f172a;
+  --color-ms-cyan: #22d3ee;
 }

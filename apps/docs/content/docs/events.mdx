@@ -76,14 +76,14 @@ await eventBridgeClient.send(
 
 SES publishes engagement events to SNS, which triggers EngagementHandlerFn. Six event types are tracked:
 
-| Event type | What it means |
-| --- | --- |
-| `delivery` | SES successfully delivered the email to the recipient's mail server |
-| `open` | Recipient opened the email (tracking pixel) |
-| `click` | Recipient clicked a tracked link |
-| `bounce` | Email bounced (permanent or transient) |
-| `complaint` | Recipient marked the email as spam |
-| `reply` | Recipient replied to the email (requires inbound reply handling) |
+| Event type  | What it means                                                       |
+| ----------- | ------------------------------------------------------------------- |
+| `delivery`  | SES successfully delivered the email to the recipient's mail server |
+| `open`      | Recipient opened the email (tracking pixel)                         |
+| `click`     | Recipient clicked a tracked link                                    |
+| `bounce`    | Email bounced (permanent or transient)                              |
+| `complaint` | Recipient marked the email as spam                                  |
+| `reply`     | Recipient replied to the email (requires inbound reply handling)    |
 
 ### Events table
 

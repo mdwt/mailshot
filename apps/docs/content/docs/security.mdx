@@ -9,12 +9,12 @@ All subscriber data (emails, names, custom attributes) is stored in clear text i
 
 ### Encryption options
 
-| Option | How | When to use |
-| --- | --- | --- |
-| **AWS-owned key** (default) | Automatic. No configuration needed. | Most deployments. No compliance requirement for key control. |
-| **AWS-managed key** (KMS) | Set `encryption: dynamodb.TableEncryption.AWS_MANAGED` in the storage construct. | When you need CloudTrail audit logs for key usage. |
-| **Customer-managed key** (CMK) | Create a KMS key and pass it to the table. | When you need key rotation control, cross-account access policies, or per-tenant isolation. |
-| **Application-level encryption** | Encrypt fields before writing using the [AWS Database Encryption SDK](https://docs.aws.amazon.com/database-encryption-sdk/latest/devguide/). | PCI-DSS, HIPAA, or when clear text PII is not acceptable even at the storage layer. |
+| Option                           | How                                                                                                                                          | When to use                                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **AWS-owned key** (default)      | Automatic. No configuration needed.                                                                                                          | Most deployments. No compliance requirement for key control.                                |
+| **AWS-managed key** (KMS)        | Set `encryption: dynamodb.TableEncryption.AWS_MANAGED` in the storage construct.                                                             | When you need CloudTrail audit logs for key usage.                                          |
+| **Customer-managed key** (CMK)   | Create a KMS key and pass it to the table.                                                                                                   | When you need key rotation control, cross-account access policies, or per-tenant isolation. |
+| **Application-level encryption** | Encrypt fields before writing using the [AWS Database Encryption SDK](https://docs.aws.amazon.com/database-encryption-sdk/latest/devguide/). | PCI-DSS, HIPAA, or when clear text PII is not acceptable even at the storage layer.         |
 
 ### S3 templates
 
@@ -30,50 +30,50 @@ Every Lambda function follows least-privilege - each gets only the actions and r
 
 ### SendEmailFn
 
-| Action | Resource |
-| --- | --- |
-| `dynamodb:GetItem`, `PutItem`, `UpdateItem`, `Query` | Main table |
-| `s3:GetObject` | Template bucket |
-| `ses:SendEmail` | SES identity ARNs and configuration set |
-| `states:StopExecution` | All execution ARNs (required - execution ARNs contain random IDs) |
-| `states:DescribeStateMachine`, `ListExecutions` | Sequence state machine ARNs |
-| `states:DescribeExecution`, `GetExecutionHistory` | Execution ARNs under sequence state machines |
+| Action                                               | Resource                                                          |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| `dynamodb:GetItem`, `PutItem`, `UpdateItem`, `Query` | Main table                                                        |
+| `s3:GetObject`                                       | Template bucket                                                   |
+| `ses:SendEmail`                                      | SES identity ARNs and configuration set                           |
+| `states:StopExecution`                               | All execution ARNs (required - execution ARNs contain random IDs) |
+| `states:DescribeStateMachine`, `ListExecutions`      | Sequence state machine ARNs                                       |
+| `states:DescribeExecution`, `GetExecutionHistory`    | Execution ARNs under sequence state machines                      |
 
 ### CheckConditionFn
 
-| Action | Resource |
-| --- | --- |
+| Action                      | Resource               |
+| --------------------------- | ---------------------- |
 | `dynamodb:GetItem`, `Query` | Main table (read-only) |
 
 ### UnsubscribeFn
 
-| Action | Resource |
-| --- | --- |
-| `dynamodb:GetItem`, `PutItem`, `UpdateItem` | Main table |
-| `ses:PutSuppressedDestination` | `*` (SES API does not support resource-level permissions) |
-| `states:StopExecution` | All execution ARNs |
+| Action                                      | Resource                                                  |
+| ------------------------------------------- | --------------------------------------------------------- |
+| `dynamodb:GetItem`, `PutItem`, `UpdateItem` | Main table                                                |
+| `ses:PutSuppressedDestination`              | `*` (SES API does not support resource-level permissions) |
+| `states:StopExecution`                      | All execution ARNs                                        |
 
 ### BounceHandlerFn
 
-| Action | Resource |
-| --- | --- |
-| `dynamodb:GetItem`, `PutItem`, `UpdateItem`, `Query` | Main table |
-| `ses:PutSuppressedDestination` | `*` (SES API does not support resource-level permissions) |
-| `states:StopExecution` | All execution ARNs |
+| Action                                               | Resource                                                  |
+| ---------------------------------------------------- | --------------------------------------------------------- |
+| `dynamodb:GetItem`, `PutItem`, `UpdateItem`, `Query` | Main table                                                |
+| `ses:PutSuppressedDestination`                       | `*` (SES API does not support resource-level permissions) |
+| `states:StopExecution`                               | All execution ARNs                                        |
 
 ### EngagementHandlerFn
 
-| Action | Resource |
-| --- | --- |
+| Action             | Resource                       |
+| ------------------ | ------------------------------ |
 | `dynamodb:PutItem` | Events table only (write-only) |
 
 ## Backup and recovery
 
-| Feature | Status |
-| --- | --- |
-| **Point-in-time recovery** | Enabled on both tables |
-| **Removal policy** | `RETAIN` - tables persist if the CloudFormation stack is deleted |
-| **Data TTL** | Disabled by default. Set `DATA_TTL_DAYS` to enable automatic cleanup |
+| Feature                    | Status                                                               |
+| -------------------------- | -------------------------------------------------------------------- |
+| **Point-in-time recovery** | Enabled on both tables                                               |
+| **Removal policy**         | `RETAIN` - tables persist if the CloudFormation stack is deleted     |
+| **Data TTL**               | Disabled by default. Set `DATA_TTL_DAYS` to enable automatic cleanup |
 
 PITR backups inherit the table's encryption settings.
 

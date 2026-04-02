@@ -11,20 +11,20 @@ All items are keyed by subscriber email. No GSIs - all access patterns are serve
 
 ### Key structure
 
-| PK | SK | Item type |
-| --- | --- | --- |
-| `SUB#user@example.com` | `PROFILE` | Subscriber profile |
-| `SUB#user@example.com` | `EXEC#onboarding` | Active execution |
-| `SUB#user@example.com` | `SENT#2026-03-17T10:30:00.000Z` | Send log entry |
-| `SUB#user@example.com` | `SUPPRESSION` | Suppression record |
+| PK                     | SK                              | Item type          |
+| ---------------------- | ------------------------------- | ------------------ |
+| `SUB#user@example.com` | `PROFILE`                       | Subscriber profile |
+| `SUB#user@example.com` | `EXEC#onboarding`               | Active execution   |
+| `SUB#user@example.com` | `SENT#2026-03-17T10:30:00.000Z` | Send log entry     |
+| `SUB#user@example.com` | `SUPPRESSION`                   | Suppression record |
 
 ### Key helper functions
 
 The `@mailshot/shared` package exports these helpers:
 
 ```typescript
-subscriberPK("user@example.com");  // → "SUB#user@example.com"
-executionSK("onboarding");         // → "EXEC#onboarding"
+subscriberPK("user@example.com"); // → "SUB#user@example.com"
+executionSK("onboarding"); // → "EXEC#onboarding"
 sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
 ```
 
@@ -86,15 +86,15 @@ sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
 
 ### Access patterns
 
-| Pattern | Key condition |
-| --- | --- |
-| Get subscriber profile | `PK = SUB#email, SK = PROFILE` |
-| Get active execution | `PK = SUB#email, SK = EXEC#sequenceId` |
-| List all executions | `PK = SUB#email, SK begins_with EXEC#` |
-| Get send history | `PK = SUB#email, SK begins_with SENT#` |
-| Check if sent | `PK = SUB#email, SK begins_with SENT#` + filter on templateKey |
-| Get suppression | `PK = SUB#email, SK = SUPPRESSION` |
-| Get everything for subscriber | `PK = SUB#email` (no SK condition) |
+| Pattern                       | Key condition                                                  |
+| ----------------------------- | -------------------------------------------------------------- |
+| Get subscriber profile        | `PK = SUB#email, SK = PROFILE`                                 |
+| Get active execution          | `PK = SUB#email, SK = EXEC#sequenceId`                         |
+| List all executions           | `PK = SUB#email, SK begins_with EXEC#`                         |
+| Get send history              | `PK = SUB#email, SK begins_with SENT#`                         |
+| Check if sent                 | `PK = SUB#email, SK begins_with SENT#` + filter on templateKey |
+| Get suppression               | `PK = SUB#email, SK = SUPPRESSION`                             |
+| Get everything for subscriber | `PK = SUB#email` (no SK condition)                             |
 
 ### TTL
 
@@ -106,8 +106,8 @@ Stores engagement events (delivery, open, click, bounce, complaint, reply).
 
 ### Key structure
 
-| PK | SK |
-| --- | --- |
+| PK                     | SK                                      |
+| ---------------------- | --------------------------------------- |
 | `SUB#user@example.com` | `EVT#2026-03-17T10:30:00.000Z#delivery` |
 
 ### Item schema
@@ -146,8 +146,8 @@ Reply events include additional fields:
 
 Enables cross-subscriber queries by template:
 
-| GSI PK | GSI SK |
-| --- | --- |
+| GSI PK                                     | GSI SK                        |
+| ------------------------------------------ | ----------------------------- |
 | `templateKey` (e.g., `onboarding/welcome`) | `EVT#<timestamp>#<eventType>` |
 
 Query: "Show me all opens for the welcome email in the last 7 days"
