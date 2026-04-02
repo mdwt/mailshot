@@ -4,7 +4,7 @@ description: Send a one-off broadcast email to filtered subscribers. Use when th
 
 # Send Broadcast
 
-Send a one-off broadcast email to a filtered subset of subscribers. Broadcasts are triggered via EventBridge and fan out through SQS for reliable delivery at scale.
+Send a one-off broadcast email to a filtered subset of subscribers. BroadcastFn is invoked directly via Lambda and fans out through SQS for reliable delivery at scale.
 
 ## Usage
 
@@ -56,11 +56,10 @@ If creating a new template:
 
 ### Step 3: Estimate the audience
 
-Before sending, help the user understand who will receive the broadcast:
+Before sending, help the user understand who will receive the broadcast using a dry run:
 
-1. Use `list_subscribers` MCP tool with `status: "active"` to get a count of active subscribers
-2. If filtering by tags, note that the exact count requires querying the tag index (not available via MCP yet — inform the user this is an estimate)
-3. Present a summary:
+1. Call `send_broadcast` with `dryRun: true` and the same filters — this invokes BroadcastFn, resolves the subscriber list, and returns the count without sending or writing a record
+2. Present a summary:
 
 ```
 Broadcast summary:
@@ -69,7 +68,7 @@ Broadcast summary:
 - Subject: What's new in April
 - From: "Your Product" <updates@yourdomain.com>
 - Filters: tag=product-updates, plan=pro
-- Estimated audience: ~X active subscribers
+- Audience: X active subscribers (from dry run)
 ```
 
 ### Step 4: Confirm with the user
@@ -95,10 +94,12 @@ send_broadcast(
 The tool invokes BroadcastFn via Lambda and returns the result synchronously. BroadcastFn:
 
 1. Queries subscribers matching the filters
-2. Writes a broadcast record to DynamoDB
+2. Writes a broadcast record to DynamoDB (`PK = BROADCAST`, `SK = <timestamp>#<broadcastId>`)
 3. Fans out to SQS (one message per subscriber)
-4. Returns `{ broadcastId, subscriberCount, messagesQueued }`
+4. Returns `{ broadcastId, subscriberCount, dryRun: false }`
 5. SendEmailFn processes each SQS message (pre-send checks, template render, SES send)
+
+Set `dryRun: true` to resolve subscribers and return the count without sending or writing a record.
 
 ### Step 6: Monitor
 

@@ -373,7 +373,7 @@ Returns counts by event type: deliveries, opens, clicks, bounces, complaints.
 
 ### send_broadcast
 
-Invoke BroadcastFn directly. Returns subscriber count and messages queued:
+Invoke BroadcastFn directly. Returns `{ broadcastId, subscriberCount, dryRun }`. Set `dryRun: true` to preview audience size without sending:
 
 ```
 send_broadcast(
