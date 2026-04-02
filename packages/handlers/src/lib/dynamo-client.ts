@@ -19,6 +19,8 @@ import {
   EXEC_SK_PREFIX,
   SENT_SK_PREFIX,
   tagPK,
+  broadcastPK,
+  BCAST_META_SK,
 } from "@mailshot/shared";
 import type {
   Subscriber,
@@ -26,6 +28,8 @@ import type {
   ActiveExecution,
   SendLog,
   TagItem,
+  SenderConfig,
+  BroadcastFilters,
 } from "@mailshot/shared";
 import { createLogger } from "./logger.js";
 
@@ -517,4 +521,44 @@ export async function scanActiveSubscribers(
 
   logger.debug("Active subscribers found", { count: subscribers.length });
   return subscribers;
+}
+
+// ── Broadcast records ──────────────────────────────────────────────────────
+
+export async function writeBroadcastRecord(
+  tableName: string,
+  params: {
+    broadcastId: string;
+    templateKey: string;
+    subject: string;
+    sender: SenderConfig;
+    filters?: BroadcastFilters;
+    subscriberCount: number;
+    messagesQueued: number;
+  },
+): Promise<void> {
+  logger.info("Writing broadcast record", {
+    broadcastId: params.broadcastId,
+    subscriberCount: params.subscriberCount,
+  });
+  await dynamo.send(
+    new PutItemCommand({
+      TableName: tableName,
+      Item: marshall(
+        {
+          PK: broadcastPK(params.broadcastId),
+          SK: BCAST_META_SK,
+          broadcastId: params.broadcastId,
+          templateKey: params.templateKey,
+          subject: params.subject,
+          sender: params.sender,
+          filters: params.filters,
+          subscriberCount: params.subscriberCount,
+          messagesQueued: params.messagesQueued,
+          sentAt: new Date().toISOString(),
+        },
+        { removeUndefinedValues: true },
+      ),
+    }),
+  );
 }

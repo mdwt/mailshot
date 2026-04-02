@@ -1,11 +1,20 @@
 import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
+import { DynamoDBClient, GetItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { broadcastPK, BCAST_META_SK, BCAST_PK_PREFIX } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
 let eventBridge: EventBridgeClient;
+let dynamo: DynamoDBClient;
 
 function getEventBridge(region: string): EventBridgeClient {
   if (!eventBridge) eventBridge = new EventBridgeClient({ region });
   return eventBridge;
+}
+
+function getDynamo(region: string): DynamoDBClient {
+  if (!dynamo) dynamo = new DynamoDBClient({ region });
+  return dynamo;
 }
 
 export interface SendBroadcastParams {
@@ -72,4 +81,35 @@ export async function sendBroadcast(config: McpConfig, params: SendBroadcastPara
     broadcastId: params.broadcastId,
     eventId: result.Entries?.[0]?.EventId,
   };
+}
+
+export async function getBroadcast(config: McpConfig, broadcastId: string) {
+  const db = getDynamo(config.region);
+  const result = await db.send(
+    new GetItemCommand({
+      TableName: config.tableName,
+      Key: marshall({ PK: broadcastPK(broadcastId), SK: BCAST_META_SK }),
+    }),
+  );
+  return result.Item ? unmarshall(result.Item) : null;
+}
+
+export async function listBroadcasts(config: McpConfig, limit: number) {
+  const db = getDynamo(config.region);
+  const result = await db.send(
+    new ScanCommand({
+      TableName: config.tableName,
+      FilterExpression: "begins_with(PK, :prefix) AND SK = :sk",
+      ExpressionAttributeValues: marshall({
+        ":prefix": BCAST_PK_PREFIX,
+        ":sk": BCAST_META_SK,
+      }),
+      Limit: Math.min(limit, 100) * 10,
+    }),
+  );
+
+  return (result.Items ?? [])
+    .map((i) => unmarshall(i))
+    .sort((a, b) => (b.sentAt as string).localeCompare(a.sentAt as string))
+    .slice(0, limit);
 }

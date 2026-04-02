@@ -6,6 +6,7 @@ import {
   batchGetSubscriberProfiles,
   scanActiveSubscribers,
   extractAttributes,
+  writeBroadcastRecord,
 } from "../lib/dynamo-client.js";
 import { createLogger } from "../lib/logger.js";
 
@@ -40,6 +41,15 @@ export const handler = async (event: BroadcastInput): Promise<BroadcastResult> =
   });
 
   if (subscribers.length === 0) {
+    await writeBroadcastRecord(config.tableName, {
+      broadcastId: event.broadcastId,
+      templateKey: event.templateKey,
+      subject: event.subject,
+      sender: event.sender,
+      filters: event.filters,
+      subscriberCount: 0,
+      messagesQueued: 0,
+    });
     return { broadcastId: event.broadcastId, subscriberCount: 0, messagesQueued: 0 };
   }
 
@@ -77,6 +87,17 @@ export const handler = async (event: BroadcastInput): Promise<BroadcastResult> =
     );
     messagesQueued += entries.length;
   }
+
+  // ── Write broadcast record ──────────────────────────────────────────────
+  await writeBroadcastRecord(config.tableName, {
+    broadcastId: event.broadcastId,
+    templateKey: event.templateKey,
+    subject: event.subject,
+    sender: event.sender,
+    filters: event.filters,
+    subscriberCount: subscribers.length,
+    messagesQueued,
+  });
 
   logger.info("Broadcast queued", {
     broadcastId: event.broadcastId,

@@ -5,6 +5,7 @@ const mockGetSubscriberEmailsByTag = vi.fn();
 const mockBatchGetSubscriberProfiles = vi.fn();
 const mockScanActiveSubscribers = vi.fn();
 const mockExtractAttributes = vi.fn();
+const mockWriteBroadcastRecord = vi.fn();
 
 const mockSqsSend = vi.fn();
 vi.mock("@aws-sdk/client-sqs", () => ({
@@ -28,6 +29,7 @@ vi.mock("../../lib/dynamo-client.js", () => ({
   batchGetSubscriberProfiles: (...args: unknown[]) => mockBatchGetSubscriberProfiles(...args),
   scanActiveSubscribers: (...args: unknown[]) => mockScanActiveSubscribers(...args),
   extractAttributes: (...args: unknown[]) => mockExtractAttributes(...args),
+  writeBroadcastRecord: (...args: unknown[]) => mockWriteBroadcastRecord(...args),
 }));
 
 const CONFIG = {
@@ -50,6 +52,7 @@ beforeEach(() => {
   mockBatchGetSubscriberProfiles.mockReset();
   mockScanActiveSubscribers.mockReset();
   mockExtractAttributes.mockReset().mockReturnValue({});
+  mockWriteBroadcastRecord.mockReset().mockResolvedValue(undefined);
   mockSqsSend.mockReset().mockResolvedValue({});
   process.env.BROADCAST_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/123/broadcast-queue";
 });

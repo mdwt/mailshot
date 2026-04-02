@@ -11,13 +11,14 @@ All items are keyed by subscriber email or tag name. No GSIs - all access patter
 
 ### Key structure
 
-| PK                     | SK                              | Item type                |
-| ---------------------- | ------------------------------- | ------------------------ |
-| `SUB#user@example.com` | `PROFILE`                       | Subscriber profile       |
-| `SUB#user@example.com` | `EXEC#onboarding`               | Active execution         |
-| `SUB#user@example.com` | `SENT#2026-03-17T10:30:00.000Z` | Send log entry           |
-| `SUB#user@example.com` | `SUPPRESSION`                   | Suppression record       |
-| `TAG#product-updates`  | `SUB#user@example.com`          | Tag inverted index entry |
+| PK                        | SK                              | Item type                |
+| ------------------------- | ------------------------------- | ------------------------ |
+| `SUB#user@example.com`    | `PROFILE`                       | Subscriber profile       |
+| `SUB#user@example.com`    | `EXEC#onboarding`               | Active execution         |
+| `SUB#user@example.com`    | `SENT#2026-03-17T10:30:00.000Z` | Send log entry           |
+| `SUB#user@example.com`    | `SUPPRESSION`                   | Suppression record       |
+| `TAG#product-updates`     | `SUB#user@example.com`          | Tag inverted index entry |
+| `BCAST#product-update-04` | `META`                          | Broadcast record         |
 
 ### Key helper functions
 
@@ -28,6 +29,7 @@ subscriberPK("user@example.com"); // → "SUB#user@example.com"
 executionSK("onboarding"); // → "EXEC#onboarding"
 sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
 tagPK("product-updates"); // → "TAG#product-updates"
+broadcastPK("product-update-04"); // → "BCAST#product-update-04"
 ```
 
 ### Item schemas
@@ -103,6 +105,27 @@ Tag items enable efficient queries like "give me all subscribers tagged `product
 
 The inverted index is maintained automatically by `syncTags()` when a subscriber's tags are set via [subscribe events](/docs/subscribers#tags). The PROFILE item's `tags` array and the inverted index items are always kept in sync.
 
+### Broadcast records
+
+Every broadcast writes a persistent log record:
+
+```typescript
+{
+  PK: "BCAST#product-update-2026-04",
+  SK: "META",
+  broadcastId: "product-update-2026-04",
+  templateKey: "broadcasts/product-update-april",
+  subject: "What's new in April",
+  sender: { fromEmail: "updates@example.com", fromName: "My SaaS" },
+  filters: { tags: ["product-updates"], attributes: { plan: "pro" } },
+  subscriberCount: 342,
+  messagesQueued: 342,
+  sentAt: "2026-04-02T10:00:00.000Z",
+}
+```
+
+Written by BroadcastFn after resolving the subscriber list. Query via `get_broadcast` or `list_broadcasts` MCP tools.
+
 ### Access patterns
 
 | Pattern                       | Key condition                                                  |
@@ -115,6 +138,8 @@ The inverted index is maintained automatically by `syncTags()` when a subscriber
 | Get suppression               | `PK = SUB#email, SK = SUPPRESSION`                             |
 | Get everything for subscriber | `PK = SUB#email` (no SK condition)                             |
 | Get all subscribers for a tag | `PK = TAG#tagName` (returns all SUB# items)                    |
+| Get broadcast record          | `PK = BCAST#broadcastId, SK = META`                            |
+| List all broadcasts           | Scan where `PK begins_with BCAST#` and `SK = META`             |
 
 ### TTL
 
@@ -175,6 +200,22 @@ Query: "Show me all opens for the welcome email in the last 7 days"
 ```
 PK = "onboarding/welcome", SK begins_with "EVT#2026-03-10"
 ```
+
+### SequenceIndex GSI
+
+Enables cross-subscriber queries by sequence or broadcast ID:
+
+| GSI PK                                               | GSI SK                        |
+| ---------------------------------------------------- | ----------------------------- |
+| `sequenceId` (e.g., `onboarding` or `broadcast-apr`) | `EVT#<timestamp>#<eventType>` |
+
+Query: "Show me all engagement events for the April broadcast"
+
+```
+PK = "product-update-2026-04", SK begins_with "EVT#"
+```
+
+This powers efficient broadcast stats (opens, clicks, bounces per broadcast) without scanning the entire events table. Also improves sequence event queries — previously these required a full table scan.
 
 ### TTL
 

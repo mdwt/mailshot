@@ -353,10 +353,16 @@ get_template_events(templateKey: "onboarding/welcome", eventType: "click")
 
 ### get_sequence_events
 
-Query events for an entire sequence:
+Query events for an entire sequence or broadcast (uses SequenceIndex GSI — efficient, no scan):
 
 ```
 get_sequence_events(sequenceId: "onboarding", startDate: "2026-03-01", endDate: "2026-03-17")
+```
+
+For broadcasts, use the `broadcastId` as the `sequenceId`:
+
+```
+get_sequence_events(sequenceId: "product-update-2026-04")
 ```
 
 ### get_delivery_stats
@@ -368,3 +374,50 @@ get_delivery_stats(startDate: "2026-03-01", endDate: "2026-03-17")
 ```
 
 Returns counts by event type: deliveries, opens, clicks, bounces, complaints.
+
+## Broadcast management via MCP
+
+### send_broadcast
+
+Trigger a broadcast via EventBridge:
+
+```
+send_broadcast(
+  broadcastId: "product-update-2026-04",
+  templateKey: "broadcasts/product-update-april",
+  subject: "What's new in April",
+  senderFromEmail: "updates@yourdomain.com",
+  senderFromName: "Your Product",
+  filterTags: ["product-updates"]
+)
+```
+
+### get_broadcast
+
+Retrieve a broadcast record showing config, filters, subscriber count, and send time:
+
+```
+get_broadcast(broadcastId: "product-update-2026-04")
+```
+
+### list_broadcasts
+
+List recent broadcasts, most recent first:
+
+```
+list_broadcasts(limit: 10)
+```
+
+### Broadcast engagement tracking
+
+Broadcasts use the existing engagement tracking system. The `broadcastId` is stored as the `sequenceId` on all engagement events, so you can query broadcast stats the same way you query sequence stats:
+
+| Metric      | How to query                                                              |
+| ----------- | ------------------------------------------------------------------------- |
+| Deliveries  | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "delivery")` |
+| Opens       | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "open")`     |
+| Clicks      | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "click")`    |
+| Bounces     | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "bounce")`   |
+| By template | `get_template_events(templateKey: "broadcasts/<name>")`                   |
+
+All queries use GSIs (SequenceIndex or TemplateIndex) for efficient lookups — no table scans.

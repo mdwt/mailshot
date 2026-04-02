@@ -17,7 +17,7 @@ import { getSubscriberEvents, getTemplateEvents, getSequenceEvents } from "./too
 import { listTemplates, previewTemplate, validateTemplate } from "./tools/templates.js";
 import { getFailedExecutions, getDeliveryStats } from "./tools/system.js";
 import { listSequences, exportSequence } from "./tools/sequences.js";
-import { sendBroadcast } from "./tools/broadcast.js";
+import { sendBroadcast, getBroadcast, listBroadcasts } from "./tools/broadcast.js";
 
 const config = resolveConfig();
 
@@ -392,6 +392,43 @@ server.registerTool(
           null,
           2,
         ),
+      },
+    ],
+  }),
+);
+
+server.registerTool(
+  "get_broadcast",
+  {
+    description:
+      "Get a broadcast record by ID, showing config, filters, subscriber count, and send time",
+    inputSchema: {
+      broadcastId: z.string().describe("The broadcast ID to look up"),
+    },
+  },
+  async ({ broadcastId }) => ({
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(await getBroadcast(config, broadcastId), null, 2),
+      },
+    ],
+  }),
+);
+
+server.registerTool(
+  "list_broadcasts",
+  {
+    description: "List recent broadcasts, most recent first",
+    inputSchema: {
+      limit: z.number().int().min(1).max(100).optional().default(20),
+    },
+  },
+  async ({ limit }) => ({
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(await listBroadcasts(config, limit), null, 2),
       },
     ],
   }),

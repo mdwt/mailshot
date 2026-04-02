@@ -260,6 +260,21 @@ export interface BroadcastInput {
   filters?: BroadcastFilters;
 }
 
+// ── Broadcast record (persisted log) ────────────────────────────────────────
+
+export interface BroadcastRecord {
+  PK: string; // BCAST#<broadcastId>
+  SK: "META";
+  broadcastId: string;
+  templateKey: string;
+  subject: string;
+  sender: SenderConfig;
+  filters?: BroadcastFilters;
+  subscriberCount: number;
+  messagesQueued: number;
+  sentAt: string; // ISO timestamp
+}
+
 // ── Tag item (inverted index) ──────────────────────────────────────────────
 
 export interface TagItem {
