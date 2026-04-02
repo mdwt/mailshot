@@ -85,59 +85,51 @@ SubscribeFn upserts the subscriber profile and syncs the [tag inverted index](/d
 
 ### Broadcasts
 
-One-off emails sent to a filtered group of subscribers. Think product updates, announcements, or newsletters. Triggered by a `broadcast.requested` event:
-
-```json
-{
-  "source": ["your-app"],
-  "detail-type": ["broadcast.requested"]
-}
-```
-
-The event detail specifies the broadcast configuration:
+One-off emails sent to a filtered group of subscribers. Think product updates, announcements, or newsletters. Triggered by invoking BroadcastFn directly (via AWS Lambda SDK or MCP tool):
 
 ```typescript
-await eventBridgeClient.send(
-  new PutEventsCommand({
-    Entries: [
-      {
-        Source: "your-app",
-        DetailType: "broadcast.requested",
-        EventBusName: "mailshot-bus",
-        Detail: JSON.stringify({
-          broadcastId: "product-update-2026-04",
-          templateKey: "broadcasts/product-update-april",
-          subject: "What's new in April",
-          sender: {
-            fromEmail: "updates@yourdomain.com",
-            fromName: "Your Product",
-            replyToEmail: "support@yourdomain.com",
-          },
-          filters: {
-            tags: ["product-updates"],
-            attributes: { plan: "pro" },
-          },
-        }),
-      },
-    ],
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+
+const lambda = new LambdaClient({});
+const result = await lambda.send(
+  new InvokeCommand({
+    FunctionName: "Mailshot-broadcast",
+    Payload: Buffer.from(
+      JSON.stringify({
+        broadcastId: "product-update-2026-04",
+        templateKey: "broadcasts/product-update-april",
+        subject: "What's new in April",
+        sender: {
+          fromEmail: "updates@yourdomain.com",
+          fromName: "Your Product",
+          replyToEmail: "support@yourdomain.com",
+        },
+        filters: {
+          tags: ["product-updates"],
+          attributes: { plan: "pro" },
+        },
+      }),
+    ),
   }),
 );
+// result.Payload → { broadcastId, subscriberCount, messagesQueued }
 ```
 
 #### How broadcasts work
 
 ```
-broadcast.requested event
-  → EventBridge rule
-    → BroadcastFn (resolves subscriber list)
-      → SQS queue (one message per subscriber)
-        → SendEmailFn (sends email, tracks engagement)
+Lambda.invoke(BroadcastFn)
+  → BroadcastFn (resolves subscriber list, writes broadcast record)
+    → SQS queue (one message per subscriber)
+      → SendEmailFn (sends email, tracks engagement)
 ```
 
-1. **BroadcastFn** receives the event and resolves the subscriber list based on filters
-2. For each matching subscriber, it publishes an SQS message with a `fire_and_forget` payload
-3. **SQS** provides natural backpressure, retries (3 attempts), and a dead-letter queue for failed sends
-4. **SendEmailFn** processes each message: upserts profile, runs pre-send checks, renders template, sends via SES, writes send log
+1. **BroadcastFn** receives the payload and resolves the subscriber list based on filters
+2. Writes a broadcast record to DynamoDB (`PK = BROADCAST`, `SK = <timestamp>#<broadcastId>`)
+3. For each matching subscriber, it publishes an SQS message with a `fire_and_forget` payload
+4. **SQS** provides natural backpressure, retries (3 attempts), and a dead-letter queue for failed sends
+5. **SendEmailFn** processes each message: runs pre-send checks, renders template, sends via SES, writes send log
+6. Returns `{ broadcastId, subscriberCount, messagesQueued }` to the caller
 
 The `broadcastId` flows through as the `sequenceId` in engagement tracking, so you can query opens/clicks/bounces per broadcast via the [MCP engagement tools](/docs/events#querying-engagement-via-mcp).
 
@@ -379,7 +371,7 @@ Returns counts by event type: deliveries, opens, clicks, bounces, complaints.
 
 ### send_broadcast
 
-Trigger a broadcast via EventBridge:
+Invoke BroadcastFn directly. Returns subscriber count and messages queued:
 
 ```
 send_broadcast(

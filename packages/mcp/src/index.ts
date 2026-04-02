@@ -340,7 +340,7 @@ server.registerTool(
   "send_broadcast",
   {
     description:
-      "Send a one-off broadcast email to filtered subscribers. Publishes a broadcast.requested event to EventBridge, which triggers BroadcastFn to resolve subscribers and fan out via SQS.",
+      "Send a one-off broadcast email to filtered subscribers. Invokes BroadcastFn directly to resolve subscribers and fan out via SQS. Returns subscriber count and messages queued.",
     inputSchema: {
       broadcastId: z.string().describe("Unique broadcast identifier (kebab-case)"),
       templateKey: z.string().describe("S3 template key (e.g., broadcasts/product-update)"),

@@ -1,15 +1,15 @@
-import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
-import { DynamoDBClient, GetItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { broadcastPK, BCAST_META_SK, BCAST_PK_PREFIX } from "@mailshot/shared";
+import { BROADCAST_PK } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
-let eventBridge: EventBridgeClient;
+let lambdaClient: LambdaClient;
 let dynamo: DynamoDBClient;
 
-function getEventBridge(region: string): EventBridgeClient {
-  if (!eventBridge) eventBridge = new EventBridgeClient({ region });
-  return eventBridge;
+function getLambda(region: string): LambdaClient {
+  if (!lambdaClient) lambdaClient = new LambdaClient({ region });
+  return lambdaClient;
 }
 
 function getDynamo(region: string): DynamoDBClient {
@@ -30,9 +30,9 @@ export interface SendBroadcastParams {
 }
 
 export async function sendBroadcast(config: McpConfig, params: SendBroadcastParams) {
-  const eb = getEventBridge(config.region);
+  const client = getLambda(config.region);
 
-  const detail: Record<string, unknown> = {
+  const payload: Record<string, unknown> = {
     broadcastId: params.broadcastId,
     templateKey: params.templateKey,
     subject: params.subject,
@@ -52,64 +52,59 @@ export async function sendBroadcast(config: McpConfig, params: SendBroadcastPara
     filters.attributes = params.filterAttributes;
   }
   if (Object.keys(filters).length > 0) {
-    detail.filters = filters;
+    payload.filters = filters;
   }
 
-  const result = await eb.send(
-    new PutEventsCommand({
-      Entries: [
-        {
-          Source: "mailshot.mcp",
-          DetailType: "broadcast.requested",
-          EventBusName: config.eventBusName,
-          Detail: JSON.stringify(detail),
-        },
-      ],
+  const result = await client.send(
+    new InvokeCommand({
+      FunctionName: config.broadcastFnName,
+      Payload: Buffer.from(JSON.stringify(payload)),
     }),
   );
 
-  const failed = result.FailedEntryCount ?? 0;
-  if (failed > 0) {
-    const entry = result.Entries?.[0];
-    throw new Error(
-      `Failed to publish broadcast event: ${entry?.ErrorCode} - ${entry?.ErrorMessage}`,
-    );
+  if (result.FunctionError) {
+    const body = result.Payload ? JSON.parse(Buffer.from(result.Payload).toString()) : {};
+    throw new Error(`BroadcastFn error: ${body.errorMessage ?? result.FunctionError}`);
   }
 
-  return {
-    published: true,
-    broadcastId: params.broadcastId,
-    eventId: result.Entries?.[0]?.EventId,
-  };
+  const response = result.Payload ? JSON.parse(Buffer.from(result.Payload).toString()) : {};
+  return response;
 }
 
 export async function getBroadcast(config: McpConfig, broadcastId: string) {
   const db = getDynamo(config.region);
+
+  // broadcastId is the suffix of the SK after the timestamp — filter for it
   const result = await db.send(
-    new GetItemCommand({
+    new QueryCommand({
       TableName: config.tableName,
-      Key: marshall({ PK: broadcastPK(broadcastId), SK: BCAST_META_SK }),
+      KeyConditionExpression: "PK = :pk",
+      FilterExpression: "broadcastId = :bid",
+      ExpressionAttributeValues: marshall({
+        ":pk": BROADCAST_PK,
+        ":bid": broadcastId,
+      }),
+      ScanIndexForward: false,
+      Limit: 100,
     }),
   );
-  return result.Item ? unmarshall(result.Item) : null;
+
+  const items = (result.Items ?? []).map((i) => unmarshall(i));
+  return items.length > 0 ? items[0] : null;
 }
 
 export async function listBroadcasts(config: McpConfig, limit: number) {
   const db = getDynamo(config.region);
+
   const result = await db.send(
-    new ScanCommand({
+    new QueryCommand({
       TableName: config.tableName,
-      FilterExpression: "begins_with(PK, :prefix) AND SK = :sk",
-      ExpressionAttributeValues: marshall({
-        ":prefix": BCAST_PK_PREFIX,
-        ":sk": BCAST_META_SK,
-      }),
-      Limit: Math.min(limit, 100) * 10,
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: marshall({ ":pk": BROADCAST_PK }),
+      ScanIndexForward: false,
+      Limit: Math.min(limit, 100),
     }),
   );
 
-  return (result.Items ?? [])
-    .map((i) => unmarshall(i))
-    .sort((a, b) => (b.sentAt as string).localeCompare(a.sentAt as string))
-    .slice(0, limit);
+  return (result.Items ?? []).map((i) => unmarshall(i));
 }

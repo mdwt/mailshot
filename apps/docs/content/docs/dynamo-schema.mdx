@@ -11,14 +11,14 @@ All items are keyed by subscriber email or tag name. No GSIs - all access patter
 
 ### Key structure
 
-| PK                        | SK                              | Item type                |
-| ------------------------- | ------------------------------- | ------------------------ |
-| `SUB#user@example.com`    | `PROFILE`                       | Subscriber profile       |
-| `SUB#user@example.com`    | `EXEC#onboarding`               | Active execution         |
-| `SUB#user@example.com`    | `SENT#2026-03-17T10:30:00.000Z` | Send log entry           |
-| `SUB#user@example.com`    | `SUPPRESSION`                   | Suppression record       |
-| `TAG#product-updates`     | `SUB#user@example.com`          | Tag inverted index entry |
-| `BCAST#product-update-04` | `META`                          | Broadcast record         |
+| PK                     | SK                                              | Item type                |
+| ---------------------- | ----------------------------------------------- | ------------------------ |
+| `SUB#user@example.com` | `PROFILE`                                       | Subscriber profile       |
+| `SUB#user@example.com` | `EXEC#onboarding`                               | Active execution         |
+| `SUB#user@example.com` | `SENT#2026-03-17T10:30:00.000Z`                 | Send log entry           |
+| `SUB#user@example.com` | `SUPPRESSION`                                   | Suppression record       |
+| `TAG#product-updates`  | `SUB#user@example.com`                          | Tag inverted index entry |
+| `BROADCAST`            | `2026-04-02T10:00:00.000Z#product-update-april` | Broadcast record         |
 
 ### Key helper functions
 
@@ -29,7 +29,7 @@ subscriberPK("user@example.com"); // → "SUB#user@example.com"
 executionSK("onboarding"); // → "EXEC#onboarding"
 sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
 tagPK("product-updates"); // → "TAG#product-updates"
-broadcastPK("product-update-04"); // → "BCAST#product-update-04"
+broadcastSK("2026-04-02T10:00:00.000Z", "product-update-april"); // → "2026-04-02T10:00:00.000Z#product-update-april"
 ```
 
 ### Item schemas
@@ -111,8 +111,8 @@ Every broadcast writes a persistent log record:
 
 ```typescript
 {
-  PK: "BCAST#product-update-2026-04",
-  SK: "META",
+  PK: "BROADCAST",
+  SK: "2026-04-02T10:00:00.000Z#product-update-2026-04",
   broadcastId: "product-update-2026-04",
   templateKey: "broadcasts/product-update-april",
   subject: "What's new in April",
@@ -124,7 +124,7 @@ Every broadcast writes a persistent log record:
 }
 ```
 
-Written by BroadcastFn after resolving the subscriber list. Query via `get_broadcast` or `list_broadcasts` MCP tools.
+All broadcasts share a single partition key (`BROADCAST`), with the SK sorted by timestamp. This means `list_broadcasts` is a simple Query with `ScanIndexForward: false` — most recent first, no scan. Written by BroadcastFn after resolving subscribers. Query via `get_broadcast` or `list_broadcasts` MCP tools.
 
 ### Access patterns
 
@@ -138,8 +138,9 @@ Written by BroadcastFn after resolving the subscriber list. Query via `get_broad
 | Get suppression               | `PK = SUB#email, SK = SUPPRESSION`                             |
 | Get everything for subscriber | `PK = SUB#email` (no SK condition)                             |
 | Get all subscribers for a tag | `PK = TAG#tagName` (returns all SUB# items)                    |
-| Get broadcast record          | `PK = BCAST#broadcastId, SK = META`                            |
-| List all broadcasts           | Scan where `PK begins_with BCAST#` and `SK = META`             |
+| Get broadcast by ID           | `PK = BROADCAST` + filter on `broadcastId`                     |
+| List broadcasts (time-sorted) | `PK = BROADCAST, ScanIndexForward = false`                     |
+| List broadcasts in date range | `PK = BROADCAST, SK BETWEEN <start> AND <end>`                 |
 
 ### TTL
 

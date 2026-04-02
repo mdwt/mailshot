@@ -12,7 +12,6 @@ export interface EventBusProps {
   sendEmailFn: lambda.IFunction;
   sequenceExitFn: lambda.IFunction;
   subscribeFn: lambda.IFunction;
-  broadcastFn: lambda.IFunction;
 }
 
 function pascalCase(id: string): string {
@@ -152,20 +151,6 @@ export class EventBusConstruct extends Construct {
               tags: events.EventField.fromPath("$.detail.tags"),
             },
           }),
-        }),
-      ],
-    });
-
-    // ── Broadcast event → BroadcastFn ───────────────────────────────
-    new events.Rule(this, "BroadcastRule", {
-      eventBus: this.eventBus,
-      ruleName: "broadcast-requested",
-      eventPattern: {
-        detailType: ["broadcast.requested"],
-      },
-      targets: [
-        new targets.LambdaFunction(props.broadcastFn, {
-          event: events.RuleTargetInput.fromEventPath("$.detail"),
         }),
       ],
     });

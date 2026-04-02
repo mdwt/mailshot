@@ -7,6 +7,7 @@ export interface McpConfig {
   eventsTableName: string;
   templateBucketName: string;
   eventBusName: string;
+  broadcastFnName: string;
   stackName?: string;
 }
 
@@ -46,14 +47,23 @@ export function resolveConfig(): McpConfig {
   const eventsTableName = process.env.EVENTS_TABLE_NAME;
   const templateBucketName = process.env.TEMPLATE_BUCKET_NAME;
   const eventBusName = process.env.EVENT_BUS_NAME;
+  const broadcastFnName = process.env.BROADCAST_FN_NAME;
   const stackName = process.env.STACK_NAME || undefined;
 
-  if (!tableName || !eventsTableName || !templateBucketName || !eventBusName) {
+  if (!tableName || !eventsTableName || !templateBucketName || !eventBusName || !broadcastFnName) {
     throw new Error(
-      "Missing required env vars: TABLE_NAME, EVENTS_TABLE_NAME, TEMPLATE_BUCKET_NAME, EVENT_BUS_NAME. " +
+      "Missing required env vars: TABLE_NAME, EVENTS_TABLE_NAME, TEMPLATE_BUCKET_NAME, EVENT_BUS_NAME, BROADCAST_FN_NAME. " +
         "Ensure .env exists in the repo root or set them in the environment.",
     );
   }
 
-  return { region, tableName, eventsTableName, templateBucketName, eventBusName, stackName };
+  return {
+    region,
+    tableName,
+    eventsTableName,
+    templateBucketName,
+    eventBusName,
+    broadcastFnName,
+    stackName,
+  };
 }

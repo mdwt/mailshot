@@ -78,7 +78,7 @@ Broadcast summary:
 
 ### Step 5: Send the broadcast
 
-Use the `send_broadcast` MCP tool to publish the broadcast event to EventBridge:
+Use the `send_broadcast` MCP tool to invoke BroadcastFn directly:
 
 ```
 send_broadcast(
@@ -92,28 +92,30 @@ send_broadcast(
 )
 ```
 
-The tool publishes a `broadcast.requested` event to EventBridge. BroadcastFn then:
+The tool invokes BroadcastFn via Lambda and returns the result synchronously. BroadcastFn:
 
 1. Queries subscribers matching the filters
-2. Fans out to SQS (one message per subscriber)
-3. SendEmailFn processes each message (pre-send checks, template render, SES send)
+2. Writes a broadcast record to DynamoDB
+3. Fans out to SQS (one message per subscriber)
+4. Returns `{ broadcastId, subscriberCount, messagesQueued }`
+5. SendEmailFn processes each SQS message (pre-send checks, template render, SES send)
 
 ### Step 6: Monitor
 
-After sending, suggest the user can check engagement:
+After sending, you can check the broadcast record and engagement:
 
 ```
-# Check delivery stats for this broadcast
+# View the broadcast record
+get_broadcast(broadcastId: "product-update-2026-04")
+
+# List recent broadcasts
+list_broadcasts(limit: 10)
+
+# Check engagement by broadcastId (uses SequenceIndex GSI)
+get_sequence_events(sequenceId: "product-update-2026-04", eventType: "open")
+
+# Check engagement by template (uses TemplateIndex GSI)
 get_template_events(templateKey: "broadcasts/product-update-april", eventType: "delivery")
-
-# Check opens
-get_template_events(templateKey: "broadcasts/product-update-april", eventType: "open")
-```
-
-The `broadcastId` is used as the `sequenceId` in engagement tracking, so `get_sequence_events` also works:
-
-```
-get_sequence_events(sequenceId: "product-update-2026-04")
 ```
 
 ## Important notes

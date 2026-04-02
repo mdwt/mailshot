@@ -16,9 +16,9 @@ export const tagPK = (tag: string): string => `${TAG_PK_PREFIX}${tag}`;
 
 // ── Broadcasts ────────────────────────────────────────────────────────────
 
-export const BCAST_PK_PREFIX = "BCAST#" as const;
-export const BCAST_META_SK = "META" as const;
-export const broadcastPK = (broadcastId: string): string => `${BCAST_PK_PREFIX}${broadcastId}`;
+export const BROADCAST_PK = "BROADCAST" as const;
+export const broadcastSK = (isoTimestamp: string, broadcastId: string): string =>
+  `${isoTimestamp}#${broadcastId}`;
 
 // ── Events table ───────────────────────────────────────────────────────────
 

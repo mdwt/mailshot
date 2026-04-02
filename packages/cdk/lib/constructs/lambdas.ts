@@ -22,6 +22,7 @@ export interface LambdasProps {
   eventBusName?: string;
   dataTtlDays?: number;
   replyForwardTo?: string;
+  broadcastFnName: string;
   logLevel?: string;
   handlersPath?: string;
 }
@@ -225,6 +226,7 @@ export class LambdasConstruct extends Construct {
 
     // ── BroadcastFn ───────────────────────────────────────────────────
     this.broadcastFn = new nodejs.NodejsFunction(this, "BroadcastFn", {
+      functionName: props.broadcastFnName,
       entry: path.join(handlersPath, "handlers/broadcast.ts"),
       handler: "handler",
       runtime: lambda.Runtime.NODEJS_22_X,
@@ -240,7 +242,7 @@ export class LambdasConstruct extends Construct {
       },
     });
 
-    props.table.grantReadData(this.broadcastFn);
+    props.table.grantReadWriteData(this.broadcastFn);
     this.broadcastQueue.grantSendMessages(this.broadcastFn);
 
     // ── ReplyHandlerFn (opt-in, requires replyTopic) ─────────────────

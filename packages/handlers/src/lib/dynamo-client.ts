@@ -19,8 +19,8 @@ import {
   EXEC_SK_PREFIX,
   SENT_SK_PREFIX,
   tagPK,
-  broadcastPK,
-  BCAST_META_SK,
+  BROADCAST_PK,
+  broadcastSK,
 } from "@mailshot/shared";
 import type {
   Subscriber,
@@ -541,13 +541,14 @@ export async function writeBroadcastRecord(
     broadcastId: params.broadcastId,
     subscriberCount: params.subscriberCount,
   });
+  const sentAt = new Date().toISOString();
   await dynamo.send(
     new PutItemCommand({
       TableName: tableName,
       Item: marshall(
         {
-          PK: broadcastPK(params.broadcastId),
-          SK: BCAST_META_SK,
+          PK: BROADCAST_PK,
+          SK: broadcastSK(sentAt, params.broadcastId),
           broadcastId: params.broadcastId,
           templateKey: params.templateKey,
           subject: params.subject,
@@ -555,7 +556,7 @@ export async function writeBroadcastRecord(
           filters: params.filters,
           subscriberCount: params.subscriberCount,
           messagesQueued: params.messagesQueued,
-          sentAt: new Date().toISOString(),
+          sentAt,
         },
         { removeUndefinedValues: true },
       ),

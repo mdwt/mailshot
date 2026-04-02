@@ -263,8 +263,8 @@ export interface BroadcastInput {
 // ── Broadcast record (persisted log) ────────────────────────────────────────
 
 export interface BroadcastRecord {
-  PK: string; // BCAST#<broadcastId>
-  SK: "META";
+  PK: "BROADCAST";
+  SK: string; // <isoTimestamp>#<broadcastId>
   broadcastId: string;
   templateKey: string;
   subject: string;
