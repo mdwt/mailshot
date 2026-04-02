@@ -7,7 +7,7 @@ The system uses events at two levels: **EventBridge events** to trigger sequence
 
 ## EventBridge events
 
-Your app publishes events to a custom EventBridge bus. Two types of routing rules handle them:
+Your app publishes events to a custom EventBridge bus. Four types of routing rules handle them:
 
 ### Sequence triggers
 
@@ -47,6 +47,142 @@ events: [
 ```
 
 These create EventBridge rules that invoke SendEmailFn directly. The Lambda upserts the subscriber profile and sends the email in one call.
+
+### Subscribe events
+
+Explicit subscriber registration with tags and attributes. Publishes to SubscribeFn:
+
+```json
+{
+  "source": ["your-app"],
+  "detail-type": ["subscriber.subscribed"]
+}
+```
+
+The event detail must include `email` and `firstName`. Optionally include `attributes` (key-value pairs) and `tags` (string array):
+
+```typescript
+await eventBridgeClient.send(
+  new PutEventsCommand({
+    Entries: [
+      {
+        Source: "your-app",
+        DetailType: "subscriber.subscribed",
+        EventBusName: "mailshot-bus",
+        Detail: JSON.stringify({
+          email: "user@example.com",
+          firstName: "Jane",
+          attributes: { plan: "pro", country: "US" },
+          tags: ["product-updates", "beta-users"],
+        }),
+      },
+    ],
+  }),
+);
+```
+
+SubscribeFn upserts the subscriber profile and syncs the [tag inverted index](/docs/subscribers#tags). If the subscriber already exists, attributes and tags are updated.
+
+### Broadcasts
+
+One-off emails sent to a filtered group of subscribers. Think product updates, announcements, or newsletters. Triggered by a `broadcast.requested` event:
+
+```json
+{
+  "source": ["your-app"],
+  "detail-type": ["broadcast.requested"]
+}
+```
+
+The event detail specifies the broadcast configuration:
+
+```typescript
+await eventBridgeClient.send(
+  new PutEventsCommand({
+    Entries: [
+      {
+        Source: "your-app",
+        DetailType: "broadcast.requested",
+        EventBusName: "mailshot-bus",
+        Detail: JSON.stringify({
+          broadcastId: "product-update-2026-04",
+          templateKey: "broadcasts/product-update-april",
+          subject: "What's new in April",
+          sender: {
+            fromEmail: "updates@yourdomain.com",
+            fromName: "Your Product",
+            replyToEmail: "support@yourdomain.com",
+          },
+          filters: {
+            tags: ["product-updates"],
+            attributes: { plan: "pro" },
+          },
+        }),
+      },
+    ],
+  }),
+);
+```
+
+#### How broadcasts work
+
+```
+broadcast.requested event
+  → EventBridge rule
+    → BroadcastFn (resolves subscriber list)
+      → SQS queue (one message per subscriber)
+        → SendEmailFn (sends email, tracks engagement)
+```
+
+1. **BroadcastFn** receives the event and resolves the subscriber list based on filters
+2. For each matching subscriber, it publishes an SQS message with a `fire_and_forget` payload
+3. **SQS** provides natural backpressure, retries (3 attempts), and a dead-letter queue for failed sends
+4. **SendEmailFn** processes each message: upserts profile, runs pre-send checks, renders template, sends via SES, writes send log
+
+The `broadcastId` flows through as the `sequenceId` in engagement tracking, so you can query opens/clicks/bounces per broadcast via the [MCP engagement tools](/docs/events#querying-engagement-via-mcp).
+
+#### Filtering subscribers
+
+Filters support **tags** and **attributes**, applied together as AND conditions.
+
+| Filter       | How it works                                                                                                             | Example                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `tags`       | Queries the tag inverted index (`TAG#<name>` items). Multiple tags use AND logic — subscriber must have ALL listed tags. | `["product-updates", "enterprise"]` |
+| `attributes` | Equality match on subscriber profile attributes.                                                                         | `{ plan: "pro", country: "US" }`    |
+
+When both `tags` and `attributes` are specified:
+
+1. Tag inverted index is queried first (efficient, narrows the set)
+2. Matching subscriber profiles are batch-fetched
+3. Attribute filters are applied in memory
+4. Unsubscribed and suppressed subscribers are excluded automatically
+
+When no filters are specified, all active subscribers receive the broadcast.
+
+#### Broadcast sender config
+
+Every broadcast must include a `sender` object:
+
+```typescript
+sender: {
+  fromEmail: "updates@yourdomain.com",  // SES-verified address
+  fromName: "Your Product",             // Display name
+  replyToEmail: "support@yourdomain.com", // Optional Reply-To
+  listUnsubscribe: true,                // Default: true
+}
+```
+
+This follows the same [per-sequence sender config](/docs/sequences) pattern. Set `listUnsubscribe: false` to omit `List-Unsubscribe` headers (the in-body unsubscribe link is still available).
+
+#### Broadcast templates
+
+Templates for broadcasts follow the same format as sequence templates (React Email → HTML, rendered with LiquidJS). Store them under a `broadcasts/` prefix:
+
+```
+templates/broadcasts/product-update-april.html
+```
+
+All the same template variables are available: `email`, `firstName`, custom attributes, `unsubscribeUrl`, `currentYear`, and display names.
 
 ### Publishing events
 

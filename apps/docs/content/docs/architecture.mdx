@@ -16,7 +16,8 @@ description: System overview, AWS services, data flow, caching, and cost model.
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **EventBridge**    | Event ingestion and routing. Custom bus receives events from your app. Rules route to Step Functions (sequences) or Lambda (fire-and-forget).                           |
 | **Step Functions** | Sequence orchestration. One state machine per sequence. Handles branching, delays, and step ordering.                                                                   |
-| **Lambda**         | Six functions: SendEmail, CheckCondition, Unsubscribe, BounceHandler, EngagementHandler, ReplyHandler (conditional).                                                    |
+| **Lambda**         | Eight functions: SendEmail, CheckCondition, Unsubscribe, BounceHandler, EngagementHandler, Subscribe, Broadcast, ReplyHandler (conditional).                            |
+| **SQS**            | Broadcast send queue with dead-letter queue. Fans out broadcast emails to SendEmailFn with backpressure and retries.                                                    |
 | **DynamoDB**       | Two tables. Main table: subscriber profiles, active executions, send logs, suppression records. Events table: engagement tracking (opens, clicks, deliveries, replies). |
 | **S3**             | HTML email templates. Deployed via CDK BucketDeployment. Cached in Lambda memory for 10 minutes.                                                                        |
 | **SES**            | Email delivery with open/click tracking via configuration set.                                                                                                          |
@@ -31,43 +32,45 @@ description: System overview, AWS services, data flow, caching, and cost model.
 └───────────────┬──────────────────┘
                 │
                 ▼
-┌──────────────────────────────────┐
-│ EventBridge (Custom Bus)         │
-│                                  │
-│ Sequence rules ──→ Step Functions│
-│ Event rules ────→ SendEmailFn    │
-└───────┬──────────────────┬───────┘
-        │                  │
-        ▼                  ▼
- Step Functions        SendEmailFn (fire-and-forget)
-   │                       │
-   ├─ register ────────────┤
-   ├─ send (per step) ─────┤
-   ├─ wait                  │
-   ├─ choice (native)      │
-   ├─ condition ───→ CheckConditionFn
-   ├─ complete ────────────┤
-   │                       │
-   └───────────────────────┘
+┌──────────────────────────────────────────────────┐
+│ EventBridge (Custom Bus)                         │
+│                                                  │
+│ Sequence rules ─────→ Step Functions             │
+│ Event rules ────────→ SendEmailFn                │
+│ Subscribe rule ─────→ SubscribeFn                │
+│ Broadcast rule ─────→ BroadcastFn ──→ SQS Queue │
+└───────┬──────────────────┬──────────────┬────────┘
+        │                  │              │
+        ▼                  ▼              ▼
+ Step Functions     SendEmailFn      BroadcastFn
+   │                    │               │
+   ├─ register ─────────┤          Scans subscribers
+   ├─ send (per step) ──┤          by tags/attributes
+   ├─ wait               │               │
+   ├─ choice (native)   │               ▼
+   ├─ condition ───→ CheckConditionFn  SQS Queue
+   ├─ complete ─────────┤               │
+   │                    │               ▼
+   └────────────────────┤          SendEmailFn
+                        │          (per subscriber)
+                ┌───────┴───────┐
+                ▼               ▼
+           DynamoDB           S3 Templates
+           (state)            (HTML + Liquid)
                 │
-        ┌───────┴───────┐
-        ▼               ▼
-   DynamoDB           S3 Templates
-   (state)            (HTML + Liquid)
-        │
-        ▼
-       SES ──→ Recipient
-        │
-        ├─ Bounce/Complaint ──→ SNS ──→ BounceHandlerFn
-        │                                  └─ suppress subscriber
-        │                                  └─ stop executions
-        │
-        ├─ Engagement ────────→ SNS ──→ EngagementHandlerFn
-        │  (open/click/delivery)           └─ write to Events table
-        │
-        └─ Unsubscribe link ──→ UnsubscribeFn (Function URL)
-                                   └─ mark unsubscribed
-                                   └─ stop executions
+                ▼
+               SES ──→ Recipient
+                │
+                ├─ Bounce/Complaint ──→ SNS ──→ BounceHandlerFn
+                │                                  └─ suppress subscriber
+                │                                  └─ stop executions
+                │
+                ├─ Engagement ────────→ SNS ──→ EngagementHandlerFn
+                │  (open/click/delivery)           └─ write to Events table
+                │
+                └─ Unsubscribe link ──→ UnsubscribeFn (Function URL)
+                                           └─ mark unsubscribed
+                                           └─ stop executions
 
   Inbound Reply ──→ SES Receipt Rule ──→ SNS ──→ ReplyHandlerFn
                     (if REPLY_TO_EMAIL set)        └─ write reply to Events table

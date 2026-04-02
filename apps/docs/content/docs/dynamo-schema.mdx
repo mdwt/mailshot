@@ -7,16 +7,17 @@ Two tables: a main table (single-table design) for all subscriber state, and an 
 
 ## Main table
 
-All items are keyed by subscriber email. No GSIs - all access patterns are served by the primary key.
+All items are keyed by subscriber email or tag name. No GSIs - all access patterns are served by the primary key.
 
 ### Key structure
 
-| PK                     | SK                              | Item type          |
-| ---------------------- | ------------------------------- | ------------------ |
-| `SUB#user@example.com` | `PROFILE`                       | Subscriber profile |
-| `SUB#user@example.com` | `EXEC#onboarding`               | Active execution   |
-| `SUB#user@example.com` | `SENT#2026-03-17T10:30:00.000Z` | Send log entry     |
-| `SUB#user@example.com` | `SUPPRESSION`                   | Suppression record |
+| PK                     | SK                              | Item type                |
+| ---------------------- | ------------------------------- | ------------------------ |
+| `SUB#user@example.com` | `PROFILE`                       | Subscriber profile       |
+| `SUB#user@example.com` | `EXEC#onboarding`               | Active execution         |
+| `SUB#user@example.com` | `SENT#2026-03-17T10:30:00.000Z` | Send log entry           |
+| `SUB#user@example.com` | `SUPPRESSION`                   | Suppression record       |
+| `TAG#product-updates`  | `SUB#user@example.com`          | Tag inverted index entry |
 
 ### Key helper functions
 
@@ -26,6 +27,7 @@ The `@mailshot/shared` package exports these helpers:
 subscriberPK("user@example.com"); // → "SUB#user@example.com"
 executionSK("onboarding"); // → "EXEC#onboarding"
 sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
+tagPK("product-updates"); // → "TAG#product-updates"
 ```
 
 ### Item schemas
@@ -38,7 +40,9 @@ sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
   SK: "PROFILE",
   email: "user@example.com",
   firstName: "Jane",
-  attributes: { platform: "kajabi", country: "ZA" },
+  platform: "kajabi",              // custom attributes are top-level columns
+  country: "ZA",
+  tags: ["product-updates", "beta-users"],  // string array for tag membership
   unsubscribed: false,
   suppressed: false,
   createdAt: "2026-03-01T00:00:00.000Z",
@@ -84,6 +88,21 @@ sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
 }
 ```
 
+### Tag items (inverted index)
+
+Tag items enable efficient queries like "give me all subscribers tagged `product-updates`". Each tag assignment creates one item:
+
+```typescript
+{
+  PK: "TAG#product-updates",
+  SK: "SUB#user@example.com",
+  email: "user@example.com",
+  taggedAt: "2026-03-17T10:00:00.000Z",
+}
+```
+
+The inverted index is maintained automatically by `syncTags()` when a subscriber's tags are set via [subscribe events](/docs/subscribers#tags). The PROFILE item's `tags` array and the inverted index items are always kept in sync.
+
 ### Access patterns
 
 | Pattern                       | Key condition                                                  |
@@ -95,6 +114,7 @@ sentSK("2026-03-17T10:30:00.000Z"); // → "SENT#2026-03-17T10:30:00.000Z"
 | Check if sent                 | `PK = SUB#email, SK begins_with SENT#` + filter on templateKey |
 | Get suppression               | `PK = SUB#email, SK = SUPPRESSION`                             |
 | Get everything for subscriber | `PK = SUB#email` (no SK condition)                             |
+| Get all subscribers for a tag | `PK = TAG#tagName` (returns all SUB# items)                    |
 
 ### TTL
 
