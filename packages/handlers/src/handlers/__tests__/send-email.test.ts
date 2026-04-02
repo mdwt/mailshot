@@ -379,4 +379,69 @@ describe("send-email handler", () => {
       );
     });
   });
+
+  describe("SQS record unwrapping", () => {
+    it("processes SQS records containing fire_and_forget payloads", async () => {
+      mockGetSubscriberProfile.mockResolvedValue({
+        unsubscribed: false,
+        suppressed: false,
+        email: "user@example.com",
+        firstName: "Jane",
+      });
+
+      const sqsEvent = {
+        Records: [
+          {
+            body: JSON.stringify({
+              action: "fire_and_forget",
+              templateKey: "broadcasts/update",
+              subject: "What's new",
+              sender: TEST_SENDER,
+              sequenceId: "broadcast-april",
+              subscriber: { email: "user@example.com", firstName: "Jane" },
+            }),
+          },
+        ],
+      } as unknown as Parameters<typeof handler>[0];
+
+      await handler(sqsEvent);
+
+      expect(mockUpsertSubscriberProfile).toHaveBeenCalledWith("TestTable", {
+        email: "user@example.com",
+        firstName: "Jane",
+      });
+      expect(mockSendEmail).toHaveBeenCalled();
+    });
+
+    it("uses custom sequenceId from fire_and_forget payload", async () => {
+      mockGetSubscriberProfile.mockResolvedValue({
+        unsubscribed: false,
+        suppressed: false,
+        email: "user@example.com",
+        firstName: "Jane",
+      });
+
+      const sqsEvent = {
+        Records: [
+          {
+            body: JSON.stringify({
+              action: "fire_and_forget",
+              templateKey: "broadcasts/update",
+              subject: "What's new",
+              sender: TEST_SENDER,
+              sequenceId: "my-broadcast-id",
+              subscriber: { email: "user@example.com", firstName: "Jane" },
+            }),
+          },
+        ],
+      } as unknown as Parameters<typeof handler>[0];
+
+      await handler(sqsEvent);
+
+      // Verify the send log uses the broadcastId as sequenceId
+      expect(mockWriteSendLog).toHaveBeenCalled();
+      const sendLogCall = mockWriteSendLog.mock.calls[0];
+      expect(sendLogCall[2].sequenceId).toBe("my-broadcast-id");
+    });
+  });
 });

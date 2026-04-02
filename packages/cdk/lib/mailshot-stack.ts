@@ -74,6 +74,7 @@ export class MailshotStack extends cdk.Stack {
       unsubscribeSecret: config.unsubscribeSecret,
       eventBusName: config.eventBusName,
       dataTtlDays: config.dataTtlDays,
+      broadcastFnName: `${config.stackName}-broadcast`,
       replyForwardTo,
       handlersPath: props.handlersPath,
     });
@@ -159,6 +160,7 @@ export class MailshotStack extends cdk.Stack {
       stateMachines: stateMachines.stateMachines,
       sendEmailFn: lambdas.sendEmailFn,
       sequenceExitFn: lambdas.sequenceExitFn,
+      subscribeFn: lambdas.subscribeFn,
     });
 
     // ── Outputs ──────────────────────────────────────────────────────────
@@ -173,6 +175,9 @@ export class MailshotStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, "EventBusName", {
       value: config.eventBusName,
+    });
+    new cdk.CfnOutput(this, "BroadcastFnName", {
+      value: lambdas.broadcastFn.functionName,
     });
   }
 }

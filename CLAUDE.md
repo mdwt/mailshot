@@ -50,12 +50,13 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 5. SES bounce/complaint notifications → SNS → BounceHandlerFn → suppresses subscriber, stops executions
 6. SES engagement events (delivery, open, click, bounce, complaint) → SNS → EngagementHandlerFn → writes to EmailEvents table
 7. Unsubscribe link → UnsubscribeFn (Lambda Function URL, no auth) → marks unsubscribed, stops executions
+8. Broadcasts: MCP or app invokes BroadcastFn directly via `Lambda.invoke()` → resolves subscribers by tags/attributes → writes broadcast record (`PK = BROADCAST`, `SK = <timestamp>#<broadcastId>`) → fans out to SQS → SendEmailFn processes each message. Supports `dryRun: true` to preview audience count without sending.
 
 ### DynamoDB tables
 
-**Main table** (single-table design): All items keyed by `PK = SUB#<email>`. Sort keys: `PROFILE`, `EXEC#<sequenceId>`, `SENT#<timestamp>`, `SUPPRESSION`. No GSIs. Subscriber attributes (platform, country, gateway, etc.) are stored as **top-level columns** on the PROFILE item - not nested under an `attributes` map. System columns (`PK`, `SK`, `email`, `firstName`, `unsubscribed`, `suppressed`, `createdAt`, `updatedAt`) are fixed; everything else is a dynamic attribute. Use `extractAttributes(profile)` from `dynamo-client.ts` to separate custom attributes from system columns.
+**Main table** (single-table design): Items keyed by `PK = SUB#<email>` (subscribers) or `PK = BROADCAST` (broadcast records). Subscriber sort keys: `PROFILE`, `EXEC#<sequenceId>`, `SENT#<timestamp>`, `SUPPRESSION`. Broadcast sort keys: `<timestamp>#<broadcastId>`. No GSIs. Subscriber attributes (platform, country, gateway, etc.) are stored as **top-level columns** on the PROFILE item - not nested under an `attributes` map. System columns (`PK`, `SK`, `email`, `firstName`, `unsubscribed`, `suppressed`, `createdAt`, `updatedAt`) are fixed; everything else is a dynamic attribute. Use `extractAttributes(profile)` from `dynamo-client.ts` to separate custom attributes from system columns.
 
-**Events table** (engagement tracking): `PK = SUB#<email>`, `SK = EVT#<timestamp>#<eventType>`. GSI `TemplateIndex` on `templateKey` + `SK` for cross-subscriber template queries. Optional TTL via `DATA_TTL_DAYS` env var (disabled by default).
+**Events table** (engagement tracking): `PK = SUB#<email>`, `SK = EVT#<timestamp>#<eventType>`. GSI `TemplateIndex` on `templateKey` + `SK` for cross-subscriber template queries. GSI `SequenceIndex` on `sequenceId` + `SK` for cross-subscriber sequence/broadcast queries. Optional TTL via `DATA_TTL_DAYS` env var (disabled by default).
 
 ### Resource tags
 
@@ -123,6 +124,7 @@ Variant assignment is deterministic — `SHA-256(email + sequenceId)` picks the 
 - The `unsubscribed` and `suppressed` flags on subscriber profiles are never overwritten by upsert - only their respective handlers can set them to `true`
 - Subscriber attributes are top-level DynamoDB columns, not nested under an `attributes` map. The `Subscriber` type (event input) still has `attributes?: Record<string, unknown>` - these are flattened to top-level columns on write, with system keys filtered out
 - `AWS_PROFILE` is set in `.env` and must be passed to CDK commands and the MCP server. The MCP server reads `.env` automatically for table/bucket names
+- `BROADCAST_FN_NAME` in `.env` must match the BroadcastFn function name (set to `${STACK_NAME}-broadcast` by CDK). Required by the MCP server for direct Lambda invocation
 - SES EmailTags don't allow `/` in values - `templateKey` is stored with `/` replaced by `--` in tags only. Headers and DynamoDB use the original key with `/`
 - Commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format (enforced by commitlint). Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 

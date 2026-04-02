@@ -5,6 +5,8 @@ import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import type * as s3 from "aws-cdk-lib/aws-s3";
 import type * as sns from "aws-cdk-lib/aws-sns";
+import * as sqs from "aws-cdk-lib/aws-sqs";
+import * as lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as snsSubscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
@@ -20,6 +22,7 @@ export interface LambdasProps {
   eventBusName?: string;
   dataTtlDays?: number;
   replyForwardTo?: string;
+  broadcastFnName: string;
   logLevel?: string;
   handlersPath?: string;
 }
@@ -31,6 +34,9 @@ export class LambdasConstruct extends Construct {
   public readonly bounceHandlerFn: nodejs.NodejsFunction;
   public readonly engagementHandlerFn: nodejs.NodejsFunction;
   public readonly sequenceExitFn: nodejs.NodejsFunction;
+  public readonly subscribeFn: nodejs.NodejsFunction;
+  public readonly broadcastFn: nodejs.NodejsFunction;
+  public readonly broadcastQueue: sqs.Queue;
   public readonly replyHandlerFn?: nodejs.NodejsFunction;
   public readonly unsubscribeFnUrl: string;
 
@@ -184,6 +190,60 @@ export class LambdasConstruct extends Construct {
     });
 
     props.table.grantReadWriteData(this.sequenceExitFn);
+
+    // ── SubscribeFn ───────────────────────────────────────────────────
+    this.subscribeFn = new nodejs.NodejsFunction(this, "SubscribeFn", {
+      entry: path.join(handlersPath, "handlers/subscribe.ts"),
+      handler: "handler",
+      runtime: lambda.Runtime.NODEJS_22_X,
+      memorySize: 128,
+      timeout: cdk.Duration.seconds(10),
+      environment: commonEnv,
+      bundling: commonBundling,
+    });
+
+    props.table.grantReadWriteData(this.subscribeFn);
+
+    // ── Broadcast SQS queue + DLQ ─────────────────────────────────────
+    const broadcastDlq = new sqs.Queue(this, "BroadcastSendDLQ", {
+      retentionPeriod: cdk.Duration.days(14),
+    });
+
+    this.broadcastQueue = new sqs.Queue(this, "BroadcastSendQueue", {
+      visibilityTimeout: cdk.Duration.seconds(60), // > SendEmailFn timeout
+      deadLetterQueue: {
+        queue: broadcastDlq,
+        maxReceiveCount: 3,
+      },
+    });
+
+    // SendEmailFn consumes from broadcast queue
+    this.sendEmailFn.addEventSource(
+      new lambdaEventSources.SqsEventSource(this.broadcastQueue, {
+        batchSize: 1,
+      }),
+    );
+
+    // ── BroadcastFn ───────────────────────────────────────────────────
+    this.broadcastFn = new nodejs.NodejsFunction(this, "BroadcastFn", {
+      functionName: props.broadcastFnName,
+      entry: path.join(handlersPath, "handlers/broadcast.ts"),
+      handler: "handler",
+      runtime: lambda.Runtime.NODEJS_22_X,
+      memorySize: 256,
+      timeout: cdk.Duration.minutes(15),
+      environment: {
+        ...commonEnv,
+        BROADCAST_QUEUE_URL: this.broadcastQueue.queueUrl,
+      },
+      bundling: {
+        ...commonBundling,
+        externalModules: [...(commonBundling.externalModules ?? []), "@aws-sdk/client-sqs"],
+      },
+    });
+
+    props.table.grantReadWriteData(this.broadcastFn);
+    this.broadcastQueue.grantSendMessages(this.broadcastFn);
 
     // ── ReplyHandlerFn (opt-in, requires replyTopic) ─────────────────
     if (props.replyTopic) {

@@ -1,6 +1,6 @@
-import { DynamoDBClient, QueryCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { subscriberPK, EVT_SK_PREFIX, TEMPLATE_INDEX } from "@mailshot/shared";
+import { subscriberPK, EVT_SK_PREFIX, TEMPLATE_INDEX, SEQUENCE_INDEX } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
 
 let dynamo: DynamoDBClient;
@@ -114,35 +114,31 @@ export async function getSequenceEvents(
   limit: number,
 ) {
   const db = getDynamo(config.region);
+  const skRange = buildSkRange(startDate, endDate);
 
-  // No GSI on sequenceId, so we scan with filter
-  const filterParts = ["sequenceId = :seqId"];
-  const filterValues: Record<string, unknown> = { ":seqId": sequenceId };
+  const filterParts: string[] = [];
+  const filterValues: Record<string, unknown> = {};
 
   if (eventType) {
     filterParts.push("eventType = :eventType");
     filterValues[":eventType"] = eventType;
   }
-  if (startDate) {
-    filterParts.push("SK >= :skStart");
-    filterValues[":skStart"] = `${EVT_SK_PREFIX}${startDate}`;
-  }
-  if (endDate) {
-    filterParts.push("SK <= :skEnd");
-    filterValues[":skEnd"] = `${EVT_SK_PREFIX}${endDate}~`;
-  }
 
   const result = await db.send(
-    new ScanCommand({
+    new QueryCommand({
       TableName: config.eventsTableName,
-      FilterExpression: filterParts.join(" AND "),
-      ExpressionAttributeValues: marshall(filterValues),
-      Limit: Math.min(limit, 100) * 10,
+      IndexName: SEQUENCE_INDEX,
+      KeyConditionExpression: `sequenceId = :seqId AND ${skRange!.expression}`,
+      ...(filterParts.length > 0 ? { FilterExpression: filterParts.join(" AND ") } : {}),
+      ExpressionAttributeValues: marshall({
+        ":seqId": sequenceId,
+        ...skRange!.values,
+        ...filterValues,
+      }),
+      ScanIndexForward: false,
+      Limit: Math.min(limit, 100),
     }),
   );
 
-  return (result.Items ?? [])
-    .map((i) => unmarshall(i))
-    .sort((a, b) => (b.SK as string).localeCompare(a.SK as string))
-    .slice(0, limit);
+  return (result.Items ?? []).map((i) => unmarshall(i));
 }

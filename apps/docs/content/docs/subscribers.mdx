@@ -19,6 +19,7 @@ Fields:
 - `email` - Primary identifier
 - `firstName` - Used in template rendering
 - `attributes` - Arbitrary key-value pairs (platform, country, plan, etc.)
+- `tags` - String array for categorization and broadcast filtering
 - `unsubscribed` - Boolean, set by UnsubscribeFn
 - `suppressed` - Boolean, set by BounceHandlerFn
 - `createdAt` - ISO timestamp
@@ -30,9 +31,57 @@ When a new event triggers a sequence, SendEmailFn upserts the subscriber profile
 
 - Creates the profile if it doesn't exist
 - Updates `firstName` and `attributes` if it does exist
+- Syncs `tags` if provided (adds/removes inverted index items, updates the tags list on the profile)
 - **Never overwrites** `unsubscribed` or `suppressed` flags - only their respective handlers can set these to `true`
 
 This means a subscriber who unsubscribes can't be accidentally re-subscribed by a new event.
+
+## Tags
+
+Tags are string labels attached to subscriber profiles, used for filtering when sending [broadcasts](/docs/events#broadcasts). Examples: `product-updates`, `beta-users`, `enterprise`.
+
+Tags are stored in two places:
+
+1. **On the PROFILE item** as a string array - for per-subscriber reads
+2. **As inverted index items** in the main table (`TAG#<name>` → `SUB#<email>`) - for efficient tag-based queries
+
+See [DynamoDB Schema - Tag items](/docs/dynamo-schema#tag-items-inverted-index) for the full schema.
+
+### Adding tags via subscribe events
+
+Publish a `subscriber.subscribed` event to add a subscriber with tags:
+
+```typescript
+await eventBridgeClient.send(
+  new PutEventsCommand({
+    Entries: [
+      {
+        Source: "your-app",
+        DetailType: "subscriber.subscribed",
+        EventBusName: "mailshot-bus",
+        Detail: JSON.stringify({
+          email: "user@example.com",
+          firstName: "Jane",
+          attributes: { plan: "pro", country: "US" },
+          tags: ["product-updates", "beta-users"],
+        }),
+      },
+    ],
+  }),
+);
+```
+
+SubscribeFn processes this event: upserts the profile with attributes and syncs the tag inverted index. If the subscriber already exists, their tags are replaced with the new set (old index items are cleaned up).
+
+### Tag sync behavior
+
+When tags are synced for a subscriber:
+
+1. Reads current tags from the PROFILE item
+2. Diffs current vs desired tags
+3. Writes new inverted index items (`TAG#<name>` → `SUB#<email>`) for added tags
+4. Deletes inverted index items for removed tags
+5. Updates the `tags` array on the PROFILE item
 
 ## Lifecycle states
 
@@ -128,14 +177,14 @@ Contains the bounce/complaint type, reason, and timestamp.
 
 The MCP server provides these subscriber tools:
 
-| Tool | Description |
-| --- | --- |
-| `get_subscriber` | Full subscriber view: profile, executions, recent sends, suppression |
-| `list_subscribers` | List by status: active, unsubscribed, suppressed |
-| `update_subscriber` | Update profile attributes |
-| `delete_subscriber` | Remove all records from both tables |
-| `unsubscribe_subscriber` | Mark as unsubscribed, stop executions |
-| `resubscribe_subscriber` | Clear unsubscribed flag and suppression record |
+| Tool                     | Description                                                          |
+| ------------------------ | -------------------------------------------------------------------- |
+| `get_subscriber`         | Full subscriber view: profile, executions, recent sends, suppression |
+| `list_subscribers`       | List by status: active, unsubscribed, suppressed                     |
+| `update_subscriber`      | Update profile attributes                                            |
+| `delete_subscriber`      | Remove all records from both tables                                  |
+| `unsubscribe_subscriber` | Mark as unsubscribed, stop executions                                |
+| `resubscribe_subscriber` | Clear unsubscribed flag and suppression record                       |
 
 ## Unsubscribe tokens
 

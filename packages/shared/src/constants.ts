@@ -9,10 +9,22 @@ export const sentSK = (isoTimestamp: string): string => `${SENT_SK_PREFIX}${isoT
 
 export const TEMPLATE_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+// ── Tags (inverted index) ─────────────────────────────────────────────────
+
+export const TAG_PK_PREFIX = "TAG#" as const;
+export const tagPK = (tag: string): string => `${TAG_PK_PREFIX}${tag}`;
+
+// ── Broadcasts ────────────────────────────────────────────────────────────
+
+export const BROADCAST_PK = "BROADCAST" as const;
+export const broadcastSK = (isoTimestamp: string, broadcastId: string): string =>
+  `${isoTimestamp}#${broadcastId}`;
+
 // ── Events table ───────────────────────────────────────────────────────────
 
 export const EVT_SK_PREFIX = "EVT#" as const;
 export const TEMPLATE_INDEX = "TemplateIndex" as const;
+export const SEQUENCE_INDEX = "SequenceIndex" as const;
 
 export const eventSK = (isoTimestamp: string, eventType: string): string =>
   `${EVT_SK_PREFIX}${isoTimestamp}#${eventType}`;

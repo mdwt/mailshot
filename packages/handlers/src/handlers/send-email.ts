@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { SFNClient, StopExecutionCommand } from "@aws-sdk/client-sfn";
 import type { SendEmailInput, RegisterOutput, SendOutput } from "@mailshot/shared";
+import type { SQSEvent } from "aws-lambda";
 import { resolveConfig } from "../lib/config.js";
 import {
   getSubscriberProfile,
@@ -21,8 +22,23 @@ const logger = createLogger("send-email");
 const sfn = new SFNClient({});
 
 export const handler = async (
+  event: SendEmailInput | SQSEvent,
+): Promise<RegisterOutput | SendOutput | { completed: true } | void> => {
+  // SQS batch invocation (from broadcast queue)
+  if ("Records" in event) {
+    for (const record of event.Records) {
+      const payload = JSON.parse(record.body) as SendEmailInput;
+      await processEvent(payload);
+    }
+    return;
+  }
+
+  return processEvent(event);
+};
+
+async function processEvent(
   event: SendEmailInput,
-): Promise<RegisterOutput | SendOutput | { completed: true }> => {
+): Promise<RegisterOutput | SendOutput | { completed: true }> {
   logger.info("SendEmail invoked", { action: event.action, email: event.subscriber.email });
   const config = resolveConfig();
 
@@ -46,7 +62,7 @@ export const handler = async (
           sender: event.sender,
         },
         config,
-        "fire_and_forget",
+        event.sequenceId ?? "fire_and_forget",
       );
     case "complete":
       logger.info("Completing sequence", {
@@ -56,7 +72,7 @@ export const handler = async (
       await deleteExecution(config.tableName, event.subscriber.email, event.sequenceId);
       return { completed: true };
   }
-};
+}
 
 async function handleRegister(
   event: Extract<SendEmailInput, { action: "register" }>,

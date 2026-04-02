@@ -49,6 +49,13 @@ export class StorageConstruct extends Construct {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    this.eventsTable.addGlobalSecondaryIndex({
+      indexName: "SequenceIndex",
+      partitionKey: { name: "sequenceId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "SK", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     this.templateBucket = new s3.Bucket(this, "TemplateBucket", {
       bucketName: props.templateBucketName,
       removalPolicy: cdk.RemovalPolicy.RETAIN,

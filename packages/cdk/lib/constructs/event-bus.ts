@@ -11,6 +11,7 @@ export interface EventBusProps {
   stateMachines: Map<string, sfn.StateMachine>;
   sendEmailFn: lambda.IFunction;
   sequenceExitFn: lambda.IFunction;
+  subscribeFn: lambda.IFunction;
 }
 
 function pascalCase(id: string): string {
@@ -132,5 +133,26 @@ export class EventBusConstruct extends Construct {
         }
       }
     }
+
+    // ── Subscribe event → SubscribeFn ───────────────────────────────
+    new events.Rule(this, "SubscribeRule", {
+      eventBus: this.eventBus,
+      ruleName: "subscriber-subscribed",
+      eventPattern: {
+        detailType: ["subscriber.subscribed"],
+      },
+      targets: [
+        new targets.LambdaFunction(props.subscribeFn, {
+          event: events.RuleTargetInput.fromObject({
+            subscriber: {
+              email: events.EventField.fromPath("$.detail.email"),
+              firstName: events.EventField.fromPath("$.detail.firstName"),
+              attributes: events.EventField.fromPath("$.detail.attributes"),
+              tags: events.EventField.fromPath("$.detail.tags"),
+            },
+          }),
+        }),
+      ],
+    });
   }
 }

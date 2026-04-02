@@ -45,13 +45,13 @@ export default {
 
 ### Required fields
 
-| Field | Description |
-| --- | --- |
-| `id` | Unique kebab-case identifier |
-| `trigger.detailType` | EventBridge detail-type that starts this sequence |
+| Field                       | Description                                                              |
+| --------------------------- | ------------------------------------------------------------------------ |
+| `id`                        | Unique kebab-case identifier                                             |
+| `trigger.detailType`        | EventBridge detail-type that starts this sequence                        |
 | `trigger.subscriberMapping` | JSONPath expressions to extract subscriber fields from the event payload |
-| `timeoutMinutes` | Maximum execution duration before Step Functions times out |
-| `steps` | Array of step objects |
+| `timeoutMinutes`            | Maximum execution duration before Step Functions times out               |
+| `steps`                     | Array of step objects                                                    |
 
 ## Step types
 
@@ -120,12 +120,12 @@ Available checks:
 
 ### Choice vs Condition
 
-| | Choice | Condition |
-| --- | --- | --- |
-| **Evaluated by** | Step Functions (native) | Lambda (CheckConditionFn) |
-| **Data source** | Execution input (event payload) | DynamoDB (live query) |
-| **Cost** | State transition only | Lambda invocation + DynamoDB read |
-| **Use when** | Branching on subscriber attributes from the triggering event | Checking send history or profile changes after sequence start |
+|                  | Choice                                                       | Condition                                                     |
+| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------- |
+| **Evaluated by** | Step Functions (native)                                      | Lambda (CheckConditionFn)                                     |
+| **Data source**  | Execution input (event payload)                              | DynamoDB (live query)                                         |
+| **Cost**         | State transition only                                        | Lambda invocation + DynamoDB read                             |
+| **Use when**     | Branching on subscriber attributes from the triggering event | Checking send history or profile changes after sequence start |
 
 ## Fire-and-forget events
 
@@ -218,7 +218,7 @@ steps: [
       { templateKey: "onboarding/tips-b", subject: "3 things you should try" },
     ],
   },
-]
+];
 ```
 
 ### How variant assignment works

@@ -7,7 +7,7 @@ The system uses events at two levels: **EventBridge events** to trigger sequence
 
 ## EventBridge events
 
-Your app publishes events to a custom EventBridge bus. Two types of routing rules handle them:
+Your app publishes events to a custom EventBridge bus. Four types of routing rules handle them:
 
 ### Sequence triggers
 
@@ -48,6 +48,136 @@ events: [
 
 These create EventBridge rules that invoke SendEmailFn directly. The Lambda upserts the subscriber profile and sends the email in one call.
 
+### Subscribe events
+
+Explicit subscriber registration with tags and attributes. Publishes to SubscribeFn:
+
+```json
+{
+  "source": ["your-app"],
+  "detail-type": ["subscriber.subscribed"]
+}
+```
+
+The event detail must include `email` and `firstName`. Optionally include `attributes` (key-value pairs) and `tags` (string array):
+
+```typescript
+await eventBridgeClient.send(
+  new PutEventsCommand({
+    Entries: [
+      {
+        Source: "your-app",
+        DetailType: "subscriber.subscribed",
+        EventBusName: "mailshot-bus",
+        Detail: JSON.stringify({
+          email: "user@example.com",
+          firstName: "Jane",
+          attributes: { plan: "pro", country: "US" },
+          tags: ["product-updates", "beta-users"],
+        }),
+      },
+    ],
+  }),
+);
+```
+
+SubscribeFn upserts the subscriber profile and syncs the [tag inverted index](/docs/subscribers#tags). If the subscriber already exists, attributes and tags are updated.
+
+### Broadcasts
+
+One-off emails sent to a filtered group of subscribers. Think product updates, announcements, or newsletters. Triggered by invoking BroadcastFn directly (via AWS Lambda SDK or MCP tool):
+
+```typescript
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+
+const lambda = new LambdaClient({});
+const result = await lambda.send(
+  new InvokeCommand({
+    FunctionName: "Mailshot-broadcast",
+    Payload: Buffer.from(
+      JSON.stringify({
+        broadcastId: "product-update-2026-04",
+        templateKey: "broadcasts/product-update-april",
+        subject: "What's new in April",
+        sender: {
+          fromEmail: "updates@yourdomain.com",
+          fromName: "Your Product",
+          replyToEmail: "support@yourdomain.com",
+        },
+        filters: {
+          tags: ["product-updates"],
+          attributes: { plan: "pro" },
+        },
+      }),
+    ),
+  }),
+);
+// result.Payload → { broadcastId, subscriberCount, dryRun }
+```
+
+#### How broadcasts work
+
+```
+Lambda.invoke(BroadcastFn)
+  → BroadcastFn (resolves subscriber list, writes broadcast record)
+    → SQS queue (one message per subscriber)
+      → SendEmailFn (sends email, tracks engagement)
+```
+
+1. **BroadcastFn** receives the payload and resolves the subscriber list based on filters
+2. Writes a broadcast record to DynamoDB (`PK = BROADCAST`, `SK = <timestamp>#<broadcastId>`)
+3. For each matching subscriber, it publishes an SQS message with a `fire_and_forget` payload
+4. **SQS** provides natural backpressure, retries (3 attempts), and a dead-letter queue for failed sends
+5. **SendEmailFn** processes each message: runs pre-send checks, renders template, sends via SES, writes send log
+6. Returns `{ broadcastId, subscriberCount, dryRun }` to the caller
+
+Set `dryRun: true` in the payload to resolve the subscriber list and return the count without actually sending emails or writing a broadcast record. Useful for previewing audience size before committing.
+
+The `broadcastId` flows through as the `sequenceId` in engagement tracking, so you can query opens/clicks/bounces per broadcast via the [MCP engagement tools](/docs/events#querying-engagement-via-mcp).
+
+#### Filtering subscribers
+
+Filters support **tags** and **attributes**, applied together as AND conditions.
+
+| Filter       | How it works                                                                                                             | Example                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `tags`       | Queries the tag inverted index (`TAG#<name>` items). Multiple tags use AND logic — subscriber must have ALL listed tags. | `["product-updates", "enterprise"]` |
+| `attributes` | Equality match on subscriber profile attributes.                                                                         | `{ plan: "pro", country: "US" }`    |
+
+When both `tags` and `attributes` are specified:
+
+1. Tag inverted index is queried first (efficient, narrows the set)
+2. Matching subscriber profiles are batch-fetched
+3. Attribute filters are applied in memory
+4. Unsubscribed and suppressed subscribers are excluded automatically
+
+When no filters are specified, all active subscribers receive the broadcast.
+
+#### Broadcast sender config
+
+Every broadcast must include a `sender` object:
+
+```typescript
+sender: {
+  fromEmail: "updates@yourdomain.com",  // SES-verified address
+  fromName: "Your Product",             // Display name
+  replyToEmail: "support@yourdomain.com", // Optional Reply-To
+  listUnsubscribe: true,                // Default: true
+}
+```
+
+This follows the same [per-sequence sender config](/docs/sequences) pattern. Set `listUnsubscribe: false` to omit `List-Unsubscribe` headers (the in-body unsubscribe link is still available).
+
+#### Broadcast templates
+
+Templates for broadcasts follow the same format as sequence templates (React Email → HTML, rendered with LiquidJS). Store them under a `broadcasts/` prefix:
+
+```
+templates/broadcasts/product-update-april.html
+```
+
+All the same template variables are available: `email`, `firstName`, custom attributes, `unsubscribeUrl`, `currentYear`, and display names.
+
 ### Publishing events
 
 From your app, publish to EventBridge:
@@ -76,14 +206,14 @@ await eventBridgeClient.send(
 
 SES publishes engagement events to SNS, which triggers EngagementHandlerFn. Six event types are tracked:
 
-| Event type | What it means |
-| --- | --- |
-| `delivery` | SES successfully delivered the email to the recipient's mail server |
-| `open` | Recipient opened the email (tracking pixel) |
-| `click` | Recipient clicked a tracked link |
-| `bounce` | Email bounced (permanent or transient) |
-| `complaint` | Recipient marked the email as spam |
-| `reply` | Recipient replied to the email (requires inbound reply handling) |
+| Event type  | What it means                                                       |
+| ----------- | ------------------------------------------------------------------- |
+| `delivery`  | SES successfully delivered the email to the recipient's mail server |
+| `open`      | Recipient opened the email (tracking pixel)                         |
+| `click`     | Recipient clicked a tracked link                                    |
+| `bounce`    | Email bounced (permanent or transient)                              |
+| `complaint` | Recipient marked the email as spam                                  |
+| `reply`     | Recipient replied to the email (requires inbound reply handling)    |
 
 ### Events table
 
@@ -217,10 +347,16 @@ get_template_events(templateKey: "onboarding/welcome", eventType: "click")
 
 ### get_sequence_events
 
-Query events for an entire sequence:
+Query events for an entire sequence or broadcast (uses SequenceIndex GSI — efficient, no scan):
 
 ```
 get_sequence_events(sequenceId: "onboarding", startDate: "2026-03-01", endDate: "2026-03-17")
+```
+
+For broadcasts, use the `broadcastId` as the `sequenceId`:
+
+```
+get_sequence_events(sequenceId: "product-update-2026-04")
 ```
 
 ### get_delivery_stats
@@ -232,3 +368,50 @@ get_delivery_stats(startDate: "2026-03-01", endDate: "2026-03-17")
 ```
 
 Returns counts by event type: deliveries, opens, clicks, bounces, complaints.
+
+## Broadcast management via MCP
+
+### send_broadcast
+
+Invoke BroadcastFn directly. Returns `{ broadcastId, subscriberCount, dryRun }`. Set `dryRun: true` to preview audience size without sending:
+
+```
+send_broadcast(
+  broadcastId: "product-update-2026-04",
+  templateKey: "broadcasts/product-update-april",
+  subject: "What's new in April",
+  senderFromEmail: "updates@yourdomain.com",
+  senderFromName: "Your Product",
+  filterTags: ["product-updates"]
+)
+```
+
+### get_broadcast
+
+Retrieve a broadcast record showing config, filters, subscriber count, and send time:
+
+```
+get_broadcast(broadcastId: "product-update-2026-04")
+```
+
+### list_broadcasts
+
+List recent broadcasts, most recent first:
+
+```
+list_broadcasts(limit: 10)
+```
+
+### Broadcast engagement tracking
+
+Broadcasts use the existing engagement tracking system. The `broadcastId` is stored as the `sequenceId` on all engagement events, so you can query broadcast stats the same way you query sequence stats:
+
+| Metric      | How to query                                                              |
+| ----------- | ------------------------------------------------------------------------- |
+| Deliveries  | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "delivery")` |
+| Opens       | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "open")`     |
+| Clicks      | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "click")`    |
+| Bounces     | `get_sequence_events(sequenceId: "<broadcastId>", eventType: "bounce")`   |
+| By template | `get_template_events(templateKey: "broadcasts/<name>")`                   |
+
+All queries use GSIs (SequenceIndex or TemplateIndex) for efficient lookups — no table scans.
