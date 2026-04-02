@@ -17,6 +17,7 @@ import { getSubscriberEvents, getTemplateEvents, getSequenceEvents } from "./too
 import { listTemplates, previewTemplate, validateTemplate } from "./tools/templates.js";
 import { getFailedExecutions, getDeliveryStats } from "./tools/system.js";
 import { listSequences, exportSequence } from "./tools/sequences.js";
+import { sendBroadcast } from "./tools/broadcast.js";
 
 const config = resolveConfig();
 
@@ -328,6 +329,69 @@ server.registerTool(
       {
         type: "text",
         text: JSON.stringify(await exportSequence(config, sequenceId), null, 2),
+      },
+    ],
+  }),
+);
+
+// ── Broadcasts ───────────────────────────────────────────────────────────
+
+server.registerTool(
+  "send_broadcast",
+  {
+    description:
+      "Send a one-off broadcast email to filtered subscribers. Publishes a broadcast.requested event to EventBridge, which triggers BroadcastFn to resolve subscribers and fan out via SQS.",
+    inputSchema: {
+      broadcastId: z.string().describe("Unique broadcast identifier (kebab-case)"),
+      templateKey: z.string().describe("S3 template key (e.g., broadcasts/product-update)"),
+      subject: z.string().describe("Email subject line (supports Liquid variables)"),
+      senderFromEmail: z.string().email().describe("SES-verified sender email"),
+      senderFromName: z.string().describe("Sender display name"),
+      senderReplyToEmail: z.string().email().optional().describe("Reply-To address"),
+      listUnsubscribe: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe("Include List-Unsubscribe headers"),
+      filterTags: z
+        .array(z.string())
+        .optional()
+        .describe("Tags filter (AND logic - subscriber must have ALL)"),
+      filterAttributes: z
+        .record(z.unknown())
+        .optional()
+        .describe("Attribute equality filters on subscriber profiles"),
+    },
+  },
+  async ({
+    broadcastId,
+    templateKey,
+    subject,
+    senderFromEmail,
+    senderFromName,
+    senderReplyToEmail,
+    listUnsubscribe,
+    filterTags,
+    filterAttributes,
+  }) => ({
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          await sendBroadcast(config, {
+            broadcastId,
+            templateKey,
+            subject,
+            senderFromEmail,
+            senderFromName,
+            senderReplyToEmail,
+            listUnsubscribe,
+            filterTags,
+            filterAttributes,
+          }),
+          null,
+          2,
+        ),
       },
     ],
   }),
