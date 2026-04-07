@@ -4,6 +4,7 @@ import { marshall } from "@aws-sdk/util-dynamodb";
 import { subscriberPK, eventSK } from "@mailshot/shared";
 import type { EmailEventType } from "@mailshot/shared";
 import { resolveConfig } from "../lib/config.js";
+import { incrementSequenceCounter } from "../lib/dynamo-client.js";
 import { createLogger } from "../lib/logger.js";
 
 const logger = createLogger("engagement-handler");
@@ -164,6 +165,19 @@ export const handler = async (event: SNSEvent): Promise<void> => {
           ),
         }),
       );
+
+      // Update denormalised counters on the main table. Best-effort: failures
+      // are logged but never block engagement-event writes (EmailEvents is the
+      // source of truth; counters are an eventually-consistent rollup).
+      try {
+        await incrementSequenceCounter(config.tableName, sequenceId, eventType);
+      } catch (err) {
+        logger.warn("Failed to increment sequence counter", {
+          sequenceId,
+          eventType,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
   }
 

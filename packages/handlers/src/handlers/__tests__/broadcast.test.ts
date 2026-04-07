@@ -85,7 +85,7 @@ describe("broadcast handler", () => {
       filters: { tags: ["product-updates"] },
     });
 
-    expect(result.subscriberCount).toBe(2);
+    expect(result.audienceSize).toBe(2);
     expect(result.dryRun).toBe(false);
     expect(mockGetSubscriberEmailsByTag).toHaveBeenCalledWith("TestTable", "product-updates");
     expect(mockSqsSend).toHaveBeenCalledTimes(1);
@@ -116,7 +116,7 @@ describe("broadcast handler", () => {
       filters: { tags: ["product-updates"] },
     });
 
-    expect(result.subscriberCount).toBe(1);
+    expect(result.audienceSize).toBe(1);
     expect(result.dryRun).toBe(false);
   });
 
@@ -141,7 +141,7 @@ describe("broadcast handler", () => {
       filters: { tags: ["product-updates", "beta"] },
     });
 
-    expect(result.subscriberCount).toBe(1);
+    expect(result.audienceSize).toBe(1);
     expect(mockGetSubscriberEmailsByTag).toHaveBeenCalledTimes(2);
   });
 
@@ -162,7 +162,7 @@ describe("broadcast handler", () => {
       sender: TEST_SENDER,
     });
 
-    expect(result.subscriberCount).toBe(1);
+    expect(result.audienceSize).toBe(1);
     expect(mockScanActiveSubscribers).toHaveBeenCalledWith("TestTable", undefined);
   });
 
@@ -177,7 +177,7 @@ describe("broadcast handler", () => {
       filters: { tags: ["nonexistent-tag"] },
     });
 
-    expect(result.subscriberCount).toBe(0);
+    expect(result.audienceSize).toBe(0);
     expect(result.dryRun).toBe(false);
     expect(mockSqsSend).not.toHaveBeenCalled();
   });
@@ -196,6 +196,28 @@ describe("broadcast handler", () => {
         sender: TEST_SENDER,
       }),
     ).rejects.toThrow("BROADCAST_QUEUE_URL");
+  });
+
+  it("dryRun returns audience size without writing record or sending SQS", async () => {
+    mockGetSubscriberEmailsByTag.mockResolvedValueOnce(["alice@example.com", "bob@example.com"]);
+    mockBatchGetSubscriberProfiles.mockResolvedValueOnce([
+      { email: "alice@example.com", firstName: "Alice", unsubscribed: false, suppressed: false },
+      { email: "bob@example.com", firstName: "Bob", unsubscribed: false, suppressed: false },
+    ]);
+
+    const result = await handler({
+      broadcastId: "update-april",
+      templateKey: "broadcasts/product-update",
+      subject: "What's new",
+      sender: TEST_SENDER,
+      filters: { tags: ["product-updates"] },
+      dryRun: true,
+    });
+
+    expect(result.audienceSize).toBe(2);
+    expect(result.dryRun).toBe(true);
+    expect(mockWriteBroadcastRecord).not.toHaveBeenCalled();
+    expect(mockSqsSend).not.toHaveBeenCalled();
   });
 
   it("applies attribute filters when tags and attributes provided", async () => {
@@ -225,6 +247,6 @@ describe("broadcast handler", () => {
       filters: { tags: ["product-updates"], attributes: { plan: "pro" } },
     });
 
-    expect(result.subscriberCount).toBe(1);
+    expect(result.audienceSize).toBe(1);
   });
 });

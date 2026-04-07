@@ -1,8 +1,34 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  QueryCommand,
+  GetItemCommand,
+  BatchGetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { BROADCAST_PK } from "@mailshot/shared";
+import { BROADCAST_PK, statsPK, STATS_COUNTERS_SK } from "@mailshot/shared";
 import type { McpConfig } from "../config.js";
+
+const COUNTER_FIELDS = [
+  "deliveryCount",
+  "openCount",
+  "clickCount",
+  "bounceCount",
+  "complaintCount",
+] as const;
+
+function emptyCounters(): Record<string, number> {
+  return Object.fromEntries(COUNTER_FIELDS.map((f) => [f, 0]));
+}
+
+function pickCounters(item: Record<string, unknown>): Record<string, number> {
+  const out = emptyCounters();
+  for (const f of COUNTER_FIELDS) {
+    const v = item[f];
+    if (typeof v === "number") out[f] = v;
+  }
+  return out;
+}
 
 let lambdaClient: LambdaClient;
 let dynamo: DynamoDBClient;
@@ -94,7 +120,18 @@ export async function getBroadcast(config: McpConfig, broadcastId: string) {
   );
 
   const items = (result.Items ?? []).map((i) => unmarshall(i));
-  return items.length > 0 ? items[0] : null;
+  if (items.length === 0) return null;
+  const record = items[0];
+
+  // Merge denormalised counters from STATS#<broadcastId>/COUNTERS
+  const countersRes = await db.send(
+    new GetItemCommand({
+      TableName: config.tableName,
+      Key: marshall({ PK: statsPK(broadcastId), SK: STATS_COUNTERS_SK }),
+    }),
+  );
+  const counters = countersRes.Item ? pickCounters(unmarshall(countersRes.Item)) : emptyCounters();
+  return { ...record, ...counters };
 }
 
 export async function listBroadcasts(config: McpConfig, limit: number) {
@@ -110,5 +147,39 @@ export async function listBroadcasts(config: McpConfig, limit: number) {
     }),
   );
 
-  return (result.Items ?? []).map((i) => unmarshall(i));
+  const records = (result.Items ?? []).map((i) => unmarshall(i));
+  if (records.length === 0) return records;
+
+  // Batch fetch counters for all broadcastIds (chunked at 100, the BatchGetItem limit)
+  const broadcastIds = records
+    .map((r) => r.broadcastId)
+    .filter((id): id is string => typeof id === "string");
+  const countersByBroadcastId = new Map<string, Record<string, number>>();
+
+  for (let i = 0; i < broadcastIds.length; i += 100) {
+    const chunk = broadcastIds.slice(i, i + 100);
+    const res = await db.send(
+      new BatchGetItemCommand({
+        RequestItems: {
+          [config.tableName]: {
+            Keys: chunk.map((id) => marshall({ PK: statsPK(id), SK: STATS_COUNTERS_SK })),
+          },
+        },
+      }),
+    );
+    const items = res.Responses?.[config.tableName] ?? [];
+    for (const item of items) {
+      const u = unmarshall(item);
+      if (typeof u.sequenceId === "string") {
+        countersByBroadcastId.set(u.sequenceId, pickCounters(u));
+      }
+    }
+  }
+
+  return records.map((r) => ({
+    ...r,
+    ...(typeof r.broadcastId === "string"
+      ? (countersByBroadcastId.get(r.broadcastId) ?? emptyCounters())
+      : emptyCounters()),
+  }));
 }

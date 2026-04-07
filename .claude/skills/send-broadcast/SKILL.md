@@ -96,7 +96,7 @@ The tool invokes BroadcastFn via Lambda and returns the result synchronously. Br
 1. Queries subscribers matching the filters
 2. Writes a broadcast record to DynamoDB (`PK = BROADCAST`, `SK = <timestamp>#<broadcastId>`)
 3. Fans out to SQS (one message per subscriber)
-4. Returns `{ broadcastId, subscriberCount, dryRun: false }`
+4. Returns `{ broadcastId, audienceSize, dryRun: false }` — `audienceSize` is the count resolved at send time, not deliveries. Live `deliveryCount` / `openCount` / `clickCount` / `bounceCount` / `complaintCount` are merged into `get_broadcast` and `list_broadcasts` responses as SES notifications arrive.
 5. SendEmailFn processes each SQS message (pre-send checks, template render, SES send)
 
 Set `dryRun: true` to resolve subscribers and return the count without sending or writing a record.

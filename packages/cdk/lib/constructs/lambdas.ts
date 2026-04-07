@@ -177,6 +177,8 @@ export class LambdasConstruct extends Construct {
     });
 
     props.eventsTable.grantWriteData(this.engagementHandlerFn);
+    // Engagement handler also writes denormalised counters (STATS#<sequenceId>) to the main table
+    props.table.grantWriteData(this.engagementHandlerFn);
 
     // ── SequenceExitFn ─────────────────────────────────────────────
     this.sequenceExitFn = new nodejs.NodejsFunction(this, "SequenceExitFn", {

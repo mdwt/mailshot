@@ -3,9 +3,14 @@ import type { SNSEvent } from "aws-lambda";
 
 const mockResolveConfig = vi.fn();
 const mockSend = vi.fn();
+const mockIncrementSequenceCounter = vi.fn();
 
 vi.mock("../../lib/config.js", () => ({
   resolveConfig: () => mockResolveConfig(),
+}));
+
+vi.mock("../../lib/dynamo-client.js", () => ({
+  incrementSequenceCounter: (...args: unknown[]) => mockIncrementSequenceCounter(...args),
 }));
 
 vi.mock("@aws-sdk/client-dynamodb", () => ({
@@ -48,6 +53,7 @@ const baseHeaders = [
 beforeEach(() => {
   mockResolveConfig.mockReset().mockReturnValue(CONFIG);
   mockSend.mockReset().mockResolvedValue({});
+  mockIncrementSequenceCounter.mockReset().mockResolvedValue(undefined);
 });
 
 describe("engagement-handler", () => {
@@ -141,6 +147,43 @@ describe("engagement-handler", () => {
 
     await handler(event);
 
+    expect(mockSend).toHaveBeenCalledOnce();
+  });
+
+  it("increments sequence counter for delivery events", async () => {
+    const event = snsEvent({
+      eventType: "Delivery",
+      mail: {
+        messageId: "msg-c1",
+        destination: ["user@example.com"],
+        headers: baseHeaders,
+      },
+      delivery: { timestamp: "2026-01-15T10:00:00.000Z" },
+    });
+
+    await handler(event);
+
+    expect(mockIncrementSequenceCounter).toHaveBeenCalledOnce();
+    expect(mockIncrementSequenceCounter).toHaveBeenCalledWith(
+      "TestTable",
+      "onboarding",
+      "delivery",
+    );
+  });
+
+  it("does not throw when counter update fails", async () => {
+    mockIncrementSequenceCounter.mockRejectedValueOnce(new Error("throttled"));
+    const event = snsEvent({
+      eventType: "Delivery",
+      mail: {
+        messageId: "msg-c2",
+        destination: ["user@example.com"],
+        headers: baseHeaders,
+      },
+      delivery: { timestamp: "2026-01-15T10:00:00.000Z" },
+    });
+
+    await expect(handler(event)).resolves.toBeUndefined();
     expect(mockSend).toHaveBeenCalledOnce();
   });
 

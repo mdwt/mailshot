@@ -271,7 +271,7 @@ export interface BroadcastRecord {
   subject: string;
   sender: SenderConfig;
   filters?: BroadcastFilters;
-  subscriberCount: number;
+  audienceSize: number;
   sentAt: string; // ISO timestamp
 }
 

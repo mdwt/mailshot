@@ -112,7 +112,7 @@ const result = await lambda.send(
     ),
   }),
 );
-// result.Payload → { broadcastId, subscriberCount, dryRun }
+// result.Payload → { broadcastId, audienceSize, dryRun }
 ```
 
 #### How broadcasts work
@@ -129,9 +129,11 @@ Lambda.invoke(BroadcastFn)
 3. For each matching subscriber, it publishes an SQS message with a `fire_and_forget` payload
 4. **SQS** provides natural backpressure, retries (3 attempts), and a dead-letter queue for failed sends
 5. **SendEmailFn** processes each message: runs pre-send checks, renders template, sends via SES, writes send log
-6. Returns `{ broadcastId, subscriberCount, dryRun }` to the caller
+6. Returns `{ broadcastId, audienceSize, dryRun }` to the caller
 
 Set `dryRun: true` in the payload to resolve the subscriber list and return the count without actually sending emails or writing a broadcast record. Useful for previewing audience size before committing.
+
+`audienceSize` is the count of subscribers resolved at send time, **not** a delivery count. Live engagement counters (`deliveryCount`, `openCount`, `clickCount`, `bounceCount`, `complaintCount`) are maintained separately by `EngagementHandlerFn` as SES notifications arrive, and are merged into the response automatically by `get_broadcast` and `list_broadcasts`. See [DynamoDB schema → Stats counters](/docs/dynamo-schema#stats-counters) for the underlying item.
 
 The `broadcastId` flows through as the `sequenceId` in engagement tracking, so you can query opens/clicks/bounces per broadcast via the [MCP engagement tools](/docs/events#querying-engagement-via-mcp).
 
@@ -373,7 +375,7 @@ Returns counts by event type: deliveries, opens, clicks, bounces, complaints.
 
 ### send_broadcast
 
-Invoke BroadcastFn directly. Returns `{ broadcastId, subscriberCount, dryRun }`. Set `dryRun: true` to preview audience size without sending:
+Invoke BroadcastFn directly. Returns `{ broadcastId, audienceSize, dryRun }`. Set `dryRun: true` to preview audience size without sending:
 
 ```
 send_broadcast(

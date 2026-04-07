@@ -21,6 +21,8 @@ import {
   tagPK,
   BROADCAST_PK,
   broadcastSK,
+  statsPK,
+  STATS_COUNTERS_SK,
 } from "@mailshot/shared";
 import type {
   Subscriber,
@@ -533,12 +535,12 @@ export async function writeBroadcastRecord(
     subject: string;
     sender: SenderConfig;
     filters?: BroadcastFilters;
-    subscriberCount: number;
+    audienceSize: number;
   },
 ): Promise<void> {
   logger.info("Writing broadcast record", {
     broadcastId: params.broadcastId,
-    subscriberCount: params.subscriberCount,
+    audienceSize: params.audienceSize,
   });
   const sentAt = new Date().toISOString();
   await dynamo.send(
@@ -553,11 +555,49 @@ export async function writeBroadcastRecord(
           subject: params.subject,
           sender: params.sender,
           filters: params.filters,
-          subscriberCount: params.subscriberCount,
+          audienceSize: params.audienceSize,
           sentAt,
         },
         { removeUndefinedValues: true },
       ),
+    }),
+  );
+}
+
+// ── Stats counters (per sequence or broadcast) ─────────────────────────────
+
+const COUNTER_FIELD_BY_EVENT: Record<string, string> = {
+  delivery: "deliveryCount",
+  open: "openCount",
+  click: "clickCount",
+  bounce: "bounceCount",
+  complaint: "complaintCount",
+};
+
+export async function incrementSequenceCounter(
+  tableName: string,
+  sequenceId: string,
+  eventType: string,
+): Promise<void> {
+  const field = COUNTER_FIELD_BY_EVENT[eventType];
+  if (!field) {
+    logger.debug("Skipping counter for unknown event type", { eventType });
+    return;
+  }
+  await dynamo.send(
+    new UpdateItemCommand({
+      TableName: tableName,
+      Key: marshall({
+        PK: statsPK(sequenceId),
+        SK: STATS_COUNTERS_SK,
+      }),
+      UpdateExpression: `ADD #f :one SET sequenceId = :sid, updatedAt = :now`,
+      ExpressionAttributeNames: { "#f": field },
+      ExpressionAttributeValues: marshall({
+        ":one": 1,
+        ":sid": sequenceId,
+        ":now": new Date().toISOString(),
+      }),
     }),
   );
 }

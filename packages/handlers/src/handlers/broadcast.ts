@@ -15,7 +15,7 @@ const sqs = new SQSClient({});
 
 interface BroadcastResult {
   broadcastId: string;
-  subscriberCount: number;
+  audienceSize: number;
   dryRun: boolean;
 }
 
@@ -38,7 +38,7 @@ export const handler = async (event: BroadcastInput): Promise<BroadcastResult> =
   });
 
   if (event.dryRun) {
-    return { broadcastId: event.broadcastId, subscriberCount: subscribers.length, dryRun: true };
+    return { broadcastId: event.broadcastId, audienceSize: subscribers.length, dryRun: true };
   }
 
   if (subscribers.length === 0) {
@@ -48,9 +48,9 @@ export const handler = async (event: BroadcastInput): Promise<BroadcastResult> =
       subject: event.subject,
       sender: event.sender,
       filters: event.filters,
-      subscriberCount: 0,
+      audienceSize: 0,
     });
-    return { broadcastId: event.broadcastId, subscriberCount: 0, dryRun: false };
+    return { broadcastId: event.broadcastId, audienceSize: 0, dryRun: false };
   }
 
   // ── Fan out via SQS ────────────────────────────────────────────────────
@@ -98,17 +98,17 @@ export const handler = async (event: BroadcastInput): Promise<BroadcastResult> =
     subject: event.subject,
     sender: event.sender,
     filters: event.filters,
-    subscriberCount: subscribers.length,
+    audienceSize: subscribers.length,
   });
 
   logger.info("Broadcast sent", {
     broadcastId: event.broadcastId,
-    subscriberCount: subscribers.length,
+    audienceSize: subscribers.length,
   });
 
   return {
     broadcastId: event.broadcastId,
-    subscriberCount: subscribers.length,
+    audienceSize: subscribers.length,
     dryRun: false,
   };
 };

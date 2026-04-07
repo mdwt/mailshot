@@ -20,6 +20,12 @@ export const BROADCAST_PK = "BROADCAST" as const;
 export const broadcastSK = (isoTimestamp: string, broadcastId: string): string =>
   `${isoTimestamp}#${broadcastId}`;
 
+// ── Stats counters (per sequence or broadcast) ────────────────────────────
+
+export const STATS_PK_PREFIX = "STATS#" as const;
+export const STATS_COUNTERS_SK = "COUNTERS" as const;
+export const statsPK = (sequenceId: string): string => `${STATS_PK_PREFIX}${sequenceId}`;
+
 // ── Events table ───────────────────────────────────────────────────────────
 
 export const EVT_SK_PREFIX = "EVT#" as const;

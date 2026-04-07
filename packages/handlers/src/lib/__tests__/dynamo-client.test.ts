@@ -67,6 +67,7 @@ const {
   getSubscriberEmailsByTag,
   batchGetSubscriberProfiles,
   scanActiveSubscribers,
+  incrementSequenceCounter,
 } = await import("../dynamo-client.js");
 
 beforeEach(() => {
@@ -541,5 +542,47 @@ describe("scanActiveSubscribers", () => {
     const cmd = mockSend.mock.calls[0][0];
     expect(cmd.input.FilterExpression).toContain("#flt_plan = :flt_plan");
     expect(cmd.input.ExpressionAttributeNames?.["#flt_plan"]).toBe("plan");
+  });
+});
+
+describe("incrementSequenceCounter", () => {
+  it("issues UpdateItem with ADD on the right counter field", async () => {
+    mockSend.mockResolvedValueOnce({});
+
+    await incrementSequenceCounter("TestTable", "onboarding", "delivery");
+
+    expect(mockSend).toHaveBeenCalledOnce();
+    const cmd = mockSend.mock.calls[0][0];
+    expect(cmd._type).toBe("UpdateItem");
+    expect(cmd.input.TableName).toBe("TestTable");
+    const key = unmarshall(cmd.input.Key);
+    expect(key).toEqual({ PK: "STATS#onboarding", SK: "COUNTERS" });
+    expect(cmd.input.UpdateExpression).toContain("ADD #f :one");
+    expect(cmd.input.ExpressionAttributeNames["#f"]).toBe("deliveryCount");
+    const values = unmarshall(cmd.input.ExpressionAttributeValues);
+    expect(values[":one"]).toBe(1);
+    expect(values[":sid"]).toBe("onboarding");
+  });
+
+  it("maps each event type to its counter field", async () => {
+    mockSend.mockResolvedValue({});
+    const cases: Array<[string, string]> = [
+      ["delivery", "deliveryCount"],
+      ["open", "openCount"],
+      ["click", "clickCount"],
+      ["bounce", "bounceCount"],
+      ["complaint", "complaintCount"],
+    ];
+    for (const [eventType, expected] of cases) {
+      mockSend.mockClear();
+      await incrementSequenceCounter("TestTable", "seq-1", eventType);
+      const cmd = mockSend.mock.calls[0][0];
+      expect(cmd.input.ExpressionAttributeNames["#f"]).toBe(expected);
+    }
+  });
+
+  it("does nothing for unknown event types", async () => {
+    await incrementSequenceCounter("TestTable", "seq-1", "weird");
+    expect(mockSend).not.toHaveBeenCalled();
   });
 });

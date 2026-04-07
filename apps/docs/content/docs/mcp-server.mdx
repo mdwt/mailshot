@@ -57,6 +57,14 @@ Required environment variables (read from `.env` at repo root):
 | `preview_template(templateKey, email, firstName?, attributes?)` | Fetch from S3, render with LiquidJS using subscriber data |
 | `validate_template(templateKey)`                                | Check template exists and renders without errors          |
 
+### Broadcasts
+
+| Tool                                                                                                                                                                  | Description                                                                                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `send_broadcast(broadcastId, templateKey, subject, senderFromEmail, senderFromName, senderReplyToEmail?, listUnsubscribe?, filterTags?, filterAttributes?, dryRun?)` | Invoke BroadcastFn directly to resolve subscribers and fan out via SQS. Set `dryRun: true` to preview audience size without sending.                     |
+| `get_broadcast(broadcastId)`                                                                                                                                          | Get a broadcast record with config, filters, `audienceSize`, and live counters (`deliveryCount`, `openCount`, `clickCount`, `bounceCount`, `complaintCount`). |
+| `list_broadcasts(limit?)`                                                                                                                                             | List recent broadcasts (most recent first), each merged with its live counters.                                                                          |
+
 ### System
 
 | Tool                                                         | Description                                 |

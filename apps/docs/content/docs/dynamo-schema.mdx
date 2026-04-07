@@ -118,13 +118,35 @@ Every broadcast writes a persistent log record:
   subject: "What's new in April",
   sender: { fromEmail: "updates@example.com", fromName: "My SaaS" },
   filters: { tags: ["product-updates"], attributes: { plan: "pro" } },
-  subscriberCount: 342,
+  audienceSize: 342,
 
   sentAt: "2026-04-02T10:00:00.000Z",
 }
 ```
 
 All broadcasts share a single partition key (`BROADCAST`), with the SK sorted by timestamp. This means `list_broadcasts` is a simple Query with `ScanIndexForward: false` — most recent first, no scan. Written by BroadcastFn after resolving subscribers. Query via `get_broadcast` or `list_broadcasts` MCP tools.
+
+`audienceSize` is the count of subscribers resolved by the audience query at send time. It is **not** a delivery count — pre-send skips, SES failures, and bounces are tracked separately via the counters item below.
+
+### Stats counters
+
+A separate counters item is updated by `EngagementHandlerFn` as SES delivery / open / click / bounce / complaint notifications arrive. The same item type is used for both broadcasts and sequences (broadcasts reuse `sequenceId = broadcastId`):
+
+```typescript
+{
+  PK: "STATS#product-update-2026-04",  // STATS#<sequenceId>
+  SK: "COUNTERS",
+  sequenceId: "product-update-2026-04",
+  deliveryCount: 338,
+  openCount: 142,
+  clickCount: 27,
+  bounceCount: 4,
+  complaintCount: 0,
+  updatedAt: "2026-04-02T11:14:03.221Z",
+}
+```
+
+Counters use atomic `UpdateItem ADD` so concurrent updates are safe. They are **eventually consistent** — the `EmailEvents` table is the source of truth, and counter writes are best-effort (a failed counter update is logged but does not block the event write). `get_broadcast` and `list_broadcasts` automatically merge these counters into the records they return.
 
 ### Access patterns
 
@@ -141,6 +163,7 @@ All broadcasts share a single partition key (`BROADCAST`), with the SK sorted by
 | Get broadcast by ID           | `PK = BROADCAST` + filter on `broadcastId`                     |
 | List broadcasts (time-sorted) | `PK = BROADCAST, ScanIndexForward = false`                     |
 | List broadcasts in date range | `PK = BROADCAST, SK BETWEEN <start> AND <end>`                 |
+| Get counters for a sequence/broadcast | `PK = STATS#sequenceId, SK = COUNTERS`                 |
 
 ### TTL
 
