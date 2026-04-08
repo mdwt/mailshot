@@ -21,8 +21,8 @@ pnpm release               # Version + build + publish to npm
 # Single package
 pnpm --filter @mailshot/handlers build
 pnpm --filter @mailshot/handlers test
-cd packages/cdk && AWS_PROFILE=<profile> npx cdk synth    # Synthesize CloudFormation
-cd packages/cdk && AWS_PROFILE=<profile> npx cdk deploy --require-approval never  # Deploy to AWS
+AWS_PROFILE=<profile> pnpm synth          # Synthesize CloudFormation
+AWS_PROFILE=<profile> pnpm run deploy     # Deploy to AWS — must use `pnpm run deploy`, not `pnpm deploy` (pnpm intercepts `deploy` as a built-in workspace command and it fails with ERR_PNPM_NOTHING_TO_DEPLOY)
 
 # Templates
 pnpm --filter @mailshot/templates dev     # React Email dev server on :3001
