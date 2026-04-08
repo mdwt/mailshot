@@ -1,5 +1,13 @@
 # @mailshot/cdk
 
+## 1.7.0
+
+### Patch Changes
+
+- Updated dependencies [[`469a296`](https://github.com/mdwt/mailshot/commit/469a2969581ab3a4c2455e9c8d32a104d34817b4)]:
+  - @mailshot/handlers@1.7.0
+  - @mailshot/shared@1.7.0
+
 ## 1.6.0
 
 ### Minor Changes
