@@ -121,6 +121,56 @@ Full deployment pipeline with validation, build, and deploy.
 
 Always asks for confirmation before the actual deploy step.
 
+### /send-broadcast
+
+Send a one-off broadcast email to a filtered subset of subscribers. Builds the broadcast payload, validates the template, optionally previews the audience size with a dry run, then invokes `BroadcastFn` directly via Lambda which fans out through SQS for reliable delivery at scale.
+
+```
+/send-broadcast Send our April product update to everyone tagged "product-updates" who is on the pro plan
+```
+
+**What it asks for:**
+
+- `broadcastId` (kebab-case, generated from the description if not provided)
+- `templateKey` (creates the template if it doesn't exist yet)
+- `subject` (supports Liquid variables)
+- Sender details (`fromEmail`, `fromName`, optional `replyToEmail`)
+- Audience filters (`tags`, `attributes`)
+
+**When to use:** product updates, announcements, newsletters, or any one-off email that isn't part of a scheduled sequence.
+
+### /import-sequence
+
+Reconstruct a deployed sequence from AWS into local code — reverses Step Functions state machine ASL back into a `sequence.config.ts`, downloads templates from S3, and rewrites the sequence package files.
+
+```
+/import-sequence                    # lists deployed sequences, prompts for selection
+/import-sequence trial-expiring     # imports a specific sequence
+```
+
+**When to use:** picking up an inherited project, recovering from accidental local file loss, or auditing what's actually running in production against what's in your repo.
+
+### /teardown
+
+Validate prerequisites and run `cdk destroy` to remove the entire stack from AWS. Asks for explicit confirmation by typing the stack name before destroying anything.
+
+```
+/teardown
+```
+
+**When to use:** sunsetting a project, cleaning up a dev or staging environment, or migrating to a new stack name.
+
+## Installation & updates
+
+Skills are published as the [`@mailshot/skills`](https://www.npmjs.com/package/@mailshot/skills) npm package and shipped to scaffolded projects automatically:
+
+1. **Initial scaffold** — `npx create-mailshot my-project` drops the canonical `SKILL.md` files into `<project>/.claude/skills/` and adds `@mailshot/skills` to your project's `devDependencies`.
+2. **Auto-sync on install** — your project's `package.json` includes `"postinstall": "mailshot-sync-skills --silent"`, so any `pnpm install` (including `pnpm update @mailshot/skills`) refreshes `.claude/skills/` from the package contents. No manual steps after a framework upgrade.
+3. **Manual refresh** — run `pnpm sync-skills` whenever you want to bump skills explicitly.
+4. **From Claude** — say "sync my skills" and Claude calls the `sync_skills` MCP tool, which runs the same code path against the current project root.
+
+Sync **always overwrites** local edits to skill files. The sync logic is intentionally minimal — no hash checks, no diffing, no `--force` flag — git is the safety net. If you've hand-edited a skill and want to keep your changes, save them in a different filename or commit them before upgrading.
+
 ## The AI-native workflow
 
 These skills, combined with the MCP server, enable a complete AI-driven email operations workflow:
@@ -152,3 +202,5 @@ Skills are markdown files in `.claude/skills/`. Each contains:
 - File templates and validation rules
 
 When you type `/create-sequence`, Claude Code loads the skill's `SKILL.md` and follows the instructions as a structured workflow. The skill provides the domain knowledge (file structure, types, conventions) so Claude can generate correct code without you knowing the framework internals.
+
+The canonical sources live in the [`@mailshot/skills`](https://www.npmjs.com/package/@mailshot/skills) package — a content-only npm package that ships eight `SKILL.md` files plus a small `mailshot-sync-skills` bin. The bin walks the package's `skills/` directory and copies each `SKILL.md` into your project's `.claude/skills/<name>/SKILL.md`. That same code path is also exposed as the `sync_skills` MCP tool, so Claude can refresh the directory on demand from inside any session.

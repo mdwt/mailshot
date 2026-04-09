@@ -20,6 +20,10 @@ This project is managed through Claude Code skills. When the user asks to deploy
 - `/validate-sequence` - check sequence configs, templates, types, and CDK synth
 - `/deploy` - full deployment workflow (validate → build → confirm → deploy to AWS)
 - `/inspect-sequence` - read-only inspection of a deployed sequence (active subscribers, recent engagement, recent failures). Use when the user asks "who is in X?", "what's running?", or "how is X doing?"
+- `/send-broadcast` - send a one-off broadcast email to filtered subscribers
+- `/import-sequence` - reconstruct a deployed sequence from AWS into local code
+
+Skills are shipped via the `@mailshot/skills` package and refresh automatically on `pnpm install` (postinstall hook). To bump them manually after upgrading the framework, run `pnpm sync-skills`.
 
 ### Build commands (used internally by skills)
 

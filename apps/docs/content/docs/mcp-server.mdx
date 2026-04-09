@@ -80,6 +80,12 @@ Required environment variables (read from `.env` at repo root):
 | `get_failed_executions(stateMachineArn, startDate?, limit?)` | List failed Step Functions executions       |
 | `get_delivery_stats(startDate, endDate)`                     | Delivery/open/click/bounce/complaint counts |
 
+### Skills
+
+| Tool                       | Description                                                                                                                                                                                  |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sync_skills(projectRoot?)` | Refresh `.claude/skills/` from the canonical files shipped with `@mailshot/skills`. Defaults to the current working directory. Overwrites existing files — git is the safety net for local edits. |
+
 ## Example conversations
 
 ### "How is the onboarding sequence performing?"

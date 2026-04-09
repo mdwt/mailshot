@@ -132,6 +132,10 @@ importers:
         version: 10.9.2(@types/node@25.5.0)(typescript@5.9.3)
 
   packages/create:
+    dependencies:
+      '@mailshot/skills':
+        specifier: workspace:*
+        version: link:../skills
     devDependencies:
       typescript:
         specifier: ^5.9.0
@@ -203,6 +207,9 @@ importers:
       '@mailshot/shared':
         specifier: workspace:*
         version: link:../shared
+      '@mailshot/skills':
+        specifier: workspace:*
+        version: link:../skills
       '@modelcontextprotocol/sdk':
         specifier: ^1.12.1
         version: 1.27.1(zod@3.25.76)
@@ -214,6 +221,8 @@ importers:
         version: 3.25.76
 
   packages/shared: {}
+
+  packages/skills: {}
 
   tools:
     dependencies:

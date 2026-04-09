@@ -5,11 +5,14 @@
     "build": "pnpm -r build",
     "synth": "dotenv -- npx cdk synth",
     "cdk:deploy": "dotenv -- npx cdk deploy --require-approval never",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "postinstall": "mailshot-sync-skills --silent",
+    "sync-skills": "mailshot-sync-skills"
   },
   "devDependencies": {
     "@mailshot/cdk": "^1.0.0",
     "@mailshot/shared": "^1.0.0",
+    "@mailshot/skills": "^1.0.0",
     "@types/node": "^22.0.0",
     "aws-cdk": "^2.1111.0",
     "aws-cdk-lib": "^2.243.0",

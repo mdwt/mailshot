@@ -75,10 +75,14 @@ my-project/
       tsconfig.json
   .env                        AWS configuration
   .claude/
-    skills/                   Claude Code skills
+    skills/                   Claude Code skills (managed by @mailshot/skills)
   package.json
   tsconfig.json
 ```
+
+## Keeping skills up to date
+
+Skills are shipped via the [`@mailshot/skills`](/docs/skills#installation--updates) npm package. Your project's `package.json` includes a `postinstall` hook that refreshes `.claude/skills/` automatically on every `pnpm install` — so any time you run `pnpm update @mailshot/skills` (or update other framework packages and reinstall) the latest skills land in your project without any manual steps. To force a refresh at any other time, run `pnpm sync-skills`.
 
 ## Next steps
 

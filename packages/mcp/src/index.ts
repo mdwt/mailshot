@@ -18,6 +18,7 @@ import { listTemplates, previewTemplate, validateTemplate } from "./tools/templa
 import { getFailedExecutions, getDeliveryStats } from "./tools/system.js";
 import { listSequences, exportSequence, listSequenceSubscribers } from "./tools/sequences.js";
 import { sendBroadcast, getBroadcast, listBroadcasts } from "./tools/broadcast.js";
+import { syncSkills } from "./tools/skills.js";
 
 const config = resolveConfig();
 
@@ -456,6 +457,30 @@ server.registerTool(
       {
         type: "text",
         text: JSON.stringify(await listBroadcasts(config, limit), null, 2),
+      },
+    ],
+  }),
+);
+
+// ── Skills ─────────────────────────────────────────────────────────────────
+
+server.registerTool(
+  "sync_skills",
+  {
+    description:
+      "Refresh the project's .claude/skills/ directory from the canonical skills shipped with @mailshot/skills. Existing files are overwritten — local edits are recoverable via git.",
+    inputSchema: {
+      projectRoot: z
+        .string()
+        .optional()
+        .describe("Project root to sync into. Defaults to the current working directory."),
+    },
+  },
+  async ({ projectRoot }) => ({
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(syncSkills(projectRoot), null, 2),
       },
     ],
   }),

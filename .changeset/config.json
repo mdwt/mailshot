@@ -4,7 +4,14 @@
   "commit": false,
   "fixed": [],
   "linked": [
-    ["@mailshot/shared", "@mailshot/handlers", "@mailshot/cdk", "@mailshot/mcp", "create-mailshot"]
+    [
+      "@mailshot/shared",
+      "@mailshot/handlers",
+      "@mailshot/cdk",
+      "@mailshot/mcp",
+      "@mailshot/skills",
+      "create-mailshot"
+    ]
   ],
   "access": "public",
   "baseBranch": "main",

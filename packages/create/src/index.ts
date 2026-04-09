@@ -3,6 +3,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
+import { syncSkills } from "@mailshot/skills";
 
 const projectName = process.argv[2];
 if (!projectName) {
@@ -35,6 +36,9 @@ function copyDir(src: string, dest: string): void {
 
 console.log(`Creating ${projectName}...`);
 copyDir(templateDir, targetDir);
+
+// Copy canonical Claude Code skills from @mailshot/skills into .claude/skills/
+syncSkills(targetDir);
 
 // Replace {{PROJECT_NAME}} placeholder in template files
 for (const file of ["README.md", "CLAUDE.md"]) {

@@ -150,14 +150,20 @@ That scaffolds a new project with everything wired up - CDK infrastructure, sequ
 
 ## Skills
 
-Scaffolded projects ship with four Claude Code skills that handle the core workflow. You don't invoke these explicitly - just describe what you want and Claude uses the right one.
+Scaffolded projects ship with eight Claude Code skills that handle the core workflow. You don't invoke these explicitly - just describe what you want and Claude uses the right one.
 
 | Skill                 | What it does                                                                     | Example prompt                                                   |
 | --------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | **setup-env**         | Discovers AWS resources, writes `.env`, registers the MCP server                 | "Set up my environment"                                          |
 | **create-sequence**   | Generates sequence config, email templates, and render script from a description | "Create a 3-part welcome sequence triggered by customer.created" |
-| **deploy**            | Validates all sequences, builds everything, deploys to AWS                       | "Deploy"                                                         |
 | **validate-sequence** | Checks config, template references, types, and CDK synthesis                     | "Validate the onboarding sequence"                               |
+| **deploy**            | Validates all sequences, builds everything, deploys to AWS                       | "Deploy"                                                         |
+| **inspect-sequence**  | Shows active subscribers, recent engagement, and recent failures for a sequence  | "Who's in onboarding right now?"                                 |
+| **send-broadcast**    | Sends a one-off broadcast email to filtered subscribers                          | "Send our April update to everyone tagged product-updates"       |
+| **import-sequence**   | Reconstructs `sequence.config.ts` and templates from a deployed sequence on AWS  | "Import the trial-expiring sequence from AWS"                    |
+| **teardown**          | Validates and runs `cdk destroy` to remove the stack                             | "Tear down the dev stack"                                        |
+
+Skills are published as the [`@mailshot/skills`](packages/skills) npm package and refresh automatically on `pnpm install` via a `postinstall` hook in scaffolded projects. Run `pnpm sync-skills` to refresh manually after upgrading. Local edits are overwritten on sync — git is the safety net.
 
 ## MCP tools
 

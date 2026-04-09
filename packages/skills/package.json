@@ -1,0 +1,36 @@
+{
+  "name": "@mailshot/skills",
+  "version": "1.7.0",
+  "description": "Claude Code skills for mailshot - shipped as a package so user projects can keep them in sync via pnpm install",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "dist/sync.js",
+  "types": "dist/sync.d.ts",
+  "bin": {
+    "mailshot-sync-skills": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdwt/mailshot.git",
+    "directory": "packages/skills"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/sync.d.ts",
+      "default": "./dist/sync.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint src"
+  }
+}

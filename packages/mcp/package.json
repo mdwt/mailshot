@@ -35,6 +35,7 @@
     "@aws-sdk/client-sfn": "^3.1009.0",
     "@aws-sdk/util-dynamodb": "^3.996.2",
     "@mailshot/shared": "workspace:*",
+    "@mailshot/skills": "workspace:*",
     "liquidjs": "^10.25.0",
     "zod": "^3.25.67"
   }

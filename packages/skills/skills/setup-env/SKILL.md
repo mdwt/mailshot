@@ -165,7 +165,7 @@ If configuration sets exist, ask the user if they want to **reuse an existing on
 
 Ask the user for a **project prefix** to use for naming resources. Default to `mailshot`. This prefix will be used to generate:
 
-- `STACK_NAME` → `<Prefix>` (PascalCase, e.g., `StepFuncEmailer`)
+- `STACK_NAME` → `<Prefix>` (PascalCase, e.g., `Mailshot`)
 - `TABLE_NAME` → `<Prefix>` (PascalCase)
 - `EVENTS_TABLE_NAME` → `<Prefix>-events`
 - `TEMPLATE_BUCKET_NAME` → `<prefix>-templates-<accountId>` (lowercase with account ID for uniqueness)
