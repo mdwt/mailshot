@@ -9,6 +9,8 @@ import {
   Database,
   Star,
   Paintbrush,
+  Check,
+  X,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -29,12 +31,23 @@ export default function HomePage() {
   );
 }
 
-/* ── Hero ────────────────────────────────────────────────── */
+function Installer() {
+  return (
+    <button
+      type="button"
+      className="group inline-flex h-10 items-center gap-3 rounded-lg bg-ms-orange px-5 text-sm font-medium text-white transition-all hover:brightness-110 active:translate-y-px"
+    >
+      <code className="font-mono">npx create-mailshot</code>
+      <Copy className="h-3.5 w-3.5 opacity-40 transition-opacity group-hover:opacity-70" />
+    </button>
+  );
+}
 
-function Hero() {
+/* ── Hero atoms ────────────────────────────────────────── */
+
+function HeroShell({ children }: { children: React.ReactNode }) {
   return (
     <section className="relative overflow-hidden bg-fd-muted/40 dark:bg-fd-muted/20">
-      {/* Film grain texture */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.35] dark:opacity-[0.5] mix-blend-overlay"
         style={{
@@ -42,41 +55,8 @@ function Hero() {
           backgroundSize: "128px 128px",
         }}
       />
-      {/* Subtle gradient overlay */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-fd-background/80" />
-      <div className="relative mx-auto w-full max-w-4xl px-6 pt-24 pb-28 md:pt-36 md:pb-36">
-        <div className="flex flex-col items-center gap-8 text-center">
-          <h1 className="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">
-            Deploy email sequences like you deploy everything else
-          </h1>
-
-          <p className="mt-8 text-lg font-normal text-pretty text-gray-500 sm:text-xl/8">
-            Open-source serverless email sequences on AWS. Create sequences, deploy infrastructure,
-            query analytics, manage subscribers — all through AI. No UI, never leave the terminal.
-          </p>
-
-          <div className="flex flex-col items-center gap-4 sm:flex-row">
-            <Installer />
-            <Link
-              href="/docs"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-fd-muted-foreground underline-offset-4 hover:text-fd-foreground hover:underline transition-colors"
-            >
-              Documentation
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <a
-              href="https://github.com/mdwt/mailshot"
-              className="inline-flex items-center gap-1.5 text-sm text-fd-muted-foreground transition-colors hover:text-fd-foreground"
-            >
-              <Star className="h-3.5 w-3.5" />
-              GitHub
-            </a>
-          </div>
-
-          <Terminal />
-        </div>
-      </div>
-      {/* Wavy bottom edge */}
+      {children}
       <div className="absolute bottom-0 left-0 right-0 translate-y-px">
         <svg
           viewBox="0 0 1440 56"
@@ -95,73 +75,120 @@ function Hero() {
   );
 }
 
-function Installer() {
+function HeroEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      className="group inline-flex h-10 items-center gap-3 rounded-lg bg-ms-orange px-5 text-sm font-medium text-white transition-all hover:brightness-110 active:translate-y-px"
-    >
-      <code className="font-mono">npx create-mailshot</code>
-      <Copy className="h-3.5 w-3.5 opacity-40 transition-opacity group-hover:opacity-70" />
-    </button>
+    <p className="font-mono text-xs font-medium tracking-wide uppercase text-fd-muted-foreground">
+      {children}
+    </p>
   );
 }
 
-function Terminal() {
+function HeroCtas() {
   return (
-    <div className="w-full max-w-xl overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-sm">
-      <div className="flex items-center gap-2 border-b border-fd-border/60 px-4 py-2.5">
-        <span className="h-2.5 w-2.5 rounded-full bg-fd-muted-foreground/15" />
-        <span className="h-2.5 w-2.5 rounded-full bg-fd-muted-foreground/15" />
-        <span className="h-2.5 w-2.5 rounded-full bg-fd-muted-foreground/15" />
-        <span className="ml-2 font-mono text-[11px] text-fd-muted-foreground/60">~/my-project</span>
-      </div>
-      <div className="p-5 font-mono text-[13px] leading-[1.7] text-left">
-        <TLine prompt>npx create-mailshot my-mailers &amp;&amp; cd my-mailers</TLine>
-        <TLine prompt>claude</TLine>
-        <TLine />
-        <TLine dim>&gt; Set up my environment for prod profile </TLine>
-        <TLine ok>✓ .env configured, SSM parameters verified, SES identity confirmed</TLine>
-        <TLine />
-        <TLine dim>
-          &gt; Create a 5-email onboarding sequence triggered by customer.created. Use react email
-        </TLine>
-        <TLine ok>✓ Generated sequence config, 5 templates, render script</TLine>
-        <TLine />
-        <TLine dim>&gt; Validate and deploy onboarding</TLine>
-        <TLine ok>✓ Types valid, templates matched, CDK deployed to us-east-1</TLine>
-        <TLine />
-        <TLine dim>&gt; What are the open rates on the onboarding sequence?</TLine>
-        <TLine ok>✓ 68% delivered, 42% opened, 12% clicked across 340 sends</TLine>
-      </div>
+    <div className="flex flex-col items-center gap-4 sm:flex-row">
+      <Installer />
+      <Link
+        href="/docs"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-fd-muted-foreground underline-offset-4 hover:text-fd-foreground hover:underline transition-colors"
+      >
+        Documentation
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Link>
+      <a
+        href="https://github.com/mdwt/mailshot"
+        className="inline-flex items-center gap-1.5 text-sm text-fd-muted-foreground transition-colors hover:text-fd-foreground"
+      >
+        <Star className="h-3.5 w-3.5" />
+        GitHub
+      </a>
     </div>
   );
 }
 
-function TLine({
-  children,
-  prompt,
-  dim,
-  ok,
-}: {
-  children?: React.ReactNode;
-  prompt?: boolean;
-  dim?: boolean;
-  ok?: boolean;
-}) {
+/* ── Hero ────────────────────────────────────────────────── */
+
+function Hero() {
   return (
-    <p
-      className={
-        ok
-          ? "text-emerald-600 dark:text-emerald-400"
-          : dim
-            ? "text-fd-muted-foreground/70"
-            : "text-fd-foreground"
-      }
-    >
-      {prompt && <span className="text-fd-muted-foreground/50">$ </span>}
-      {children ?? "\u00A0"}
-    </p>
+    <HeroShell>
+      <div className="relative mx-auto w-full max-w-6xl px-6 pt-24 pb-32 md:pt-32 md:pb-36">
+        <div className="grid items-center gap-14 lg:grid-cols-[21fr_19fr]">
+          <div className="flex flex-col items-start gap-7 text-left">
+            <HeroEyebrow>Open-source · Self-hosted · Serverless</HeroEyebrow>
+            <h1 className="max-w-[18ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">
+              The email platform you self-host on AWS.
+            </h1>
+            <p className="max-w-[58ch] text-lg text-pretty text-fd-muted-foreground sm:text-xl/8">
+              mailshot is the open-source replacement for Mailchimp, Customer.io, and Loops.
+              Sequences run as Step Functions in your own AWS account. No subscriber tax. No
+              dashboard. Manage everything from Claude Code.
+            </p>
+            <HeroCtas />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-fd-border/60 bg-fd-card/60 p-5 shadow-sm">
+              <p className="font-mono text-[0.6875rem] font-medium tracking-wide uppercase text-fd-muted-foreground/70">
+                SaaS email platforms
+              </p>
+              <p className="mt-2 text-sm font-semibold text-fd-foreground">
+                Mailchimp · Customer.io · Loops
+              </p>
+              <ul
+                role="list"
+                className="mt-4 flex flex-col gap-2.5 text-sm text-fd-muted-foreground"
+              >
+                <li className="flex items-start gap-2">
+                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
+                  <span>Pay per contact, every month</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
+                  <span>Subscribers live on their servers</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
+                  <span>Click-ops dashboard, brittle exports</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
+                  <span>Vendor lock-in, opaque deliverability</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-ms-orange/40 bg-fd-card p-5 shadow-md ring-1 ring-ms-orange/20">
+              <p className="font-mono text-[0.6875rem] font-medium tracking-wide uppercase text-ms-orange">
+                mailshot
+              </p>
+              <p className="mt-2 text-sm font-semibold text-fd-foreground">
+                Self-hosted in your AWS account
+              </p>
+              <ul
+                role="list"
+                className="mt-4 flex flex-col gap-2.5 text-sm text-fd-muted-foreground"
+              >
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
+                  <span>Pay AWS per send — pennies, not per seat</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
+                  <span>Subscribers in your own DynamoDB</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
+                  <span>Sequences as TypeScript, deployed by CDK</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
+                  <span>MIT licensed, no vendor in the loop</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </HeroShell>
   );
 }
 

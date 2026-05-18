@@ -2,6 +2,7 @@ import "./global.css";
 import { RootProvider } from "fumadocs-ui/provider";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -93,6 +94,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <RootProvider>{children}</RootProvider>
+        <Analytics />
       </body>
     </html>
   );

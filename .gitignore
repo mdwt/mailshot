@@ -20,3 +20,4 @@ coverage/
 *.ipr
 build/
 .idea_modules/
+.playwright-mcp
