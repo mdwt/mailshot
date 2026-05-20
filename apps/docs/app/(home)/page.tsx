@@ -20,6 +20,7 @@ export default function HomePage() {
       <Problem />
       <BringYourTemplates />
       <SequenceCode />
+      <WhyAgentNative />
       <HowItWorks />
       <ArchitectureDiagram />
       <Features />
@@ -113,14 +114,15 @@ function Hero() {
       <div className="relative mx-auto w-full max-w-6xl px-6 pt-24 pb-32 md:pt-32 md:pb-36">
         <div className="grid items-center gap-14 lg:grid-cols-[21fr_19fr]">
           <div className="flex flex-col items-start gap-7 text-left">
-            <HeroEyebrow>Open-source · Self-hosted · Serverless</HeroEyebrow>
-            <h1 className="max-w-[18ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">
-              The email platform you self-host on AWS.
+            <HeroEyebrow>Agent-native · Open-source · Serverless</HeroEyebrow>
+            <h1 className="max-w-[20ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">
+              Email infrastructure your AI agent operates.
             </h1>
             <p className="max-w-[58ch] text-lg text-pretty text-fd-muted-foreground sm:text-xl/8">
-              mailshot is the open-source replacement for Mailchimp, Customer.io, and Loops.
-              Sequences run as Step Functions in your own AWS account. No subscriber tax. No
-              dashboard. Manage everything from Claude Code.
+              mailshot has no dashboard. It{"'"}s a typed, code-first platform on AWS built so
+              Claude Code can create sequences, deploy them, and run the day-to-day — querying
+              engagement, suppressing bounces, previewing templates against live subscribers. Your
+              account, your data, your agent in the driver{"'"}s seat.
             </p>
             <HeroCtas />
           </div>
@@ -128,7 +130,7 @@ function Hero() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-fd-border/60 bg-fd-card/60 p-5 shadow-sm">
               <p className="font-mono text-[0.6875rem] font-medium tracking-wide uppercase text-fd-muted-foreground/70">
-                SaaS email platforms
+                Dashboard SaaS
               </p>
               <p className="mt-2 text-sm font-semibold text-fd-foreground">
                 Mailchimp · Customer.io · Loops
@@ -139,19 +141,19 @@ function Hero() {
               >
                 <li className="flex items-start gap-2">
                   <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Pay per contact, every month</span>
+                  <span>Designed for humans clicking around a UI</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Subscribers live on their servers</span>
+                  <span>Agents scrape pages or chain brittle APIs</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Click-ops dashboard, brittle exports</span>
+                  <span>Subscribers and history on the vendor{"'"}s servers</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Vendor lock-in, opaque deliverability</span>
+                  <span>Pay per contact, every month, forever</span>
                 </li>
               </ul>
             </div>
@@ -161,7 +163,7 @@ function Hero() {
                 mailshot
               </p>
               <p className="mt-2 text-sm font-semibold text-fd-foreground">
-                Self-hosted in your AWS account
+                Agent-native, self-hosted on AWS
               </p>
               <ul
                 role="list"
@@ -169,11 +171,7 @@ function Hero() {
               >
                 <li className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
-                  <span>Pay AWS per send — pennies, not per seat</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
-                  <span>Subscribers in your own DynamoDB</span>
+                  <span>18 MCP tools — typed, structured, agent-ready</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
@@ -181,7 +179,11 @@ function Hero() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
-                  <span>MIT licensed, no vendor in the loop</span>
+                  <span>Subscribers in your own DynamoDB</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
+                  <span>Pay AWS per send — pennies, not per seat</span>
                 </li>
               </ul>
             </div>
@@ -379,6 +381,54 @@ function SequenceCode() {
               <span className="text-fd-muted-foreground">{"satisfies SequenceDefinition;"}</span>
             </code>
           </pre>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Why agent-native ────────────────────────────────────── */
+
+function WhyAgentNative() {
+  const principles = [
+    {
+      title: "Typed schemas, not screen reads",
+      body: "Sequences are typed SequenceDefinition configs. Templates are HTML with named Liquid variables. Subscribers are DynamoDB rows with typed attributes. An agent can introspect every shape, validate it before sending, and emit code that compiles — no scraping, no guessing what a button does.",
+    },
+    {
+      title: "One MCP, full surface area",
+      body: "18 MCP tools cover the entire control plane — subscribers, engagement, templates, suppression, sequences, broadcasts, system health. No screen scraping. No API-key juggling. The agent calls a typed function and gets a typed response.",
+    },
+    {
+      title: "Code is the source of truth",
+      body: 'Sequences live in your repo. CDK auto-discovers them. Changes ship through git, not "Save" buttons. Your agent writes the diff, runs typecheck, and waits for /deploy — you keep the final review.',
+    },
+  ];
+
+  return (
+    <section className="border-t border-fd-border/50 bg-fd-muted/30">
+      <div className="mx-auto w-full max-w-5xl px-6 py-20 md:py-28">
+        <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
+          Why agent-native
+        </p>
+        <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          Designed around an operator with no UI
+        </h2>
+        <p className="mt-4 max-w-2xl text-fd-muted-foreground leading-relaxed">
+          Traditional email tools assume a human at the dashboard, clicking through wizards and
+          copy-pasting between tabs. mailshot assumes the opposite — the operator is an agent with
+          API access and no UI to reach for. Three things follow from that.
+        </p>
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          {principles.map((p, i) => (
+            <div key={p.title} className="rounded-xl border border-fd-border/60 bg-fd-card p-6">
+              <span className="font-mono text-xs font-bold tracking-wider text-fd-muted-foreground/50">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <h3 className="mt-2 text-sm font-bold">{p.title}</h3>
+              <p className="mt-2.5 text-sm leading-relaxed text-fd-muted-foreground">{p.body}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -681,11 +731,11 @@ function CTA() {
     <section className="mx-auto w-full max-w-4xl px-6 py-20 md:py-28">
       <div className="flex flex-col items-center gap-6 text-center">
         <h2 className="text-balance text-3xl font-bold tracking-tight md:text-4xl">
-          Get started in five minutes
+          Hand the email stack to your agent
         </h2>
         <p className="max-w-lg text-fd-muted-foreground leading-relaxed">
-          Scaffold a project, describe a sequence to AI, deploy. Your AWS account, your
-          infrastructure, your data.
+          Scaffold the project, describe a sequence to Claude Code, deploy. From zero to a live
+          sequence on your own AWS account in five minutes — no dashboard required.
         </p>
         <div className="flex flex-col items-center gap-4 sm:flex-row">
           <Installer />
