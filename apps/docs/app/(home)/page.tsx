@@ -1,514 +1,490 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  Copy,
-  Mail,
-  GitBranch,
-  Shield,
-  Zap,
-  Database,
-  Star,
-  Paintbrush,
-  Check,
-  X,
-} from "lucide-react";
+import { ArrowRight, Copy } from "lucide-react";
 
 export default function HomePage() {
   return (
     <main>
       <Hero />
-      <Problem />
-      <BringYourTemplates />
+      <Comparison />
+      <Costs />
       <SequenceCode />
-      <WhyAgentNative />
-      <HowItWorks />
-      <ArchitectureDiagram />
+      <Templates />
+      <Workflow />
+      <Architecture />
+      <Principles />
+      <MCPCatalog />
       <Features />
-      <MCPTools />
       <Packages />
-      <CTA />
-      <Footer />
+      <ClosingCTA />
+      <PageFooter />
     </main>
   );
 }
 
-function Installer() {
+/* ──────────────────────────────────────────────────────────── */
+/* Install button — the one place orange shows at full saturation */
+
+function Installer({ size = "default" }: { size?: "default" | "large" }) {
+  const sizing = size === "large" ? "h-11 px-6 text-sm gap-3" : "h-10 px-5 text-sm gap-3";
   return (
     <button
       type="button"
-      className="group inline-flex h-10 items-center gap-3 rounded-lg bg-ms-orange px-5 text-sm font-medium text-white transition-all hover:brightness-110 active:translate-y-px"
+      className={`group inline-flex items-center rounded-lg bg-ms-orange font-medium text-white hover:brightness-110 active:translate-y-px [transition:filter_var(--dur-short)_var(--ease-out),transform_100ms_var(--ease-out)] ${sizing}`}
     >
-      <code className="font-mono">npx create-mailshot</code>
-      <Copy className="h-3.5 w-3.5 opacity-40 transition-opacity group-hover:opacity-70" />
+      <code className="font-mono whitespace-nowrap">npx create-mailshot</code>
+      <Copy className="h-3.5 w-3.5 opacity-50 [transition:opacity_var(--dur-short)_var(--ease-out)] group-hover:opacity-80" />
     </button>
   );
 }
 
-/* ── Hero atoms ────────────────────────────────────────── */
-
-function HeroShell({ children }: { children: React.ReactNode }) {
-  return (
-    <section className="relative overflow-hidden bg-fd-muted/40 dark:bg-fd-muted/20">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35] dark:opacity-[0.5] mix-blend-overlay"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          backgroundSize: "128px 128px",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-fd-background/80" />
-      {children}
-      <div className="absolute bottom-0 left-0 right-0 translate-y-px">
-        <svg
-          viewBox="0 0 1440 56"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="block w-full h-auto"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 24C240 48 480 56 720 40C960 24 1200 8 1440 32V56H0V24Z"
-            className="fill-fd-background"
-          />
-        </svg>
-      </div>
-    </section>
-  );
-}
-
-function HeroEyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-mono text-xs font-medium tracking-wide uppercase text-fd-muted-foreground">
-      {children}
-    </p>
-  );
-}
-
-function HeroCtas() {
-  return (
-    <div className="flex flex-col items-center gap-4 sm:flex-row">
-      <Installer />
-      <Link
-        href="/docs"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-fd-muted-foreground underline-offset-4 hover:text-fd-foreground hover:underline transition-colors"
-      >
-        Documentation
-        <ArrowRight className="h-3.5 w-3.5" />
-      </Link>
-      <a
-        href="https://github.com/mdwt/mailshot"
-        className="inline-flex items-center gap-1.5 text-sm text-fd-muted-foreground transition-colors hover:text-fd-foreground"
-      >
-        <Star className="h-3.5 w-3.5" />
-        GitHub
-      </a>
-    </div>
-  );
-}
-
-/* ── Hero ────────────────────────────────────────────────── */
+/* ── Hero ────────────────────────────────────────────────────
+   Title left, lede right with vertical rule (HP1). Type only.
+   No comparison cards in fold; the table below carries the contrast. */
 
 function Hero() {
   return (
-    <HeroShell>
-      <div className="relative mx-auto w-full max-w-6xl px-6 pt-24 pb-32 md:pt-32 md:pb-36">
-        <div className="grid items-center gap-14 lg:grid-cols-[21fr_19fr]">
-          <div className="flex flex-col items-start gap-7 text-left">
-            <HeroEyebrow>Agent-native · Open-source · Serverless</HeroEyebrow>
-            <h1 className="max-w-[20ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">
-              Email infrastructure your AI agent operates.
-            </h1>
-            <p className="max-w-[58ch] text-lg text-pretty text-fd-muted-foreground sm:text-xl/8">
-              mailshot has no dashboard. It{"'"}s a typed, code-first platform on AWS built so
-              Claude Code can create sequences, deploy them, and run the day-to-day — querying
-              engagement, suppressing bounces, previewing templates against live subscribers. Your
-              account, your data, your agent in the driver{"'"}s seat.
-            </p>
-            <HeroCtas />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-fd-border/60 bg-fd-card/60 p-5 shadow-sm">
-              <p className="font-mono text-[0.6875rem] font-medium tracking-wide uppercase text-fd-muted-foreground/70">
-                Dashboard SaaS
-              </p>
-              <p className="mt-2 text-sm font-semibold text-fd-foreground">
-                Mailchimp · Customer.io · Loops
-              </p>
-              <ul
-                role="list"
-                className="mt-4 flex flex-col gap-2.5 text-sm text-fd-muted-foreground"
-              >
-                <li className="flex items-start gap-2">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Designed for humans clicking around a UI</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Agents scrape pages or chain brittle APIs</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Subscribers and history on the vendor{"'"}s servers</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-500/80" strokeWidth={2} />
-                  <span>Pay per contact, every month, forever</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="rounded-xl border border-ms-orange/40 bg-fd-card p-5 shadow-md ring-1 ring-ms-orange/20">
-              <p className="font-mono text-[0.6875rem] font-medium tracking-wide uppercase text-ms-orange">
-                mailshot
-              </p>
-              <p className="mt-2 text-sm font-semibold text-fd-foreground">
-                Agent-native, self-hosted on AWS
-              </p>
-              <ul
-                role="list"
-                className="mt-4 flex flex-col gap-2.5 text-sm text-fd-muted-foreground"
-              >
-                <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
-                  <span>18 MCP tools — typed, structured, agent-ready</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
-                  <span>Sequences as TypeScript, deployed by CDK</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
-                  <span>Subscribers in your own DynamoDB</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2} />
-                  <span>Pay AWS per send — pennies, not per seat</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </HeroShell>
-  );
-}
-
-/* ── Why ─────────────────────────────────────────────────── */
-
-function Problem() {
-  return (
-    <section className="border-y border-fd-border/50 bg-fd-muted/30">
-      <div className="mx-auto w-full max-w-5xl px-6 py-16 sm:py-20">
-        <div className="grid gap-10 sm:grid-cols-3 sm:gap-12">
-          <div>
-            <p className="font-mono text-sm font-bold text-fd-foreground">
-              Free &amp; MIT licensed
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-fd-muted-foreground">
-              mailshot is open source. You deploy it to your own AWS account.
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-sm font-bold text-fd-foreground">Cheap to run</p>
-            <p className="mt-2 text-sm leading-relaxed text-fd-muted-foreground">
-              A 5-email sequence costs ~$0.30 per 1,000 runs in Step Functions, plus $0.50 in SES
-              sends. At 10k subscribers you{"'"}re looking at under $10/month total AWS bill.
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-sm font-bold text-fd-foreground">Pay-per-execution</p>
-            <p className="mt-2 text-sm leading-relaxed text-fd-muted-foreground">
-              No fixed costs. You pay AWS for state transitions, email sends, and DynamoDB reads.
-              Nothing runs between emails. You only pay when a step executes.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Bring your templates ────────────────────────────────── */
-
-function BringYourTemplates() {
-  const tools = [
-    { name: "React Email", desc: "JSX components rendered to HTML" },
-    { name: "MJML", desc: "Responsive email markup language" },
-    { name: "Raw HTML", desc: "Hand-coded or exported from any editor" },
-    { name: "AI-generated", desc: "Claude, ChatGPT, or any LLM" },
-    { name: "Figma → HTML", desc: "Export from design tools" },
-    { name: "Your existing templates", desc: "Copy them into the project" },
-  ];
-
-  return (
-    <section className="mx-auto w-full max-w-5xl px-6 py-20 md:py-32">
-      <div className="grid items-start gap-12 lg:grid-cols-[1fr,1fr]">
-        <div>
-          <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-            Templates
-          </p>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-            Use whatever you already use
-          </h2>
-          <p className="mt-4 text-fd-muted-foreground leading-relaxed">
-            mailshot is an orchestration framework. It doesn{"'"}t care how you create your HTML -
-            only that you have an{" "}
-            <code className="rounded border border-fd-border bg-fd-muted/60 px-1.5 py-0.5 font-mono text-xs">
-              .html
-            </code>{" "}
-            file at the end.
-          </p>
-          <p className="mt-3 text-fd-muted-foreground leading-relaxed">
-            Keep your current workflow. Use your favorite editor, design tool, or framework. At send
-            time, mailshot injects subscriber data into your templates with LiquidJS{" "}
-            <code className="rounded border border-fd-border bg-fd-muted/60 px-1.5 py-0.5 font-mono text-xs">
-              {"{{ firstName }}"}
-            </code>{" "}
-            variables - that{"'"}s the only contract.
-          </p>
-          <Link
-            href="/docs/templates"
-            className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
+    <section className="relative border-b border-fd-border/50">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.22] mix-blend-overlay dark:opacity-[0.35]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundSize: "128px 128px",
+        }}
+      />
+      <div className="relative mx-auto w-full max-w-6xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+        <div className="grid items-end gap-12 lg:grid-cols-[13fr_9fr]">
+          <h1
+            className="max-w-[16ch] font-semibold tracking-[-0.028em] text-balance text-fd-foreground"
+            style={{
+              fontSize: "clamp(2.5rem, 4.5vw + 1rem, 4.5rem)",
+              lineHeight: 1.04,
+            }}
           >
-            Template docs
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          {tools.map((t) => (
-            <div
-              key={t.name}
-              className="rounded-xl border border-fd-border/60 bg-fd-card/50 px-5 py-4"
-            >
-              <h4 className="text-sm font-bold">{t.name}</h4>
-              <p className="mt-1 text-xs text-fd-muted-foreground">{t.desc}</p>
+            Email infrastructure your AI agent operates.
+          </h1>
+          <div className="max-w-[44ch] lg:border-l lg:border-fd-border/40 lg:pl-8 lg:pb-2">
+            <p className="text-base leading-relaxed text-fd-foreground/85 sm:text-lg sm:leading-[1.55]">
+              No dashboard. A typed, code-first platform on AWS — Claude Code creates sequences,
+              deploys them, queries engagement, suppresses bounces, previews against live
+              subscribers. Your account, your data.
+            </p>
+            <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
+              <Installer size="large" />
+              <Link
+                href="/docs"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground/70 underline-offset-4 [transition:color_var(--dur-short)_var(--ease-out)] hover:text-fd-foreground hover:underline"
+              >
+                Read the docs
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── Sequence as code ────────────────────────────────────── */
+/* ── Comparison ──────────────────────────────────────────────
+   Replaces the side-by-side "winner card" pattern with a dense
+   typographic table. No rings, no shadows, no tints. */
+
+function Comparison() {
+  const rows = [
+    {
+      dimension: "Operator",
+      saas: "Humans clicking around a UI",
+      ours: "An agent calling typed MCP tools",
+    },
+    {
+      dimension: "Configuration",
+      saas: "Wizards, forms, drag-and-drop",
+      ours: "TypeScript configs, version-controlled",
+    },
+    {
+      dimension: "Where subscribers live",
+      saas: "On the vendor’s servers",
+      ours: "In your own DynamoDB",
+    },
+    {
+      dimension: "Pricing",
+      saas: "Per contact, per month, forever",
+      ours: "Per AWS send — pennies",
+    },
+    {
+      dimension: "Exit",
+      saas: "Their schema, their export, their pace",
+      ours: "Your repo. MIT licensed. Walk away anytime.",
+    },
+  ];
+  return (
+    <section className="border-b border-fd-border/50">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-baseline gap-x-12 gap-y-8 lg:grid-cols-[1fr_2fr]">
+          <h2
+            className="font-semibold tracking-tight text-fd-foreground"
+            style={{
+              fontSize: "clamp(1.5rem, 2vw + 0.5rem, 2.25rem)",
+              lineHeight: 1.12,
+              maxWidth: "20ch",
+            }}
+          >
+            What you’d buy from Mailchimp, but agent-native.
+          </h2>
+
+          <div className="-mx-6 overflow-x-auto px-6 sm:mx-0 sm:px-0">
+            <table className="w-full min-w-[34rem]">
+              <thead>
+                <tr className="border-b border-fd-border/60 text-left font-mono text-[10.5px] uppercase tracking-widest text-fd-muted-foreground">
+                  <th className="py-3 pr-6 font-medium"></th>
+                  <th className="py-3 pr-6 font-medium">Dashboard SaaS</th>
+                  <th className="py-3 font-medium text-fd-foreground">mailshot</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {rows.map((r) => (
+                  <tr key={r.dimension} className="border-b border-fd-border/30 last:border-b-0">
+                    <th
+                      scope="row"
+                      className="py-4 pr-6 text-left align-top font-medium text-fd-foreground"
+                    >
+                      {r.dimension}
+                    </th>
+                    <td className="py-4 pr-6 align-top text-fd-muted-foreground">{r.saas}</td>
+                    <td className="py-4 align-top text-fd-foreground">{r.ours}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-5 max-w-[60ch] text-xs leading-relaxed text-fd-muted-foreground">
+              Mailchimp, Customer.io, Loops, and friends are good. They’re built for a different
+              operator.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Costs ──────────────────────────────────────────────────
+   Replaces 3-col cost cards with one prose block. Numbers in
+   tabular-nums + foreground weight inside the sentence. */
+
+function Costs() {
+  return (
+    <section className="border-b border-fd-border/50 bg-fd-muted/20">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-baseline gap-12 lg:grid-cols-[1fr_2fr]">
+          <h2
+            className="max-w-[18ch] font-semibold tracking-tight text-fd-foreground"
+            style={{
+              fontSize: "clamp(1.5rem, 2vw + 0.5rem, 2.25rem)",
+              lineHeight: 1.12,
+            }}
+          >
+            Pennies per execution. No fixed cost.
+          </h2>
+
+          <div className="max-w-[62ch] space-y-5 leading-relaxed text-fd-foreground/85">
+            <p>
+              mailshot is MIT-licensed and runs on your own AWS account. There is nothing to pay the
+              framework for, ever.
+            </p>
+            <p>
+              A 5-email sequence costs{" "}
+              <span className="font-medium tabular-nums text-fd-foreground">~$0.30</span> per 1,000
+              runs in Step Functions, plus{" "}
+              <span className="font-medium tabular-nums text-fd-foreground">~$0.50</span> in SES
+              sends. At 10,000 subscribers you’re looking at{" "}
+              <span className="font-medium tabular-nums text-fd-foreground">under $10/month</span>{" "}
+              total AWS bill.
+            </p>
+            <p className="text-fd-muted-foreground">
+              You pay AWS for state transitions, email sends, and DynamoDB reads. Nothing runs
+              between emails. Nothing accrues when you sleep.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Sequence as code ───────────────────────────────────────
+   Workbench centerpiece. Narrative left (sticky), code right.
+   Code block uses typographic frame, not fake window chrome. */
 
 function SequenceCode() {
   return (
-    <section className="mx-auto w-full max-w-5xl px-6 py-20 md:py-32">
-      <div className="grid items-start gap-12 lg:grid-cols-[1fr,1.2fr]">
-        <div>
-          <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-            Sequences as code
-          </p>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-            TypeScript config, CDK deploys it
-          </h2>
-          <p className="mt-4 text-fd-muted-foreground leading-relaxed">
-            Define sequences as TypeScript configs - triggers, steps, delays, conditional branches.
-            Everything lives in{" "}
-            <code className="rounded border border-fd-border bg-fd-muted/60 px-1.5 py-0.5 font-mono text-xs">
-              sequences/
-            </code>{" "}
-            and CDK auto-discovers and deploys each as a Step Functions state machine.
-          </p>
-          <p className="mt-3 text-fd-muted-foreground leading-relaxed">
-            Write configs by hand, or use Claude Code to generate them from a description. Either
-            way, it{"'"}s code you own and review before deploying.
-          </p>
-          <Link
-            href="/docs/sequences"
-            className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
-          >
-            Sequence docs
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card">
-          <div className="flex items-center border-b border-fd-border/60 px-4 py-2.5">
-            <span className="font-mono text-xs text-fd-muted-foreground">sequence.config.ts</span>
+    <section className="border-b border-fd-border/50">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.4fr]">
+          <div className="lg:sticky lg:top-24">
+            <h2
+              className="max-w-[18ch] font-semibold tracking-tight text-fd-foreground"
+              style={{
+                fontSize: "clamp(1.75rem, 2.4vw + 0.5rem, 2.75rem)",
+                lineHeight: 1.08,
+              }}
+            >
+              Sequences are TypeScript. CDK deploys them.
+            </h2>
+            <p className="mt-6 max-w-[44ch] leading-relaxed text-fd-foreground/85">
+              Triggers, steps, delays, conditional branches — everything lives in{" "}
+              <code className="rounded border border-fd-border bg-fd-muted/60 px-1.5 py-0.5 font-mono text-[0.825em]">
+                sequences/
+              </code>
+              . CDK auto-discovers each file and ships it as a Step Functions state machine.
+            </p>
+            <p className="mt-4 max-w-[44ch] leading-relaxed text-fd-muted-foreground">
+              Write the config by hand, or hand it to Claude Code. Either way it’s code you own and
+              review before deploy.
+            </p>
+            <Link
+              href="/docs/sequences"
+              className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
+            >
+              Sequence reference <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <pre className="overflow-x-auto p-5 text-[13px] leading-[1.75]">
-            <code>
-              <span className="text-fd-muted-foreground">
-                {'import type { SequenceDefinition }\n  from "@mailshot/shared";\n\n'}
-              </span>
-              <span>{"export default {\n"}</span>
-              <span>{"  id: "}</span>
-              <span className="text-ms-blue">{'"welcome"'}</span>
-              <span>{",\n"}</span>
-              <span>{"  trigger: {\n"}</span>
-              <span>{"    detailType: "}</span>
-              <span className="text-ms-blue">{'"customer.created"'}</span>
-              <span>{",\n"}</span>
-              <span className="text-fd-muted-foreground">
-                {
-                  '    subscriberMapping: {\n      email: "$.detail.email",\n      firstName: "$.detail.firstName",\n    },\n'
-                }
-              </span>
-              <span>{"  },\n"}</span>
-              <span>{"  steps: [\n"}</span>
-              <span>{"    { type: "}</span>
-              <span className="text-ms-blue">{'"send"'}</span>
-              <span>{",\n      templateKey: "}</span>
-              <span className="text-ms-blue">{'"welcome/hello"'}</span>
-              <span>{",\n      subject: "}</span>
-              <span className="text-ms-blue">{'"Welcome aboard"'}</span>
-              <span>{" },\n"}</span>
-              <span>{"    { type: "}</span>
-              <span className="text-ms-blue">{'"wait"'}</span>
-              <span>{", days: 2 },\n"}</span>
-              <span>{"    { type: "}</span>
-              <span className="text-ms-blue">{'"send"'}</span>
-              <span>{", ... },\n"}</span>
-              <span>{"    { type: "}</span>
-              <span className="text-ms-blue">{'"choice"'}</span>
-              <span>{",\n      field: "}</span>
-              <span className="text-ms-blue">{'"$.subscriber.attributes.plan"'}</span>
-              <span>{",\n      branches: [\n"}</span>
-              <span>{"        { value: "}</span>
-              <span className="text-ms-blue">{'"pro"'}</span>
-              <span>{", steps: [...] },\n"}</span>
-              <span>{"        { value: "}</span>
-              <span className="text-ms-blue">{'"free"'}</span>
-              <span>{", steps: [...] },\n"}</span>
-              <span>{"      ],\n"}</span>
-              <span>{"    },\n"}</span>
-              <span>{"  ],\n"}</span>
-              <span>{"} "}</span>
-              <span className="text-fd-muted-foreground">{"satisfies SequenceDefinition;"}</span>
-            </code>
-          </pre>
-        </div>
-      </div>
-    </section>
-  );
-}
 
-/* ── Why agent-native ────────────────────────────────────── */
-
-function WhyAgentNative() {
-  const principles = [
-    {
-      title: "Typed schemas, not screen reads",
-      body: "Sequences are typed SequenceDefinition configs. Templates are HTML with named Liquid variables. Subscribers are DynamoDB rows with typed attributes. An agent can introspect every shape, validate it before sending, and emit code that compiles — no scraping, no guessing what a button does.",
-    },
-    {
-      title: "One MCP, full surface area",
-      body: "18 MCP tools cover the entire control plane — subscribers, engagement, templates, suppression, sequences, broadcasts, system health. No screen scraping. No API-key juggling. The agent calls a typed function and gets a typed response.",
-    },
-    {
-      title: "Code is the source of truth",
-      body: 'Sequences live in your repo. CDK auto-discovers them. Changes ship through git, not "Save" buttons. Your agent writes the diff, runs typecheck, and waits for /deploy — you keep the final review.',
-    },
-  ];
-
-  return (
-    <section className="border-t border-fd-border/50 bg-fd-muted/30">
-      <div className="mx-auto w-full max-w-5xl px-6 py-20 md:py-28">
-        <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-          Why agent-native
-        </p>
-        <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-          Designed around an operator with no UI
-        </h2>
-        <p className="mt-4 max-w-2xl text-fd-muted-foreground leading-relaxed">
-          Traditional email tools assume a human at the dashboard, clicking through wizards and
-          copy-pasting between tabs. mailshot assumes the opposite — the operator is an agent with
-          API access and no UI to reach for. Three things follow from that.
-        </p>
-        <div className="mt-12 grid gap-4 sm:grid-cols-3">
-          {principles.map((p, i) => (
-            <div key={p.title} className="rounded-xl border border-fd-border/60 bg-fd-card p-6">
-              <span className="font-mono text-xs font-bold tracking-wider text-fd-muted-foreground/50">
-                {String(i + 1).padStart(2, "0")}
+          <div className="overflow-hidden rounded-lg border border-fd-border bg-fd-card">
+            <div className="flex items-center justify-between border-b border-fd-border/60 px-4 py-2.5">
+              <span className="font-mono text-xs text-fd-muted-foreground">
+                sequences/welcome/sequence.config.ts
               </span>
-              <h3 className="mt-2 text-sm font-bold">{p.title}</h3>
-              <p className="mt-2.5 text-sm leading-relaxed text-fd-muted-foreground">{p.body}</p>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-fd-muted-foreground/60">
+                TypeScript
+              </span>
             </div>
-          ))}
+            <pre className="overflow-x-auto p-5 text-[12.5px] leading-[1.75]">
+              <code>
+                <span className="text-fd-muted-foreground">
+                  {'import type { SequenceDefinition }\n  from "@mailshot/shared";\n\n'}
+                </span>
+                <span>{"export default {\n"}</span>
+                <span>{"  id: "}</span>
+                <span className="text-ms-blue">{'"welcome"'}</span>
+                <span>{",\n"}</span>
+                <span>{"  trigger: {\n"}</span>
+                <span>{"    detailType: "}</span>
+                <span className="text-ms-blue">{'"customer.created"'}</span>
+                <span>{",\n"}</span>
+                <span className="text-fd-muted-foreground">
+                  {
+                    '    subscriberMapping: {\n      email: "$.detail.email",\n      firstName: "$.detail.firstName",\n    },\n'
+                  }
+                </span>
+                <span>{"  },\n"}</span>
+                <span>{"  steps: [\n"}</span>
+                <span>{"    { type: "}</span>
+                <span className="text-ms-blue">{'"send"'}</span>
+                <span>{",\n      templateKey: "}</span>
+                <span className="text-ms-blue">{'"welcome/hello"'}</span>
+                <span>{",\n      subject: "}</span>
+                <span className="text-ms-blue">{'"Welcome aboard"'}</span>
+                <span>{" },\n"}</span>
+                <span>{"    { type: "}</span>
+                <span className="text-ms-blue">{'"wait"'}</span>
+                <span>{", days: 2 },\n"}</span>
+                <span>{"    { type: "}</span>
+                <span className="text-ms-blue">{'"send"'}</span>
+                <span>{", ... },\n"}</span>
+                <span>{"    { type: "}</span>
+                <span className="text-ms-blue">{'"choice"'}</span>
+                <span>{",\n      field: "}</span>
+                <span className="text-ms-blue">{'"$.subscriber.attributes.plan"'}</span>
+                <span>{",\n      branches: [\n"}</span>
+                <span>{"        { value: "}</span>
+                <span className="text-ms-blue">{'"pro"'}</span>
+                <span>{", steps: [...] },\n"}</span>
+                <span>{"        { value: "}</span>
+                <span className="text-ms-blue">{'"free"'}</span>
+                <span>{", steps: [...] },\n"}</span>
+                <span>{"      ],\n"}</span>
+                <span>{"    },\n"}</span>
+                <span>{"  ],\n"}</span>
+                <span>{"} "}</span>
+                <span className="text-fd-muted-foreground">{"satisfies SequenceDefinition;"}</span>
+              </code>
+            </pre>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── How it works ────────────────────────────────────────── */
+/* ── Templates ──────────────────────────────────────────────
+   Inline typographic list instead of 6-tile grid. */
 
-function HowItWorks() {
+function Templates() {
+  const tools = [
+    "React Email",
+    "MJML",
+    "Raw HTML",
+    "Claude · ChatGPT · any LLM",
+    "Figma → HTML",
+    "Your existing templates",
+  ];
+  return (
+    <section className="border-b border-fd-border/50 bg-fd-muted/20">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-baseline gap-12 lg:grid-cols-[1fr_2fr]">
+          <h2
+            className="max-w-[18ch] font-semibold tracking-tight text-fd-foreground"
+            style={{
+              fontSize: "clamp(1.5rem, 2vw + 0.5rem, 2.25rem)",
+              lineHeight: 1.12,
+            }}
+          >
+            Bring whatever HTML you already make.
+          </h2>
+
+          <div className="max-w-[62ch]">
+            <p className="leading-relaxed text-fd-foreground/85">
+              mailshot is an orchestration framework. It doesn’t care how you author the HTML — only
+              that there’s an{" "}
+              <code className="rounded border border-fd-border bg-fd-muted/60 px-1.5 py-0.5 font-mono text-[0.825em]">
+                .html
+              </code>{" "}
+              file at the end. At send time it injects subscriber data via LiquidJS{" "}
+              <code className="rounded border border-fd-border bg-fd-muted/60 px-1.5 py-0.5 font-mono text-[0.825em]">
+                {"{{ firstName }}"}
+              </code>{" "}
+              variables. That’s the only contract.
+            </p>
+            <p className="mt-7 font-mono text-[10.5px] uppercase tracking-widest text-fd-muted-foreground">
+              Known to work with
+            </p>
+            <ul className="mt-2 flex flex-wrap items-baseline gap-x-1 gap-y-2 text-fd-foreground/90">
+              {tools.map((t, i) => (
+                <li key={t} className="flex items-baseline">
+                  <span className="text-fd-foreground">{t}</span>
+                  {i < tools.length - 1 && (
+                    <span aria-hidden className="mx-3 text-fd-border">
+                      ·
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/docs/templates"
+              className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
+            >
+              Template docs <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Workflow ───────────────────────────────────────────────
+   Narrative numbered steps with hairline rules between rows.
+   No 4-col equal-card grid. */
+
+function Workflow() {
   const steps = [
     {
-      step: "01",
+      n: "1",
       title: "Scaffold",
       command: "npx create-mailshot my-project",
-      text: "Sets up the monorepo with CDK, shared types, handlers, and an MCP server wired to your AWS account.",
+      text: "A monorepo with CDK, shared types, handlers, and an MCP server wired to your AWS account.",
     },
     {
-      step: "02",
+      n: "2",
       title: "Create sequences",
       command: "sequences/welcome/sequence.config.ts",
-      text: "Write your sequence config by hand, or use Claude Code to generate it. Add your email templates however you like - React Email, MJML, raw HTML, any tool.",
+      text: "Write the config by hand, or describe what you want to Claude Code. Drop your HTML templates in next to it — any tool, any format.",
     },
     {
-      step: "03",
+      n: "3",
       title: "Deploy",
       command: "/deploy",
-      text: "Validates types, checks template references, synthesizes CDK, deploys Step Functions + EventBridge + S3 templates.",
+      text: "Validates types, checks template references, synthesizes CDK, and ships Step Functions + EventBridge + S3 templates in one go.",
     },
     {
-      step: "04",
+      n: "4",
       title: "Operate",
       command: 'mcp: "What are open rates on onboarding?"',
-      text: "16 MCP tools let you query engagement, manage subscribers, preview templates, and debug - without leaving your editor.",
+      text: "Twenty-three MCP tools let Claude Code query engagement, suppress bounces, preview templates, debug deliveries — all from inside your editor.",
     },
   ];
-
   return (
-    <section className="border-y border-fd-border/50 bg-fd-muted/20">
-      <div className="mx-auto w-full max-w-5xl px-6 py-20 md:py-28">
-        <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-          Workflow
-        </p>
-        <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-          From zero to sending in minutes
+    <section className="border-b border-fd-border/50">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <h2
+          className="max-w-[20ch] font-semibold tracking-tight text-fd-foreground"
+          style={{
+            fontSize: "clamp(1.75rem, 2.4vw + 0.5rem, 2.75rem)",
+            lineHeight: 1.08,
+          }}
+        >
+          From zero to live in four moves.
         </h2>
-        <div className="mt-14 grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+
+        <ol className="mt-14 divide-y divide-fd-border/40">
           {steps.map((s) => (
-            <div key={s.step}>
-              <span className="font-mono text-xs font-bold tracking-wider text-fd-muted-foreground/50">
-                {s.step}
+            <li
+              key={s.n}
+              className="grid gap-x-12 gap-y-3 py-8 first:pt-0 lg:grid-cols-[auto_1fr_1.6fr] lg:items-baseline"
+            >
+              <span className="font-mono text-[1.75rem] font-semibold tabular-nums leading-none text-ms-orange/85 lg:w-10">
+                {s.n}
               </span>
-              <h3 className="mt-2 text-sm font-bold">{s.title}</h3>
-              <p className="mt-1 font-mono text-xs text-fd-muted-foreground break-all">
-                {s.command}
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-fd-muted-foreground">{s.text}</p>
-            </div>
+              <div>
+                <h3 className="text-lg font-semibold text-fd-foreground">{s.title}</h3>
+                <code className="mt-1 block break-all font-mono text-xs text-fd-muted-foreground">
+                  {s.command}
+                </code>
+              </div>
+              <p className="max-w-[58ch] leading-relaxed text-fd-foreground/85">{s.text}</p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );
 }
 
-/* ── Architecture ────────────────────────────────────────── */
+/* ── Architecture ───────────────────────────────────────────
+   ASCII diagram kept — it's already type-led and strong. Narrative
+   moves to a sticky left column. */
 
-function ArchitectureDiagram() {
+function Architecture() {
   return (
-    <section className="mx-auto w-full max-w-5xl px-6 py-20 md:py-28">
-      <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-        Architecture
-      </p>
-      <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Data flow</h2>
-      <p className="mt-4 max-w-2xl text-fd-muted-foreground leading-relaxed">
-        Your app publishes events to EventBridge. Rules route to Step Functions for sequences or
-        Lambda for one-off sends. SES delivers with full engagement tracking back into DynamoDB.
-      </p>
+    <section className="border-b border-fd-border/50 bg-fd-muted/20">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-start gap-12 lg:grid-cols-[1fr_2fr]">
+          <div className="lg:sticky lg:top-24">
+            <h2
+              className="max-w-[16ch] font-semibold tracking-tight text-fd-foreground"
+              style={{
+                fontSize: "clamp(1.5rem, 2vw + 0.5rem, 2.25rem)",
+                lineHeight: 1.12,
+              }}
+            >
+              Data flow
+            </h2>
+            <p className="mt-6 max-w-[44ch] leading-relaxed text-fd-foreground/85">
+              Your app publishes events to EventBridge. Rules route to Step Functions for sequences
+              or Lambda for one-off sends. SES delivers, then ships engagement back into DynamoDB.
+            </p>
+            <Link
+              href="/docs/architecture"
+              className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
+            >
+              Architecture reference <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
 
-      <div className="mt-10 overflow-x-auto rounded-xl border border-fd-border bg-fd-card">
-        <pre className="p-6 font-mono text-[12px] leading-[1.6] sm:text-[13px]">{`┌──────────────────────────────────┐
+          <div className="overflow-x-auto rounded-lg border border-fd-border bg-fd-card">
+            <pre className="p-6 font-mono text-[11.5px] leading-[1.6] sm:text-[12.5px]">{`┌──────────────────────────────────┐
 │ Your App Backend                 │
 │ publishes events to EventBridge  │
 └───────────────┬──────────────────┘
@@ -551,148 +527,263 @@ function ArchitectureDiagram() {
         └─ Unsubscribe link ──→ UnsubscribeFn (Function URL)
                                    └─ mark unsubscribed
                                    └─ stop executions`}</pre>
+          </div>
+        </div>
       </div>
-
-      <Link
-        href="/docs/architecture"
-        className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
-      >
-        Full architecture docs
-        <ArrowRight className="h-3.5 w-3.5" />
-      </Link>
     </section>
   );
 }
 
-/* ── Features ────────────────────────────────────────────── */
+/* ── Principles ─────────────────────────────────────────────
+   3 columns, but differentiated by hairline rules above each
+   heading — no leading-zero badges, no cards. */
+
+function Principles() {
+  const items = [
+    {
+      title: "Typed schemas, not screen reads.",
+      body: "Sequences are typed configs. Templates are HTML with named Liquid variables. Subscribers are DynamoDB rows with typed attributes. An agent introspects every shape, validates it before sending, and emits code that compiles — no scraping, no guessing.",
+    },
+    {
+      title: "One MCP, full surface area.",
+      body: "Twenty-three MCP tools cover the entire control plane — subscribers, engagement, templates, suppression, sequences, broadcasts, health. No screen scrapes. No API-key juggling. A typed function in, a typed response out.",
+    },
+    {
+      title: "Code is the source of truth.",
+      body: "Sequences live in your repo. CDK auto-discovers them. Changes ship through git, not Save buttons. Your agent writes the diff and runs typecheck; you keep the final review.",
+    },
+  ];
+  return (
+    <section className="border-b border-fd-border/50">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="max-w-[58ch]">
+          <h2
+            className="font-semibold tracking-tight text-fd-foreground"
+            style={{
+              fontSize: "clamp(1.75rem, 2.4vw + 0.5rem, 2.75rem)",
+              lineHeight: 1.08,
+            }}
+          >
+            The operator is an agent with no UI to reach for.
+          </h2>
+          <p className="mt-6 leading-relaxed text-fd-foreground/80">
+            Traditional email tools assume a human at a dashboard, clicking through wizards and
+            copy-pasting between tabs. mailshot assumes the opposite. Three things follow.
+          </p>
+        </div>
+
+        <div className="mt-14 grid gap-x-12 gap-y-10 lg:grid-cols-3">
+          {items.map((it) => (
+            <div key={it.title}>
+              <h3 className="border-t border-fd-border/60 pt-4 text-base font-semibold text-fd-foreground">
+                {it.title}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-fd-foreground/75">{it.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── MCP catalog ────────────────────────────────────────────
+   Real tool names, grouped, man-page style. 23 actual tools.
+   The one section that keeps an eyebrow ("MCP server") because
+   it names an external system the reader may not recognise. */
+
+function MCPCatalog() {
+  const groups = [
+    {
+      title: "Subscribers",
+      tools: [
+        { name: "get_subscriber", desc: "Fetch a profile with attributes and history" },
+        { name: "list_subscribers", desc: "Filter by tags, attributes, suppression status" },
+        { name: "update_subscriber", desc: "Patch attributes, tags, contact details" },
+        { name: "delete_subscriber", desc: "Remove a subscriber and stop active sequences" },
+        { name: "unsubscribe_subscriber", desc: "Mark unsubscribed and stop sequences" },
+        { name: "resubscribe_subscriber", desc: "Re-engage a previously unsubscribed contact" },
+      ],
+    },
+    {
+      title: "Engagement",
+      tools: [
+        { name: "get_subscriber_events", desc: "Opens, clicks, bounces per address" },
+        { name: "get_template_events", desc: "Rolled up per template — handy for A/B variants" },
+        { name: "get_sequence_events", desc: "Rolled up per sequence or broadcast" },
+      ],
+    },
+    {
+      title: "Templates",
+      tools: [
+        { name: "list_templates", desc: "Everything in your S3 template bucket" },
+        { name: "preview_template", desc: "Render against a live subscriber" },
+        { name: "validate_template", desc: "Check Liquid syntax and variable shape" },
+      ],
+    },
+    {
+      title: "Sequences",
+      tools: [
+        { name: "list_sequences", desc: "All deployed sequences with active counts" },
+        { name: "list_sequence_subscribers", desc: "Who is currently inside a given sequence" },
+        { name: "export_sequence", desc: "Reconstruct a deployed sequence as local code" },
+      ],
+    },
+    {
+      title: "Broadcasts",
+      tools: [
+        { name: "send_broadcast", desc: "One-off send filtered by tags or attributes" },
+        { name: "get_broadcast", desc: "Audience size + live engagement counters" },
+        { name: "list_broadcasts", desc: "History of broadcasts, newest first" },
+      ],
+    },
+    {
+      title: "Suppression",
+      tools: [
+        { name: "list_suppressed", desc: "All suppressed addresses with the reason" },
+        { name: "remove_suppression", desc: "Lift a hard-bounce or complaint flag" },
+      ],
+    },
+    {
+      title: "System",
+      tools: [
+        { name: "get_failed_executions", desc: "Recent Step Functions runs that failed" },
+        { name: "get_delivery_stats", desc: "SES bounce + complaint rates over time" },
+      ],
+    },
+    {
+      title: "Skills",
+      tools: [{ name: "sync_skills", desc: "Refresh the local Claude Code skill set" }],
+    },
+  ];
+
+  const total = groups.reduce((n, g) => n + g.tools.length, 0);
+
+  return (
+    <section className="border-b border-fd-border/50 bg-fd-muted/20">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-start gap-12 lg:grid-cols-[1fr_2fr]">
+          <div className="lg:sticky lg:top-24">
+            <p className="font-mono text-[10.5px] uppercase tracking-widest text-ms-orange">
+              MCP server
+            </p>
+            <h2
+              className="mt-3 max-w-[20ch] font-semibold tracking-tight text-fd-foreground"
+              style={{
+                fontSize: "clamp(1.75rem, 2.4vw + 0.5rem, 2.75rem)",
+                lineHeight: 1.08,
+              }}
+            >
+              {total} tools. One command to wire.
+            </h2>
+            <code className="mt-6 block rounded-md border border-fd-border bg-fd-card px-3 py-2.5 font-mono text-xs text-fd-foreground">
+              claude mcp add mailshot -- npx @mailshot/mcp
+            </code>
+            <p className="mt-6 max-w-[44ch] text-sm leading-relaxed text-fd-foreground/80">
+              The MCP server connects Claude Code to your live AWS resources. Subscribers,
+              engagement, templates, sequences, broadcasts, health — typed in, typed out.
+            </p>
+            <Link
+              href="/docs/mcp-server"
+              className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
+            >
+              Full tool reference <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="space-y-9">
+            {groups.map((g) => (
+              <div key={g.title}>
+                <h3 className="mb-3 border-b border-fd-border/40 pb-2 font-mono text-[10.5px] uppercase tracking-widest text-fd-muted-foreground">
+                  {g.title}
+                </h3>
+                <ul className="space-y-2.5">
+                  {g.tools.map((t) => (
+                    <li
+                      key={t.name}
+                      className="grid items-baseline gap-x-6 gap-y-1 sm:grid-cols-[22ch_1fr]"
+                    >
+                      <code className="font-mono text-[13px] text-fd-foreground">{t.name}</code>
+                      <span className="text-sm leading-relaxed text-fd-muted-foreground">
+                        {t.desc}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Features ───────────────────────────────────────────────
+   Typographic list, asymmetric two columns, hairline above each
+   item. No icon-tile cards. */
 
 function Features() {
   const features = [
     {
-      icon: Mail,
       title: "Full SES integration",
       text: "Delivery tracking, open/click events, bounce handling, List-Unsubscribe headers, HMAC-signed unsubscribe URLs.",
     },
     {
-      icon: GitBranch,
       title: "Conditional branching",
       text: "Choice steps branch on subscriber attributes. Condition steps query DynamoDB at runtime for send history and profile changes.",
     },
     {
-      icon: Shield,
       title: "Automatic suppression",
       text: "Bounces and complaints suppress subscribers and stop all active Step Functions executions. No manual intervention.",
     },
     {
-      icon: Zap,
-      title: "Serverless & pay-per-use",
-      text: "Step Functions, Lambda, EventBridge, DynamoDB, S3. Pay-per-execution on your own AWS account. No fixed costs.",
+      title: "Serverless, pay-per-use",
+      text: "Step Functions, Lambda, EventBridge, DynamoDB, S3. Pay-per-execution on your own AWS account. No fixed cost.",
     },
     {
-      icon: Database,
       title: "Single-table DynamoDB",
-      text: "Subscribers, executions, send logs, and suppression records in one table. Engagement events in a second. No relational database.",
+      text: "Subscribers, executions, send logs, suppression — one table. Engagement events in a second. No relational database.",
     },
     {
-      icon: Paintbrush,
       title: "Bring your own templates",
-      text: "Use any tool that outputs HTML - React Email, MJML, hand-coded, Figma exports, AI-generated. mailshot just renders variables with LiquidJS at send time.",
+      text: "React Email, MJML, hand-coded, Figma exports, AI-generated. mailshot just renders variables with LiquidJS at send time.",
     },
   ];
 
   return (
-    <section className="border-y border-fd-border/50 bg-fd-muted/20">
-      <div className="mx-auto w-full max-w-5xl px-6 py-20 md:py-28">
-        <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-          Built in
-        </p>
-        <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-          Production-ready out of the box
+    <section className="border-b border-fd-border/50">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <h2
+          className="max-w-[24ch] font-semibold tracking-tight text-fd-foreground"
+          style={{
+            fontSize: "clamp(1.5rem, 2vw + 0.5rem, 2.25rem)",
+            lineHeight: 1.12,
+          }}
+        >
+          Production-ready out of the box.
         </h2>
-        <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+
+        <ul className="mt-12 grid gap-x-12 gap-y-8 lg:grid-cols-2">
           {features.map((f) => (
-            <div key={f.title} className="group">
-              <f.icon className="h-5 w-5 text-fd-muted-foreground/60 mb-3" strokeWidth={1.5} />
-              <h3 className="text-sm font-bold">{f.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-fd-muted-foreground">{f.text}</p>
-            </div>
+            <li key={f.title} className="grid items-baseline gap-x-6 sm:grid-cols-[1.2fr_2fr]">
+              <h3 className="border-t border-fd-border/60 pt-3 text-base font-semibold text-fd-foreground">
+                {f.title}
+              </h3>
+              <p className="pt-3 text-sm leading-relaxed text-fd-foreground/75 sm:border-t sm:border-fd-border/30">
+                {f.text}
+              </p>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
 }
 
-/* ── MCP Tools ───────────────────────────────────────────── */
-
-function MCPTools() {
-  const groups = [
-    {
-      title: "Subscribers",
-      tools: ["get", "list", "update", "delete", "unsubscribe", "resubscribe"],
-    },
-    { title: "Engagement", tools: ["by subscriber", "by template", "by sequence"] },
-    { title: "Templates", tools: ["list", "preview with live data", "validate syntax"] },
-    { title: "Suppression", tools: ["list suppressed", "remove"] },
-    { title: "System", tools: ["failed executions", "delivery stats"] },
-  ];
-
-  return (
-    <section className="mx-auto w-full max-w-5xl px-6 py-20 md:py-28">
-      <div className="grid items-start gap-12 lg:grid-cols-[1fr,1.5fr]">
-        <div>
-          <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-            MCP Server
-          </p>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-            18 tools for Claude&nbsp;Code
-          </h2>
-          <p className="mt-4 text-fd-muted-foreground leading-relaxed">
-            The MCP server connects Claude Code to your live AWS infrastructure. Manage subscribers,
-            query engagement metrics, preview emails with real data, debug delivery issues.
-          </p>
-          <p className="mt-3 text-fd-muted-foreground leading-relaxed">One command to set up:</p>
-          <code className="mt-2 block rounded-lg border border-fd-border bg-fd-card px-4 py-2.5 font-mono text-xs">
-            claude mcp add mailshot -- npx @mailshot/mcp
-          </code>
-          <Link
-            href="/docs/mcp-server"
-            className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground underline-offset-4 hover:underline"
-          >
-            Full tool reference
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {groups.map((g) => (
-            <div
-              key={g.title}
-              className="rounded-xl border border-fd-border/60 bg-fd-card/50 px-5 py-4"
-            >
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold">{g.title}</h4>
-                <span className="font-mono text-xs text-fd-muted-foreground">{g.tools.length}</span>
-              </div>
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {g.tools.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-md border border-fd-border/50 bg-fd-muted/40 px-2 py-0.5 font-mono text-[11px] text-fd-muted-foreground"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Packages ────────────────────────────────────────────── */
+/* ── Packages ───────────────────────────────────────────────
+   Typographic colophon. Kept the dot-leader pattern but without
+   the y-translate fudge. */
 
 function Packages() {
   const pkgs = [
@@ -700,64 +791,89 @@ function Packages() {
     { name: "@mailshot/handlers", desc: "Five Lambda handlers + shared lib" },
     { name: "@mailshot/cdk", desc: "CDK infrastructure, modular constructs" },
     { name: "@mailshot/mcp", desc: "MCP server for Claude Code" },
+    { name: "@mailshot/skills", desc: "Claude Code skills shipped to user projects" },
     { name: "create-mailshot", desc: "CLI scaffolder" },
   ];
 
   return (
-    <section className="border-t border-fd-border/50 bg-fd-muted/20">
-      <div className="mx-auto w-full max-w-4xl px-6 py-20 md:py-28">
-        <p className="font-mono text-xs font-medium tracking-widest text-fd-muted-foreground uppercase">
-          Packages
-        </p>
-        <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Published on npm</h2>
-        <div className="mt-10 divide-y divide-fd-border/50">
-          {pkgs.map((p) => (
-            <div key={p.name} className="flex items-baseline gap-4 py-3">
-              <code className="shrink-0 font-mono text-sm font-bold">{p.name}</code>
-              <span className="hidden h-px flex-1 bg-fd-border/30 sm:block translate-y-[-2px]" />
-              <span className="text-sm text-fd-muted-foreground">{p.desc}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── CTA ─────────────────────────────────────────────────── */
-
-function CTA() {
-  return (
-    <section className="mx-auto w-full max-w-4xl px-6 py-20 md:py-28">
-      <div className="flex flex-col items-center gap-6 text-center">
-        <h2 className="text-balance text-3xl font-bold tracking-tight md:text-4xl">
-          Hand the email stack to your agent
-        </h2>
-        <p className="max-w-lg text-fd-muted-foreground leading-relaxed">
-          Scaffold the project, describe a sequence to Claude Code, deploy. From zero to a live
-          sequence on your own AWS account in five minutes — no dashboard required.
-        </p>
-        <div className="flex flex-col items-center gap-4 sm:flex-row">
-          <Installer />
-          <Link
-            href="/docs/quickstart"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-fd-muted-foreground underline-offset-4 hover:text-fd-foreground hover:underline transition-colors"
+    <section className="border-b border-fd-border/50 bg-fd-muted/20">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-baseline gap-12 lg:grid-cols-[1fr_2fr]">
+          <h2
+            className="max-w-[14ch] font-semibold tracking-tight text-fd-foreground"
+            style={{
+              fontSize: "clamp(1.5rem, 2vw + 0.5rem, 2.25rem)",
+              lineHeight: 1.12,
+            }}
           >
-            Quickstart guide
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+            Published on npm.
+          </h2>
+
+          <ul className="divide-y divide-fd-border/40">
+            {pkgs.map((p) => (
+              <li key={p.name} className="flex items-baseline gap-4 py-3">
+                <code className="shrink-0 font-mono text-sm font-semibold text-fd-foreground">
+                  {p.name}
+                </code>
+                <span aria-hidden className="hidden h-px flex-1 bg-fd-border/40 sm:block" />
+                <span className="text-sm text-fd-muted-foreground">{p.desc}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── Footer ──────────────────────────────────────────────── */
+/* ── Closing CTA ────────────────────────────────────────────
+   Left-biased, one CTA, no duplicate install + no centred farewell. */
 
-function Footer() {
+function ClosingCTA() {
   return (
-    <footer className="border-t border-fd-border/50 py-8">
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-6 text-sm text-fd-muted-foreground sm:flex-row">
+    <section className="border-b border-fd-border/50">
+      <div className="mx-auto w-full max-w-6xl px-6 py-20 md:py-28">
+        <div className="grid items-end gap-10 lg:grid-cols-[1.4fr_1fr]">
+          <div className="max-w-[26ch]">
+            <h2
+              className="font-semibold tracking-tight text-fd-foreground"
+              style={{
+                fontSize: "clamp(1.75rem, 2.4vw + 0.5rem, 2.75rem)",
+                lineHeight: 1.06,
+              }}
+            >
+              Hand the email stack to your agent.
+            </h2>
+            <p className="mt-5 max-w-[44ch] leading-relaxed text-fd-foreground/80">
+              Scaffold the project, describe a sequence to Claude Code, deploy. From zero to a live
+              sequence on your own AWS account in an afternoon.
+            </p>
+          </div>
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center lg:justify-end">
+            <Installer size="large" />
+            <Link
+              href="/docs/quickstart"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-fd-foreground/70 underline-offset-4 [transition:color_var(--dur-short)_var(--ease-out)] hover:text-fd-foreground hover:underline"
+            >
+              Quickstart
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Footer (Ft2 inline) ────────────────────────────────────
+   Wordmark · MIT line · credit. Single row, hairline above. */
+
+function PageFooter() {
+  return (
+    <footer className="py-10">
+      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-3 px-6 text-xs text-fd-muted-foreground sm:flex-row sm:items-center">
+        <p className="font-mono text-fd-foreground">mailshot</p>
+        <p>MIT licensed · free forever</p>
         <p>
           Built by{" "}
           <a
@@ -767,7 +883,6 @@ function Footer() {
             @mdwt
           </a>
         </p>
-        <p>MIT licensed. Free forever.</p>
       </div>
     </footer>
   );

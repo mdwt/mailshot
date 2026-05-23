@@ -2,6 +2,8 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: Quiet (project palette) · enrichment: typography only · nav: preserved (Fumadocs HomeLayout) · footer: Ft2 inline */
+
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -11,4 +13,16 @@
   --color-ms-blue: #4d90fe;
   --color-ms-deep: #0f172a;
   --color-ms-cyan: #22d3ee;
+
+  /* motion tokens */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-short: 200ms;
+  --dur-med: 320ms;
+}
+
+/* mobile safety belt — prevent any horizontal overflow at 320–414 px */
+html,
+body {
+  overflow-x: clip;
 }
