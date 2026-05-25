@@ -62,7 +62,7 @@ export const handler = async (event: {
     headers: HTML_HEADERS,
     body: htmlPage(
       "Unsubscribed",
-      "<h1>You've been unsubscribed</h1><p>You won't receive any more emails from us. If this was a mistake, please contact support.</p>",
+      "<h1>You've been unsubscribed</h1><p>You won't receive any more marketing emails from us. You may still receive important account or transactional emails. If this was a mistake, please contact support.</p>",
     ),
   };
 };
