@@ -3,7 +3,6 @@ import { resolveConfig } from "../lib/config.js";
 import { validateToken } from "../lib/unsubscribe-token.js";
 import { setProfileFlag } from "../lib/dynamo-client.js";
 import { stopAllExecutions } from "../lib/execution-stopper.js";
-import { addToSuppressionList } from "../lib/ses-suppression.js";
 import { createLogger } from "../lib/logger.js";
 
 const logger = createLogger("unsubscribe");
@@ -54,8 +53,7 @@ export const handler = async (event: {
   logger.info("Processing unsubscribe", { email: result.email });
 
   await setProfileFlag(config.tableName, result.email, "unsubscribed");
-  await stopAllExecutions(config.tableName, result.email);
-  await addToSuppressionList(result.email, "COMPLAINT");
+  await stopAllExecutions(config.tableName, result.email, true);
 
   logger.info("Unsubscribe complete", { email: result.email });
 
