@@ -59,7 +59,7 @@ export const handler = async (event: SNSEvent): Promise<void> => {
           notification.bounce.feedbackId,
         );
         await setProfileFlag(config.tableName, email, "suppressed");
-        await stopAllExecutions(config.tableName, email);
+        await stopAllExecutions(config.tableName, email, false);
         await addToSuppressionList(email, "BOUNCE");
       }
     }
@@ -81,7 +81,7 @@ export const handler = async (event: SNSEvent): Promise<void> => {
           notification.complaint.feedbackId,
         );
         await setProfileFlag(config.tableName, email, "suppressed");
-        await stopAllExecutions(config.tableName, email);
+        await stopAllExecutions(config.tableName, email, false);
         await addToSuppressionList(email, "COMPLAINT");
       }
     }

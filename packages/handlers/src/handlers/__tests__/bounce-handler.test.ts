@@ -71,7 +71,7 @@ describe("bounce-handler", () => {
       "bounced@example.com",
       "suppressed",
     );
-    expect(mockStopAllExecutions).toHaveBeenCalledWith("TestTable", "bounced@example.com");
+    expect(mockStopAllExecutions).toHaveBeenCalledWith("TestTable", "bounced@example.com", false);
     expect(mockAddToSuppressionList).toHaveBeenCalledWith("bounced@example.com", "BOUNCE");
   });
 
@@ -116,7 +116,11 @@ describe("bounce-handler", () => {
       "complainer@example.com",
       "suppressed",
     );
-    expect(mockStopAllExecutions).toHaveBeenCalledWith("TestTable", "complainer@example.com");
+    expect(mockStopAllExecutions).toHaveBeenCalledWith(
+      "TestTable",
+      "complainer@example.com",
+      false,
+    );
     expect(mockAddToSuppressionList).toHaveBeenCalledWith("complainer@example.com", "COMPLAINT");
   });
 
