@@ -305,6 +305,43 @@ describe("send-email handler", () => {
       const sendCall = mockSendEmail.mock.calls[0][0];
       expect(sendCall.listUnsubscribe).toBe(false);
     });
+
+    it("sends to an unsubscribed subscriber when transactional", async () => {
+      mockGetSubscriberProfile.mockResolvedValueOnce({
+        email: "user@example.com",
+        firstName: "Jane",
+        unsubscribed: true,
+        suppressed: false,
+      });
+
+      const result = await handler({ ...sendEvent, transactional: true });
+
+      expect(result).toEqual({ sent: true, messageId: "msg-123" });
+      expect(mockSendEmail).toHaveBeenCalled();
+    });
+
+    it("still skips a suppressed subscriber even when transactional", async () => {
+      mockGetSubscriberProfile.mockResolvedValueOnce({
+        email: "user@example.com",
+        firstName: "Jane",
+        unsubscribed: false,
+        suppressed: true,
+      });
+
+      const result = await handler({ ...sendEvent, transactional: true });
+
+      expect(result).toEqual({ sent: false, reason: "suppressed" });
+      expect(mockSendEmail).not.toHaveBeenCalled();
+    });
+
+    it("omits List-Unsubscribe headers on a transactional send", async () => {
+      mockGetSubscriberProfile.mockResolvedValueOnce(null);
+
+      await handler({ ...sendEvent, transactional: true });
+
+      const sendCall = mockSendEmail.mock.calls[0][0];
+      expect(sendCall.listUnsubscribe).toBe(false);
+    });
   });
 
   describe("fire_and_forget action", () => {
@@ -322,6 +359,29 @@ describe("send-email handler", () => {
       expect(result).toEqual({ sent: true, messageId: "msg-123" });
       expect(mockUpsertSubscriberProfile).toHaveBeenCalled();
       expect(mockSendEmail).toHaveBeenCalled();
+    });
+
+    it("forwards transactional to the send when set (sequence events)", async () => {
+      mockGetSubscriberProfile.mockResolvedValueOnce({
+        email: "user@example.com",
+        firstName: "Jane",
+        unsubscribed: true,
+        suppressed: false,
+      });
+
+      const result = await handler({
+        action: "fire_and_forget",
+        templateKey: "onboarding/first-sale",
+        subject: "Congrats!",
+        subscriber: { email: "user@example.com", firstName: "Jane" },
+        sender: TEST_SENDER,
+        sequenceId: "onboarding",
+        transactional: true,
+      });
+
+      expect(result).toEqual({ sent: true, messageId: "msg-123" });
+      const sendCall = mockSendEmail.mock.calls[0][0];
+      expect(sendCall.listUnsubscribe).toBe(false);
     });
   });
 
