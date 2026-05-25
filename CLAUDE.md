@@ -48,9 +48,9 @@ Serverless email sequencing framework on AWS. Product-agnostic: the framework de
 2. EventBridge rules route to either Step Functions (sequences) or SendEmailFn directly (fire-and-forget)
 3. Step Functions state machines call SendEmailFn for register/send/complete actions
 4. SendEmailFn: reads subscriber from DynamoDB → pre-send checks → fetches template from S3 → renders with LiquidJS → sends via SES (using sender config from event payload) → writes send log
-5. SES bounce/complaint notifications → SNS → BounceHandlerFn → suppresses subscriber, stops executions
+5. SES bounce/complaint notifications → SNS → BounceHandlerFn → sets `suppressed`, stops **all** executions (transactional included), and adds the address to the SES account suppression list. `suppressed` is never bypassable
 6. SES engagement events (delivery, open, click, bounce, complaint) → SNS → EngagementHandlerFn → writes to EmailEvents table AND atomically `ADD`-increments denormalised counters on the main table at `PK = STATS#<sequenceId>, SK = COUNTERS` (best-effort; failures logged but never block event writes)
-7. Unsubscribe link → UnsubscribeFn (Lambda Function URL, no auth) → marks unsubscribed, stops executions
+7. Unsubscribe link → UnsubscribeFn (Lambda Function URL, no auth) → marks `unsubscribed` and stops the subscriber's **non-transactional** executions. It does **not** add the address to the SES suppression list and does **not** cancel in-flight transactional sequences (e.g. onboarding). Marketing opt-out is purely an app-level flag
 8. Broadcasts: MCP or app invokes BroadcastFn directly via `Lambda.invoke()` → resolves subscribers by tags/attributes → writes broadcast record (`PK = BROADCAST`, `SK = <timestamp>#<broadcastId>`, with `audienceSize` = subscribers resolved at send time, **not** a delivery count) → fans out to SQS → SendEmailFn processes each message. Supports `dryRun: true` to preview audience count without sending. Live engagement counters (`deliveryCount`, `openCount`, `clickCount`, `bounceCount`, `complaintCount`) accumulate on a separate `STATS#<broadcastId>/COUNTERS` item via EngagementHandlerFn and are merged into `get_broadcast` / `list_broadcasts` MCP responses automatically.
 
 ### DynamoDB tables
@@ -96,6 +96,7 @@ Each sequence defines its own sender identity in `sequence.config.ts` via the `s
 - `captureReplies` (optional) - when `true`, CDK creates an SES receipt rule for `replyToEmail` to capture inbound replies via SNS → ReplyHandlerFn. Use for SES-managed inboxes (e.g., cold outreach). Leave unset when reply-to is a normal email address
 - `forwardRepliesTo` (optional) - when set alongside `captureReplies`, forwards captured replies to this email address via SES. The `From:` header is rewritten to the verified `replyToEmail` with `Reply-To:` set to the original sender, so you can reply directly back
 - `listUnsubscribe` (optional, default: `true`) - when `false`, omits `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Use for cold outreach where these headers signal bulk mail to Gmail. The `unsubscribeUrl` template variable is still available for in-body links
+- `transactional` (optional, default: `false`, on `SequenceDefinition` not `sender`) - when `true`, all sends in the sequence — including event-triggered (`events`) fire-and-forget emails — bypass the `unsubscribed` pre-send guard and omit `List-Unsubscribe` headers, so onboarding/receipts reach subscribers who opted out of marketing. The `suppressed` flag (bounces/complaints) is **never** bypassed. The flag is sequence-wide (no per-step override). Baked into the Step Functions `register`/`send`/`fire_and_forget` payloads at deploy time and persisted on the execution row.
 
 Sender config is baked into Step Functions payloads at deploy time (static, not dynamic). The SendEmailFn reads `sender` from the event payload, not from environment variables. There are no project-level sender defaults — every sequence must define its own.
 

@@ -121,7 +121,7 @@ get_template_events(templateKey: "broadcasts/product-update-april", eventType: "
 
 ## Important notes
 
-- Broadcasts reuse the existing SendEmailFn — all pre-send checks apply (unsubscribed/suppressed subscribers are automatically skipped)
+- Broadcasts reuse the existing SendEmailFn — all pre-send checks apply (unsubscribed/suppressed subscribers are automatically skipped). Broadcasts are always treated as marketing; there is no transactional override for broadcasts.
 - Every email includes an unsubscribe link and List-Unsubscribe headers (unless `listUnsubscribe: false`)
 - Engagement tracking (opens, clicks, bounces) works automatically via the existing SES configuration set
 - The `broadcastId` must be unique per broadcast. Reusing an ID won't cause errors but will mix engagement data
