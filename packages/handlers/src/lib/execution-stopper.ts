@@ -41,11 +41,18 @@ export async function stopSequenceExecution(
   return true;
 }
 
-export async function stopAllExecutions(tableName: string, email: string): Promise<void> {
-  const executions = await getAllExecutions(tableName, email);
-  logger.info("Stopping all executions for subscriber", {
+export async function stopAllExecutions(
+  tableName: string,
+  email: string,
+  skipTransactional: boolean,
+): Promise<void> {
+  const all = await getAllExecutions(tableName, email);
+  const executions = skipTransactional ? all.filter((e) => !e.transactional) : all;
+  logger.info("Stopping executions for subscriber", {
     email,
-    executionCount: executions.length,
+    skipTransactional,
+    candidateCount: all.length,
+    stoppingCount: executions.length,
   });
 
   await Promise.all(
