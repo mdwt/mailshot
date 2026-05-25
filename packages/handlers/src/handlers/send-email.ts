@@ -86,7 +86,7 @@ async function handleRegister(
 
   await upsertSubscriberProfile(config.tableName, event.subscriber);
 
-  // Guard: don't start a sequence for unsubscribed or suppressed subscribers
+  // Guard: don't start a sequence for suppressed subscribers, or unsubscribed subscribers on non-transactional sequences
   const profile = await getSubscriberProfile(config.tableName, event.subscriber.email);
   if (profile?.unsubscribed && !event.transactional) {
     logger.info("Skipping registration - subscriber unsubscribed", {
