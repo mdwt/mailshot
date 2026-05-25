@@ -39,6 +39,7 @@ export interface SequenceExecutionItem {
   email: string;
   executionArn: string;
   startedAt: string;
+  transactional?: boolean; // mirrors ActiveExecution; written by putExecution
 }
 
 // ── Send log ────────────────────────────────────────────────────────────────
