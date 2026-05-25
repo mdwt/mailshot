@@ -132,6 +132,7 @@ describe("send-email handler", () => {
         "user@example.com",
         "onboarding",
         registerEvent.executionArn,
+        false,
       );
     });
 
@@ -148,6 +149,31 @@ describe("send-email handler", () => {
       mockGetSubscriberProfile.mockResolvedValueOnce({ unsubscribed: false, suppressed: true });
 
       await expect(handler(registerEvent)).rejects.toThrow(
+        "Cannot register sequence for suppressed subscriber",
+      );
+      expect(mockPutExecution).not.toHaveBeenCalled();
+    });
+
+    it("registers an unsubscribed subscriber when transactional", async () => {
+      mockGetSubscriberProfile.mockResolvedValueOnce({ unsubscribed: true, suppressed: false });
+      mockGetExecution.mockResolvedValueOnce(null);
+
+      const result = await handler({ ...registerEvent, transactional: true });
+
+      expect(result).toEqual({ registered: true });
+      expect(mockPutExecution).toHaveBeenCalledWith(
+        "TestTable",
+        "user@example.com",
+        "onboarding",
+        registerEvent.executionArn,
+        true,
+      );
+    });
+
+    it("still throws for a suppressed subscriber even when transactional", async () => {
+      mockGetSubscriberProfile.mockResolvedValueOnce({ unsubscribed: false, suppressed: true });
+
+      await expect(handler({ ...registerEvent, transactional: true })).rejects.toThrow(
         "Cannot register sequence for suppressed subscriber",
       );
       expect(mockPutExecution).not.toHaveBeenCalled();
