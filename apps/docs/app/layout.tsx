@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     default: "mailshot - Serverless email sequences on AWS",
   },
   description:
-    "Open-source serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
+    "Open-source serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard.",
   keywords: [
     "email sequences",
     "AWS email",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     siteName: "mailshot",
     title: "mailshot - Serverless email sequences on AWS",
     description:
-      "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
+      "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard.",
     images: [
       {
         url: "/og-image.png",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "mailshot - Serverless email sequences on AWS",
     description:
-      "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
+      "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard.",
     images: ["/og-image.png"],
   },
   alternates: {
@@ -66,19 +66,38 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "mailshot",
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "AWS",
-  description:
-    "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard needed.",
-  url: baseUrl,
-  license: "https://opensource.org/licenses/MIT",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${baseUrl}#website`,
+      name: "mailshot",
+      url: baseUrl,
+      description:
+        "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard.",
+      publisher: { "@id": `${baseUrl}#organization` },
+      inLanguage: "en-US",
+    },
+    {
+      "@type": "Organization",
+      "@id": `${baseUrl}#organization`,
+      name: "mailshot",
+      url: baseUrl,
+      logo: `${baseUrl}/apple-touch-icon.png`,
+      sameAs: ["https://github.com/mdwt/mailshot"],
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": `${baseUrl}#software`,
+      name: "mailshot",
+      description:
+        "Serverless email sequences on AWS. Build onboarding drips and event-triggered sequences. Manage everything through Claude Code — no dashboard.",
+      url: baseUrl,
+      codeRepository: "https://github.com/mdwt/mailshot",
+      programmingLanguage: "TypeScript",
+      license: "https://opensource.org/licenses/MIT",
+      author: { "@id": `${baseUrl}#organization` },
+    },
+  ],
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
