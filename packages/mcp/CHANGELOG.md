@@ -1,5 +1,12 @@
 # @mailshot/mcp
 
+## 1.9.0
+
+### Patch Changes
+
+- Updated dependencies [[`03e86db`](https://github.com/mdwt/mailshot/commit/03e86db9c3fb186b3adb3da0521580b5816c1321)]:
+  - @mailshot/shared@1.9.0
+
 ## 1.8.0
 
 ### Minor Changes

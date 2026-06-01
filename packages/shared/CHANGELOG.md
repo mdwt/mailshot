@@ -1,5 +1,11 @@
 # @mailshot/shared
 
+## 1.9.0
+
+### Minor Changes
+
+- [#8](https://github.com/mdwt/mailshot/pull/8) [`03e86db`](https://github.com/mdwt/mailshot/commit/03e86db9c3fb186b3adb3da0521580b5816c1321) Thanks [@mdwt](https://github.com/mdwt)! - Add a `transactional` flag to sequences. Transactional sequences (and their event emails) reach subscribers who have unsubscribed from marketing and omit List-Unsubscribe headers, while still respecting bounce/complaint suppression. Unsubscribe is now a pure marketing opt-out: it no longer adds addresses to the SES suppression list (reserved for bounces/complaints) and no longer cancels in-flight transactional sequences.
+
 ## 1.8.0
 
 ### Minor Changes

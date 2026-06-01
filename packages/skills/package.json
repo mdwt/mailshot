@@ -1,6 +1,6 @@
 {
   "name": "@mailshot/skills",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Claude Code skills for mailshot - shipped as a package so user projects can keep them in sync via pnpm install",
   "license": "MIT",
   "type": "commonjs",
