@@ -73,7 +73,7 @@ Available Liquid variables in every template:
 
 ## Sequence config types
 
-Each sequence defines its own **sender identity** via the `sender` field: `fromEmail`, `fromName`, `replyToEmail` (optional), `captureReplies` (optional, creates SES receipt rule for inbound reply capture), `forwardRepliesTo` (optional, forwards captured replies to this inbox), `listUnsubscribe` (optional, default `true` — set `false` to omit List-Unsubscribe headers for cold outreach). There are no project-level sender defaults — every sequence must define its own.
+Each sequence defines its own **sender identity** via the `sender` field: `fromEmail`, `fromName`, `replyToEmail` (optional), `captureReplies` (optional, creates SES receipt rule for inbound reply capture), `forwardRepliesTo` (optional, forwards captured replies to this inbox), `listUnsubscribe` (optional, default `true` — set `false` to omit List-Unsubscribe headers for cold outreach). There are no project-level sender defaults — every sequence must define its own. A sequence may also set `transactional: true` (on the sequence, not `sender`) so its emails reach subscribers who unsubscribed from marketing and omit List-Unsubscribe headers — use only for genuinely transactional sequences (onboarding tied to a purchase, receipts, account/security notices). Bounce/complaint suppression is still always honored.
 
 Steps: `send`, `wait`, `choice` (branch on event data), `condition` (branch on DynamoDB lookup). Send steps support `variants` for A/B testing — provide an array of `{ templateKey, subject }` instead of a single templateKey/subject. Variant assignment is deterministic per subscriber per sequence.
 

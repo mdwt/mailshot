@@ -5,7 +5,6 @@ const mockResolveConfig = vi.fn();
 const mockValidateToken = vi.fn();
 const mockSetProfileFlag = vi.fn();
 const mockStopAllExecutions = vi.fn();
-const mockAddToSuppressionList = vi.fn();
 
 vi.mock("../../lib/config.js", () => ({
   resolveConfig: () => mockResolveConfig(),
@@ -23,10 +22,6 @@ vi.mock("../../lib/execution-stopper.js", () => ({
   stopAllExecutions: (...args: unknown[]) => mockStopAllExecutions(...args),
 }));
 
-vi.mock("../../lib/ses-suppression.js", () => ({
-  addToSuppressionList: (...args: unknown[]) => mockAddToSuppressionList(...args),
-}));
-
 const { handler } = await import("../unsubscribe.js");
 
 const CONFIG = {
@@ -39,7 +34,6 @@ beforeEach(() => {
   mockValidateToken.mockReset();
   mockSetProfileFlag.mockReset().mockResolvedValue(undefined);
   mockStopAllExecutions.mockReset().mockResolvedValue(undefined);
-  mockAddToSuppressionList.mockReset().mockResolvedValue(undefined);
 });
 
 describe("unsubscribe handler", () => {
@@ -105,7 +99,6 @@ describe("unsubscribe handler", () => {
       "user@example.com",
       "unsubscribed",
     );
-    expect(mockStopAllExecutions).toHaveBeenCalledWith("TestTable", "user@example.com");
-    expect(mockAddToSuppressionList).toHaveBeenCalledWith("user@example.com", "COMPLAINT");
+    expect(mockStopAllExecutions).toHaveBeenCalledWith("TestTable", "user@example.com", true);
   });
 });

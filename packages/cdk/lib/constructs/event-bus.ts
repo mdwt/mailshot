@@ -99,6 +99,7 @@ export class EventBusConstruct extends Construct {
                     ...(def.sender.replyToEmail && { replyToEmail: def.sender.replyToEmail }),
                     ...(def.sender.listUnsubscribe === false && { listUnsubscribe: false }),
                   },
+                  transactional: def.transactional ?? false,
                   subscriber: evtSubscriber,
                 }),
               }),

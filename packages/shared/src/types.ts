@@ -27,6 +27,7 @@ export interface ActiveExecution {
   executionArn: string;
   sequenceId: string;
   startedAt: string;
+  transactional?: boolean; // persisted at putExecution; absent on pre-existing rows = treated as marketing
 }
 
 // Inverted-index row written alongside ActiveExecution by putExecution.
@@ -38,6 +39,7 @@ export interface SequenceExecutionItem {
   email: string;
   executionArn: string;
   startedAt: string;
+  transactional?: boolean; // mirrors ActiveExecution; written by putExecution
 }
 
 // ── Send log ────────────────────────────────────────────────────────────────
@@ -70,6 +72,7 @@ export interface RegisterInput {
   sequenceId: string;
   subscriber: Subscriber;
   executionArn: string;
+  transactional?: boolean; // when true, register even if unsubscribed (still blocked if suppressed)
 }
 
 export interface SendInput {
@@ -80,6 +83,7 @@ export interface SendInput {
   sequenceId?: string;
   subscriber: Subscriber;
   sender?: SenderConfig;
+  transactional?: boolean; // when true, send even if unsubscribed and omit List-Unsubscribe headers
 }
 
 export interface FireAndForgetInput {
@@ -89,6 +93,7 @@ export interface FireAndForgetInput {
   subscriber: Subscriber;
   sender?: SenderConfig;
   sequenceId?: string; // override "fire_and_forget" default, e.g. broadcastId
+  transactional?: boolean; // when true, send even if unsubscribed (sequence events inherit this; broadcasts never set it)
 }
 
 export interface CompleteInput {
@@ -243,6 +248,7 @@ export interface SenderConfig {
 export interface SequenceDefinition {
   id: string;
   sender: SenderConfig;
+  transactional?: boolean; // default false. When true, all sends + event emails bypass the unsubscribed guard (not suppression) and omit List-Unsubscribe
   trigger: SequenceTrigger;
   timeoutMinutes: number;
   steps: SequenceStep[];

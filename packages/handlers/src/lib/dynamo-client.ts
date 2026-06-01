@@ -167,8 +167,9 @@ export async function putExecution(
   email: string,
   sequenceId: string,
   executionArn: string,
+  transactional: boolean,
 ): Promise<void> {
-  logger.info("Storing execution", { email, sequenceId, executionArn });
+  logger.info("Storing execution", { email, sequenceId, executionArn, transactional });
   const startedAt = new Date().toISOString();
   await dynamo.send(
     new TransactWriteItemsCommand({
@@ -183,6 +184,7 @@ export async function putExecution(
               executionArn,
               sequenceId,
               startedAt,
+              transactional,
             }),
           },
         },
@@ -196,6 +198,7 @@ export async function putExecution(
               email,
               executionArn,
               startedAt,
+              transactional,
             }),
           },
         },

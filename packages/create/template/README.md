@@ -30,6 +30,8 @@ Each sequence lives in `sequences/<name>/` and is auto-discovered by CDK. A sequ
 
 Ask Claude Code to create one - just describe your sequence and it generates everything.
 
+- **Transactional sequences** — mark a sequence `transactional: true` so onboarding/receipts reach subscribers who opted out of marketing (bounce/complaint suppression still applies).
+
 ## Templates
 
 Templates are HTML files. Use any tool to produce them - React Email, MJML, raw HTML, a drag-and-drop builder. At send time, mailshot renders [LiquidJS](https://liquidjs.com/) variables:

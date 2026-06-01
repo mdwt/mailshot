@@ -205,6 +205,7 @@ describe("putExecution", () => {
       "user@example.com",
       "onboarding",
       "arn:aws:states:us-east-1:123:execution:abc",
+      false,
     );
 
     const cmd = mockSend.mock.calls[0][0];
@@ -217,6 +218,7 @@ describe("putExecution", () => {
     expect(subItem.executionArn).toBe("arn:aws:states:us-east-1:123:execution:abc");
     expect(subItem.sequenceId).toBe("onboarding");
     expect(subItem.startedAt).toBeTruthy();
+    expect(subItem.transactional).toBe(false);
 
     const seqItem = unmarshall(cmd.input.TransactItems[1].Put.Item);
     expect(seqItem.PK).toBe("EXEC#onboarding");
@@ -224,6 +226,24 @@ describe("putExecution", () => {
     expect(seqItem.email).toBe("user@example.com");
     expect(seqItem.executionArn).toBe("arn:aws:states:us-east-1:123:execution:abc");
     expect(seqItem.startedAt).toBe(subItem.startedAt);
+  });
+
+  it("stores transactional=true on both rows when set", async () => {
+    mockSend.mockResolvedValueOnce({});
+
+    await putExecution(
+      "TestTable",
+      "user@example.com",
+      "onboarding",
+      "arn:aws:states:us-east-1:123:execution:abc",
+      true,
+    );
+
+    const cmd = mockSend.mock.calls[0][0];
+    const subItem = unmarshall(cmd.input.TransactItems[0].Put.Item);
+    const seqItem = unmarshall(cmd.input.TransactItems[1].Put.Item);
+    expect(subItem.transactional).toBe(true);
+    expect(seqItem.transactional).toBe(true);
   });
 });
 

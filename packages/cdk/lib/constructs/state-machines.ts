@@ -67,6 +67,7 @@ export class StateMachinesConstruct extends Construct {
       payload: sfn.TaskInput.fromObject({
         action: "register",
         sequenceId: def.id,
+        transactional: def.transactional ?? false,
         "subscriber.$": "$.subscriber",
         "executionArn.$": "$$.Execution.Id",
       }),
@@ -86,6 +87,7 @@ export class StateMachinesConstruct extends Construct {
       { counter: 0 },
       def.id,
       senderPayload,
+      def.transactional ?? false,
     );
 
     // Complete task
@@ -126,6 +128,7 @@ export class StateMachinesConstruct extends Construct {
     ctx: { counter: number },
     sequenceId: string,
     sender: Omit<SenderConfig, "captureReplies">,
+    transactional: boolean,
   ): sfn.Chain | null {
     let chain: sfn.Chain | null = null;
 
@@ -136,7 +139,15 @@ export class StateMachinesConstruct extends Construct {
 
       switch (step.type) {
         case "send":
-          state = this.buildSendStep(prefix, n, step, sendEmailFn, sequenceId, sender);
+          state = this.buildSendStep(
+            prefix,
+            n,
+            step,
+            sendEmailFn,
+            sequenceId,
+            sender,
+            transactional,
+          );
           break;
         case "wait":
           state = this.buildWaitStep(prefix, n, step);
@@ -151,6 +162,7 @@ export class StateMachinesConstruct extends Construct {
             ctx,
             sequenceId,
             sender,
+            transactional,
           );
           break;
         case "choice":
@@ -163,6 +175,7 @@ export class StateMachinesConstruct extends Construct {
             ctx,
             sequenceId,
             sender,
+            transactional,
           );
           break;
       }
@@ -180,6 +193,7 @@ export class StateMachinesConstruct extends Construct {
     sendEmailFn: lambda.IFunction,
     sequenceId: string,
     sender: Omit<SenderConfig, "captureReplies">,
+    transactional: boolean,
   ): tasks.LambdaInvoke {
     const task = new tasks.LambdaInvoke(this, `${prefix}-Send${n}`, {
       lambdaFunction: sendEmailFn,
@@ -190,6 +204,7 @@ export class StateMachinesConstruct extends Construct {
           : { templateKey: step.templateKey, subject: step.subject }),
         sequenceId,
         sender,
+        transactional,
         "subscriber.$": "$.subscriber",
       }),
       resultPath: "$.sendResult",
@@ -218,6 +233,7 @@ export class StateMachinesConstruct extends Construct {
     ctx: { counter: number },
     sequenceId: string,
     sender: Omit<SenderConfig, "captureReplies">,
+    transactional: boolean,
   ): sfn.IChainable {
     const checkTask = new tasks.LambdaInvoke(this, `${prefix}-Check${n}`, {
       lambdaFunction: checkConditionFn,
@@ -242,6 +258,7 @@ export class StateMachinesConstruct extends Construct {
       ctx,
       sequenceId,
       sender,
+      transactional,
     );
     const elseChain = this.buildChain(
       prefix,
@@ -251,6 +268,7 @@ export class StateMachinesConstruct extends Construct {
       ctx,
       sequenceId,
       sender,
+      transactional,
     );
 
     const choice = new sfn.Choice(this, `${prefix}-Cond${n}`);
@@ -280,6 +298,7 @@ export class StateMachinesConstruct extends Construct {
     ctx: { counter: number },
     sequenceId: string,
     sender: Omit<SenderConfig, "captureReplies">,
+    transactional: boolean,
   ): sfn.IChainable {
     const choice = new sfn.Choice(this, `${prefix}-Choice${n}`);
 
@@ -293,6 +312,7 @@ export class StateMachinesConstruct extends Construct {
         ctx,
         sequenceId,
         sender,
+        transactional,
       );
       if (branchChain) {
         choice.when(sfn.Condition.stringEquals(step.field, branch.value), branchChain);
@@ -309,6 +329,7 @@ export class StateMachinesConstruct extends Construct {
         ctx,
         sequenceId,
         sender,
+        transactional,
       );
       if (defaultChain) {
         choice.otherwise(defaultChain);

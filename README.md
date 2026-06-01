@@ -136,6 +136,8 @@ It stores your `.html` in S3 and renders Liquid placeholders (`{{ firstName }}`,
 
 The scaffolded project uses React Email by default, but you can swap it out or just drop in `.html` files directly.
 
+- **Transactional sequences** — mark a sequence `transactional: true` so onboarding/receipts reach subscribers who opted out of marketing (bounce/complaint suppression still applies).
+
 ## Getting started
 
 This repo is the framework source. To start building email sequences with mailshot:

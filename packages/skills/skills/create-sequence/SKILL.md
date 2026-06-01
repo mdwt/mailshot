@@ -46,8 +46,9 @@ Extract from the user's description:
   - `captureReplies` (optional) - set to `true` if `replyToEmail` is an SES-managed inbox where inbound replies should be captured via SES receipt rules → SNS → Lambda (e.g., for cold outreach). Leave unset for normal email reply-to addresses
   - `forwardRepliesTo` (optional) - when set alongside `captureReplies`, forwards captured replies to this email address so the user can read and respond to them
   - `listUnsubscribe` (optional, default: `true`) - set to `false` to omit `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Use for cold outreach where these headers signal bulk mail to Gmail
+- `transactional` (optional, default: `false`, set on the sequence not `sender`) - set to `true` for genuinely transactional sequences (onboarding tied to a purchase, receipts, account/security notices). Transactional sequences (and their `events` emails) send even to subscribers who have unsubscribed from marketing, and omit `List-Unsubscribe` headers. They are still blocked for subscribers suppressed by bounces/complaints. Do NOT mark marketing or nurture sequences transactional — abusing this gets your domain blocklisted.
 
-Ask the user what type of sequence this is (e.g., transactional, marketing, cold outreach). If cold outreach or the user wants a managed inbox for reply tracking, set `captureReplies: true` and confirm the SES inbound email address. For cold outreach, also set `listUnsubscribe: false` to avoid bulk mail filtering.
+Ask the user what type of sequence this is (e.g., transactional, marketing, cold outreach). For genuinely transactional sequences (onboarding tied to a purchase, receipts, account/security notices), set `transactional: true`. If cold outreach or the user wants a managed inbox for reply tracking, set `captureReplies: true` and confirm the SES inbound email address. For cold outreach, also set `listUnsubscribe: false` to avoid bulk mail filtering.
 
 If any of these are missing or ambiguous, ask the user to clarify before generating code. Present your parsed interpretation to the user and confirm before proceeding.
 

@@ -37,7 +37,7 @@ describe("stopAllExecutions", () => {
     mockSfnSend.mockResolvedValue({});
     mockDeleteExecution.mockResolvedValue(undefined);
 
-    await stopAllExecutions("TestTable", "user@example.com");
+    await stopAllExecutions("TestTable", "user@example.com", false);
 
     expect(mockSfnSend).toHaveBeenCalledTimes(2);
     expect(mockDeleteExecution).toHaveBeenCalledTimes(2);
@@ -48,7 +48,7 @@ describe("stopAllExecutions", () => {
   it("does nothing when no executions exist", async () => {
     mockGetAllExecutions.mockResolvedValueOnce([]);
 
-    await stopAllExecutions("TestTable", "user@example.com");
+    await stopAllExecutions("TestTable", "user@example.com", false);
 
     expect(mockSfnSend).not.toHaveBeenCalled();
     expect(mockDeleteExecution).not.toHaveBeenCalled();
@@ -61,8 +61,38 @@ describe("stopAllExecutions", () => {
     mockSfnSend.mockRejectedValueOnce(new Error("ExecutionDoesNotExist"));
     mockDeleteExecution.mockResolvedValue(undefined);
 
-    await expect(stopAllExecutions("TestTable", "user@example.com")).resolves.toBeUndefined();
+    await expect(
+      stopAllExecutions("TestTable", "user@example.com", false),
+    ).resolves.toBeUndefined();
 
     expect(mockDeleteExecution).toHaveBeenCalledOnce();
+  });
+
+  it("skips transactional executions when skipTransactional is true", async () => {
+    mockGetAllExecutions.mockResolvedValueOnce([
+      { executionArn: "arn:1", sequenceId: "onboarding", transactional: true },
+      { executionArn: "arn:2", sequenceId: "win-back", transactional: false },
+    ]);
+    mockSfnSend.mockResolvedValue({});
+    mockDeleteExecution.mockResolvedValue(undefined);
+
+    await stopAllExecutions("TestTable", "user@example.com", true);
+
+    expect(mockSfnSend).toHaveBeenCalledTimes(1);
+    expect(mockDeleteExecution).toHaveBeenCalledTimes(1);
+    expect(mockDeleteExecution).toHaveBeenCalledWith("TestTable", "user@example.com", "win-back");
+  });
+
+  it("stops transactional executions when skipTransactional is false", async () => {
+    mockGetAllExecutions.mockResolvedValueOnce([
+      { executionArn: "arn:1", sequenceId: "onboarding", transactional: true },
+    ]);
+    mockSfnSend.mockResolvedValue({});
+    mockDeleteExecution.mockResolvedValue(undefined);
+
+    await stopAllExecutions("TestTable", "user@example.com", false);
+
+    expect(mockSfnSend).toHaveBeenCalledTimes(1);
+    expect(mockDeleteExecution).toHaveBeenCalledWith("TestTable", "user@example.com", "onboarding");
   });
 });

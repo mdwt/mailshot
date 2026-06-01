@@ -60,6 +60,7 @@ async function processEvent(
           subject: event.subject,
           subscriber: event.subscriber,
           sender: event.sender,
+          transactional: event.transactional,
         },
         config,
         event.sequenceId ?? "fire_and_forget",
@@ -86,9 +87,9 @@ async function handleRegister(
 
   await upsertSubscriberProfile(config.tableName, event.subscriber);
 
-  // Guard: don't start a sequence for unsubscribed or suppressed subscribers
+  // Guard: don't start a sequence for suppressed subscribers, or unsubscribed subscribers on non-transactional sequences
   const profile = await getSubscriberProfile(config.tableName, event.subscriber.email);
-  if (profile?.unsubscribed) {
+  if (profile?.unsubscribed && !event.transactional) {
     logger.info("Skipping registration - subscriber unsubscribed", {
       email: event.subscriber.email,
       sequenceId: event.sequenceId,
@@ -134,6 +135,7 @@ async function handleRegister(
     event.subscriber.email,
     event.sequenceId,
     event.executionArn,
+    event.transactional ?? false,
   );
 
   logger.info("Registration complete", {
@@ -173,7 +175,7 @@ async function handleSend(
   const profile = await getSubscriberProfile(config.tableName, event.subscriber.email);
 
   // Pre-send checks
-  if (profile?.unsubscribed) {
+  if (profile?.unsubscribed && !event.transactional) {
     logger.info("Skipping send - subscriber unsubscribed", { email: event.subscriber.email });
     return { sent: false, reason: "unsubscribed" };
   }
@@ -221,7 +223,7 @@ async function handleSend(
     replyToAddress: sender.replyToEmail || undefined,
     templateKey,
     sequenceId,
-    listUnsubscribe: sender.listUnsubscribe,
+    listUnsubscribe: event.transactional ? false : sender.listUnsubscribe,
   });
 
   await writeSendLog(
