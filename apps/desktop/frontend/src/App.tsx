@@ -1,116 +1,158 @@
-import { useState } from "react";
-import { Greet } from "../wailsjs/go/main/App";
-import logo from "@/assets/images/logo-universal.png";
+import { useCallback, useEffect, useState } from "react";
 import "@/index.css";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { EventsOn } from "../wailsjs/runtime/runtime";
+import { RefreshProject } from "../wailsjs/go/main/ProjectService";
+import { ListSequences } from "../wailsjs/go/main/SequenceService";
+import { StackStatus, Whoami } from "../wailsjs/go/main/AwsService";
+import type { main } from "../wailsjs/go/models";
+import { ProjectPicker } from "@/components/ProjectPicker";
+import { Dashboard } from "@/components/Dashboard";
+import { SequenceView } from "@/components/SequenceView";
+
+type View = { kind: "dashboard" } | { kind: "sequence"; dir: string };
 
 function App() {
-  const [resultText, setResultText] = useState("Enter your name to get started!");
-  const [name, setName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [project, setProject] = useState<main.ProjectInfo | null>(null);
+  const [sequences, setSequences] = useState<main.SequenceEntry[]>([]);
+  const [identity, setIdentity] = useState<main.CallerIdentity | null>(null);
+  const [stack, setStack] = useState<main.StackInfo | null>(null);
+  const [view, setView] = useState<View>({ kind: "dashboard" });
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  async function greet() {
-    if (!name.trim()) {
-      setResultText("Please enter a name first! 🙏");
+  const loadSequences = useCallback((path: string) => {
+    ListSequences(path)
+      .then((list) => setSequences(list ?? []))
+      .catch(() => setSequences([]));
+  }, []);
+
+  const loadAws = useCallback((p: main.ProjectInfo) => {
+    if (!p.hasEnv) {
+      setIdentity(null);
+      setStack(null);
       return;
     }
+    const profile = p.env.AWS_PROFILE ?? "";
+    const region = p.env.REGION ?? "";
+    Whoami(profile, region).then(setIdentity);
+    StackStatus(profile, region, p.env.STACK_NAME ?? "").then(setStack);
+  }, []);
 
-    setIsLoading(true);
-    try {
-      const result = await Greet(name);
-      setResultText(result);
-    } catch {
-      setResultText("Oops! Something went wrong. 😕");
-    } finally {
-      setIsLoading(false);
-    }
+  const openProject = useCallback(
+    (p: main.ProjectInfo) => {
+      setProject(p);
+      setView({ kind: "dashboard" });
+      setIdentity(null);
+      setStack(null);
+      loadSequences(p.path);
+      loadAws(p);
+    },
+    [loadSequences, loadAws],
+  );
+
+  // File watcher: re-read the project + sequences whenever Claude Code or an
+  // editor touches the project. AWS state is left alone (poll-on-demand).
+  useEffect(() => {
+    if (!project) return;
+    const off = EventsOn("project:changed", () => {
+      RefreshProject(project.path)
+        .then((p) => {
+          setProject(p);
+          loadSequences(p.path);
+          setRefreshKey((k) => k + 1);
+        })
+        .catch(() => undefined);
+    });
+    return off;
+  }, [project?.path]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!project) {
+    return <ProjectPicker onOpen={openProject} />;
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      greet();
-    }
-  };
+  const currentEntry =
+    view.kind === "sequence" ? sequences.find((s) => s.dir === view.dir) : undefined;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-2xl space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <img
-            src={logo}
-            className="w-32 h-32 object-contain mx-auto drop-shadow-lg hover:scale-105 transition-transform"
-            alt="Wails Logo"
-          />
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Welcome to Wails!</h1>
-            <p className="text-slate-600 text-lg">
-              React + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui
-            </p>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="grid min-h-0 flex-1 grid-cols-[196px_1fr]">
+        {/* Sidebar */}
+        <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line bg-surface2 px-2.5 py-3">
+          <div className="px-2.5 pb-2 font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
+            {project.name}
           </div>
-        </div>
-
-        {/* Main Card */}
-        <Card className="shadow-xl border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-2xl">Greet Function Demo</CardTitle>
-            <CardDescription>
-              Try out the Go backend integration by entering your name below
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-base">
-                Your Name
-              </Label>
-              <Input
-                id="name"
-                placeholder="Enter your name..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={isLoading}
-                className="text-base h-11"
-              />
-            </div>
-            <div className="p-6 bg-slate-50 rounded-lg border border-slate-200 min-h-20 flex items-center justify-center">
-              <p className="text-center font-medium text-slate-900 text-lg">{resultText}</p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex gap-3">
-            <Button onClick={greet} disabled={isLoading} className="flex-1 h-11 text-base">
-              {isLoading ? "Greeting..." : "Greet Me! 👋"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setName("");
-                setResultText("Enter your name to get started!");
-              }}
-              disabled={isLoading}
-              className="h-11"
+          <button
+            onClick={() => setView({ kind: "dashboard" })}
+            className={`rounded-md px-2.5 py-1.5 text-left text-[13px] ${
+              view.kind === "dashboard" ? "bg-accentsoft text-ink" : "text-muted hover:text-ink"
+            }`}
+          >
+            Dashboard
+          </button>
+          <div className="mt-3 px-2.5 pb-1 font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
+            Sequences · {sequences.length}
+          </div>
+          {sequences.map((s) => (
+            <button
+              key={s.dir}
+              onClick={() => setView({ kind: "sequence", dir: s.dir })}
+              className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-left font-mono text-[12.5px] ${
+                view.kind === "sequence" && view.dir === s.dir
+                  ? "bg-accentsoft text-ink"
+                  : "text-muted hover:text-ink"
+              }`}
             >
-              Clear
-            </Button>
-          </CardFooter>
-        </Card>
+              <span className="truncate">{s.id || s.dir}</span>
+              {s.error && <span className="ml-auto text-[10px] text-bad">✗</span>}
+            </button>
+          ))}
+          <button
+            onClick={() => {
+              setProject(null);
+              setSequences([]);
+            }}
+            className="mt-auto rounded-md px-2.5 py-1.5 text-left text-xs text-faint hover:text-ink"
+          >
+            ← Switch project
+          </button>
+        </aside>
 
-        {/* Footer */}
-        <div className="text-center space-y-2">
-          <p className="text-sm text-slate-600">Built with ❤️ using Wails v2.11.0</p>
-          <p className="text-xs text-slate-500">Go backend • React frontend • Native desktop app</p>
-        </div>
+        {/* Main pane */}
+        <main className="min-h-0 min-w-0 overflow-hidden">
+          {view.kind === "dashboard" ? (
+            <Dashboard
+              project={project}
+              sequences={sequences}
+              identity={identity}
+              stack={stack}
+              onOpenSequence={(dir) => setView({ kind: "sequence", dir })}
+            />
+          ) : currentEntry ? (
+            <SequenceView projectPath={project.path} entry={currentEntry} refreshKey={refreshKey} />
+          ) : (
+            <div className="p-6 text-sm text-faint">Sequence not found.</div>
+          )}
+        </main>
       </div>
+
+      {/* Status bar */}
+      <footer className="flex flex-none items-center gap-3 border-t border-line bg-surface2 px-4 py-1.5 font-mono text-[11px] text-faint">
+        <span className="truncate">{project.path}</span>
+        <span className="ml-auto flex flex-none items-center gap-3">
+          {identity && !identity.error && (
+            <>
+              <span>{identity.profile || "default"}</span>
+              <span className="tabular-nums">{identity.account}</span>
+              <span>{identity.region}</span>
+            </>
+          )}
+          {identity?.error && <span className="text-bad">aws: not connected</span>}
+          {stack && !stack.error && (
+            <span className={stack.status.endsWith("_COMPLETE") ? "text-good" : "text-warn"}>
+              {stack.status}
+            </span>
+          )}
+        </span>
+      </footer>
     </div>
   );
 }

@@ -1,1 +1,93 @@
 @import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+/*
+ * Mailshot Desktop theme — dark instrument panel.
+ * Cool blue-grey grounds, amber signal accent, semantic good/warn/bad
+ * kept separate from the accent. Data (keys, counts, ids) renders in mono.
+ */
+@theme {
+  --color-ground: #0d1116;
+  --color-surface: #171d24;
+  --color-surface2: #1d242c;
+  --color-line: #28313b;
+  --color-linesoft: #222a33;
+  --color-ink: #e9eef3;
+  --color-muted: #9aa6b2;
+  --color-faint: #6b7885;
+  --color-accent: #f2a33c;
+  --color-accentsoft: rgba(242, 163, 60, 0.13);
+  --color-good: #4cc38a;
+  --color-goodsoft: rgba(76, 195, 138, 0.13);
+  --color-warn: #e0a336;
+  --color-warnsoft: rgba(224, 163, 54, 0.15);
+  --color-bad: #e5484d;
+  --color-badsoft: rgba(229, 72, 77, 0.13);
+
+  --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Code", "SF Mono", "JetBrains Mono", Consolas, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  user-select: none;
+  cursor: default;
+}
+
+/* Text content (emails, code, config) stays selectable */
+textarea,
+input,
+pre,
+code {
+  user-select: text;
+}
+
+/* ── React Flow re-skin ─────────────────────────────────────────────────── */
+.react-flow {
+  background: var(--color-ground);
+}
+.react-flow__background {
+  background: var(--color-ground);
+}
+.react-flow__edge-path {
+  stroke: var(--color-line);
+  stroke-width: 1.5;
+}
+.react-flow__edge-textbg {
+  fill: var(--color-surface2);
+}
+.react-flow__edge-text {
+  fill: var(--color-warn);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+}
+.react-flow__attribution {
+  background: transparent;
+}
+.react-flow__attribution a {
+  color: var(--color-faint);
+}
+.react-flow__controls {
+  box-shadow: none;
+}
+.react-flow__controls-button {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+  fill: var(--color-muted);
+}
+.react-flow__controls-button:hover {
+  background: var(--color-surface2);
+}

@@ -2,15 +2,20 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"sync"
+
+	"github.com/fsnotify/fsnotify"
 )
 
-// App struct
+// App owns the Wails context and the project file watcher. Feature surface
+// lives in the bound services (ProjectService, SequenceService,
+// TemplateService, AwsService).
 type App struct {
-	ctx context.Context
+	ctx     context.Context
+	watchMu sync.Mutex
+	watcher *fsnotify.Watcher
 }
 
-// NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
 }
@@ -21,7 +26,11 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+func (a *App) shutdown(ctx context.Context) {
+	a.watchMu.Lock()
+	defer a.watchMu.Unlock()
+	if a.watcher != nil {
+		a.watcher.Close()
+		a.watcher = nil
+	}
 }
