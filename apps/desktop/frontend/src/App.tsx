@@ -8,8 +8,15 @@ import type { main } from "../wailsjs/go/models";
 import { ProjectPicker } from "@/components/ProjectPicker";
 import { Dashboard } from "@/components/Dashboard";
 import { SequenceView } from "@/components/SequenceView";
+import { SubscribersView } from "@/components/SubscribersView";
+import { BroadcastsView } from "@/components/BroadcastsView";
+import { awsCtxFor } from "@/lib/aws";
 
-type View = { kind: "dashboard" } | { kind: "sequence"; dir: string };
+type View =
+  | { kind: "dashboard" }
+  | { kind: "sequence"; dir: string }
+  | { kind: "subscribers" }
+  | { kind: "broadcasts" };
 
 function App() {
   const [project, setProject] = useState<main.ProjectInfo | null>(null);
@@ -69,8 +76,13 @@ function App() {
     return <ProjectPicker onOpen={openProject} />;
   }
 
+  const awsCtx = awsCtxFor(project);
   const currentEntry =
     view.kind === "sequence" ? sequences.find((s) => s.dir === view.dir) : undefined;
+  const navBtn = (active: boolean) =>
+    `rounded-md px-2.5 py-1.5 text-left text-[13px] ${
+      active ? "bg-accentsoft text-ink" : "text-muted hover:text-ink"
+    }`;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -82,11 +94,21 @@ function App() {
           </div>
           <button
             onClick={() => setView({ kind: "dashboard" })}
-            className={`rounded-md px-2.5 py-1.5 text-left text-[13px] ${
-              view.kind === "dashboard" ? "bg-accentsoft text-ink" : "text-muted hover:text-ink"
-            }`}
+            className={navBtn(view.kind === "dashboard")}
           >
             Dashboard
+          </button>
+          <button
+            onClick={() => setView({ kind: "broadcasts" })}
+            className={navBtn(view.kind === "broadcasts")}
+          >
+            Broadcasts
+          </button>
+          <button
+            onClick={() => setView({ kind: "subscribers" })}
+            className={navBtn(view.kind === "subscribers")}
+          >
+            Subscribers
           </button>
           <div className="mt-3 px-2.5 pb-1 font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
             Sequences · {sequences.length}
@@ -124,10 +146,20 @@ function App() {
               sequences={sequences}
               identity={identity}
               stack={stack}
+              awsCtx={awsCtx}
               onOpenSequence={(dir) => setView({ kind: "sequence", dir })}
             />
+          ) : view.kind === "subscribers" ? (
+            <SubscribersView awsCtx={awsCtx} />
+          ) : view.kind === "broadcasts" ? (
+            <BroadcastsView awsCtx={awsCtx} />
           ) : currentEntry ? (
-            <SequenceView projectPath={project.path} entry={currentEntry} refreshKey={refreshKey} />
+            <SequenceView
+              projectPath={project.path}
+              entry={currentEntry}
+              awsCtx={awsCtx}
+              refreshKey={refreshKey}
+            />
           ) : (
             <div className="p-6 text-sm text-faint">Sequence not found.</div>
           )}

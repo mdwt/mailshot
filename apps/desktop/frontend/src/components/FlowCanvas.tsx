@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { Background, BackgroundVariant, Controls, ReactFlow } from "@xyflow/react";
 import type { SequenceDefinition } from "@/types/mailshot";
+import type { StatsMap } from "@/lib/aws";
 import { buildFlowGraph } from "@/components/flow/graph";
 import { nodeTypes } from "@/components/flow/nodes";
 
-export function FlowCanvas({ def }: { def: SequenceDefinition }) {
-  const graph = useMemo(() => buildFlowGraph(def), [def]);
+export function FlowCanvas({ def, stats }: { def: SequenceDefinition; stats?: StatsMap }) {
+  const graph = useMemo(() => buildFlowGraph(def, stats), [def, stats]);
 
   return (
     <div className="relative h-full min-h-0">

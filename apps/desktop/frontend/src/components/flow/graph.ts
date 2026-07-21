@@ -1,6 +1,7 @@
 import dagre from "@dagrejs/dagre";
 import type { Edge, Node } from "@xyflow/react";
 import type { SequenceDefinition, SequenceStep } from "@/types/mailshot";
+import type { StatsMap } from "@/lib/aws";
 
 /**
  * Converts a SequenceDefinition step tree into React Flow nodes + edges,
@@ -26,7 +27,7 @@ const SIZES: Record<string, { w: number; h: number }> = {
   complete: { w: 170, h: 42 },
 };
 
-export function buildFlowGraph(def: SequenceDefinition): FlowGraph {
+export function buildFlowGraph(def: SequenceDefinition, stats?: StatsMap): FlowGraph {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   let counter = 0;
@@ -65,8 +66,12 @@ export function buildFlowGraph(def: SequenceDefinition): FlowGraph {
     for (const step of steps) {
       if (step.type === "send") {
         const variants = step.variants ?? [];
-        const height = variants.length > 0 ? 50 + variants.length * 27 : SIZES.send.h;
-        const id = addNode("send", { step }, height);
+        const stat = stats && step.templateKey ? stats[step.templateKey] : undefined;
+        const variantStats =
+          stats && variants.length > 0 ? variants.map((v) => stats[v.templateKey]) : undefined;
+        let height = variants.length > 0 ? 50 + variants.length * 27 : SIZES.send.h;
+        if (stat) height += 30;
+        const id = addNode("send", { step, stat, variantStats }, height);
         connect(current, id);
         current = [{ id }];
       } else if (step.type === "wait") {

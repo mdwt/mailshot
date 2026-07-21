@@ -249,29 +249,36 @@ func (a *App) watchProject(projectPath string) {
 	}()
 }
 
-// addDirs watches root plus the sequence tree (fsnotify is not recursive).
+// addDirs watches root plus the sequences/ and build/ trees (fsnotify is not
+// recursive). Watching build/ means externally-run renders — a terminal,
+// Claude Code — refresh previews too.
 func addDirs(w *fsnotify.Watcher, root string) {
 	_ = w.Add(root)
-	seqDir := filepath.Join(root, "sequences")
-	if filepath.Base(root) != "sequences" {
-		if st, err := os.Stat(seqDir); err != nil || !st.IsDir() {
-			return
-		}
+	base := filepath.Base(root)
+	var trees []string
+	if base == "sequences" || base == "build" {
+		trees = []string{root}
 	} else {
-		seqDir = root
+		trees = []string{filepath.Join(root, "sequences"), filepath.Join(root, "build")}
 	}
-	_ = filepath.WalkDir(seqDir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return nil
+	for _, tree := range trees {
+		if st, err := os.Stat(tree); err != nil || !st.IsDir() {
+			continue
 		}
-		if d.IsDir() {
-			if d.Name() == "node_modules" || d.Name() == "dist" || strings.HasPrefix(d.Name(), ".") {
-				return filepath.SkipDir
+		_ = filepath.WalkDir(tree, func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				return nil
 			}
-			_ = w.Add(path)
-		}
-		return nil
-	})
+			if d.IsDir() {
+				if d.Name() == "node_modules" || d.Name() == "dist" || d.Name() == "cdk.out" ||
+					strings.HasPrefix(d.Name(), ".") {
+					return filepath.SkipDir
+				}
+				_ = w.Add(path)
+			}
+			return nil
+		})
+	}
 }
 
 func relevantChange(path string) bool {
@@ -279,9 +286,13 @@ func relevantChange(path string) bool {
 	if base == ".env" {
 		return true
 	}
-	if strings.Contains(filepath.ToSlash(path), "/sequences/") {
+	slashed := filepath.ToSlash(path)
+	if strings.Contains(slashed, "/sequences/") {
 		ext := filepath.Ext(base)
 		return ext == ".ts" || ext == ".tsx" || ext == ".html" || ext == ".json" || ext == ""
+	}
+	if strings.Contains(slashed, "/build/") {
+		return filepath.Ext(base) == ".html"
 	}
 	return false
 }

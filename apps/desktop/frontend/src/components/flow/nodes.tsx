@@ -7,6 +7,8 @@ import type {
   WaitStep,
 } from "@/types/mailshot";
 import { waitLabel } from "@/types/mailshot";
+import { pct } from "@/lib/aws";
+import type { main } from "../../../wailsjs/go/models";
 
 /** Custom node renderers for the read-only sequence canvas. */
 
@@ -58,8 +60,23 @@ export function TriggerNode({ data }: NodeProps) {
 
 export function SendNode({ data }: NodeProps) {
   const step = data.step as SendStep;
+  const stat = data.stat as main.Counters | undefined;
+  const variantStats = data.variantStats as (main.Counters | undefined)[] | undefined;
   const variants = step.variants ?? [];
   const name = (key?: string) => key?.split("/").pop() ?? key ?? "?";
+
+  // Leader = highest open rate among variants with deliveries.
+  let leader = -1;
+  if (variantStats) {
+    let best = 0;
+    variantStats.forEach((v, i) => {
+      if (v && v.delivery > 0 && v.open / v.delivery > best) {
+        best = v.open / v.delivery;
+        leader = i;
+      }
+    });
+  }
+
   return (
     <NodeShell className={variants.length > 0 ? "border-accent" : ""}>
       <Kind
@@ -70,19 +87,49 @@ export function SendNode({ data }: NodeProps) {
         <>
           <div className="mt-0.5 truncate font-mono text-[13px]">{step.templateKey}</div>
           <div className="truncate text-xs text-muted">"{step.subject}"</div>
+          {stat && (
+            <div className="mt-1.5 flex gap-4 border-t border-dashed border-linesoft pt-1.5 font-mono text-[10.5px] tabular-nums">
+              <span>
+                <b className="font-semibold text-ink">{stat.delivery.toLocaleString()}</b>{" "}
+                <span className="text-faint">delivered</span>
+              </span>
+              <span>
+                <b className="font-semibold text-good">{pct(stat.open, stat.delivery)}</b>{" "}
+                <span className="text-faint">open</span>
+              </span>
+              <span>
+                <b className="font-semibold text-ink">{pct(stat.click, stat.delivery)}</b>{" "}
+                <span className="text-faint">click</span>
+              </span>
+            </div>
+          )}
         </>
       ) : (
         <div className="mt-1 space-y-1">
-          {variants.map((v, i) => (
-            <div
-              key={v.templateKey}
-              className="flex items-center gap-2 rounded-md border border-linesoft px-2 py-0.5 font-mono text-[11px]"
-            >
-              <span className="text-accent">{String.fromCharCode(65 + i)}</span>
-              <span className="truncate text-ink">{name(v.templateKey)}</span>
-              <span className="ml-auto truncate text-faint">"{v.subject}"</span>
-            </div>
-          ))}
+          {variants.map((v, i) => {
+            const vs = variantStats?.[i];
+            const isLeader = i === leader;
+            return (
+              <div
+                key={v.templateKey}
+                className={`flex items-center gap-2 rounded-md border px-2 py-0.5 font-mono text-[11px] tabular-nums ${
+                  isLeader ? "border-good bg-goodsoft" : "border-linesoft"
+                }`}
+              >
+                <span className="text-accent">{String.fromCharCode(65 + i)}</span>
+                <span className="truncate text-ink">{name(v.templateKey)}</span>
+                {vs ? (
+                  <span
+                    className={`ml-auto ${isLeader ? "font-semibold text-good" : "text-muted"}`}
+                  >
+                    {pct(vs.open, vs.delivery)} open{isLeader ? " ▲" : ""}
+                  </span>
+                ) : (
+                  <span className="ml-auto truncate text-faint">"{v.subject}"</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       <Ports />

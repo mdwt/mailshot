@@ -17,6 +17,7 @@ func main() {
 	sequenceSvc := NewSequenceService()
 	templateSvc := NewTemplateService()
 	awsSvc := NewAwsService()
+	dataSvc := NewDataService()
 
 	err := wails.Run(&options.App{
 		Title:     "mailshot",
@@ -35,6 +36,7 @@ func main() {
 			sequenceSvc,
 			templateSvc,
 			awsSvc,
+			dataSvc,
 		},
 	})
 

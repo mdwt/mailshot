@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	goruntime "runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/osteele/liquid"
 )
@@ -133,6 +137,67 @@ func (s *TemplateService) RenderPreview(projectPath, builtPath, dataJSON string)
 		return "", fmt.Errorf("liquid render failed: %w", err)
 	}
 	return out, nil
+}
+
+// WriteFileInProject saves edited template/config source. Writes are
+// restricted to the sequences/ subtree — the app never writes build output
+// (that's the render script's job) or anything outside the project.
+func (s *TemplateService) WriteFileInProject(projectPath, filePath, content string) error {
+	if err := ensureInside(projectPath, filePath); err != nil {
+		return err
+	}
+	if err := ensureInside(filepath.Join(projectPath, "sequences"), filePath); err != nil {
+		return fmt.Errorf("only files under sequences/ can be edited in the app: %s", filePath)
+	}
+	if _, err := os.Stat(filePath); err != nil {
+		return fmt.Errorf("refusing to create new file: %w", err)
+	}
+	return os.WriteFile(filePath, []byte(content), 0o644)
+}
+
+type RenderResult struct {
+	Ok     bool   `json:"ok"`
+	Output string `json:"output"`
+}
+
+// RunRender executes the sequence's own render script (`pnpm --filter <id>
+// render`) in the project directory — the framework-agnostic way to turn
+// whatever source format the project uses into built HTML.
+func (s *TemplateService) RunRender(projectPath, seqID string) RenderResult {
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	var cmd *exec.Cmd
+	if goruntime.GOOS == "windows" {
+		cmd = exec.CommandContext(ctx, "cmd", "/C", "pnpm", "--filter", seqID, "render")
+	} else {
+		cmd = exec.CommandContext(ctx, "pnpm", "--filter", seqID, "render")
+	}
+	cmd.Dir = projectPath
+	out, err := cmd.CombinedOutput()
+	res := RenderResult{Ok: err == nil, Output: string(out)}
+	if err != nil && len(out) == 0 {
+		res.Output = err.Error()
+	}
+	return res
+}
+
+// OpenInSystemEditor opens a project file in the user's editor: the `code`
+// CLI when available, otherwise the OS default handler for the file type.
+func (s *TemplateService) OpenInSystemEditor(projectPath, filePath string) error {
+	if err := ensureInside(projectPath, filePath); err != nil {
+		return err
+	}
+	if codePath, err := exec.LookPath("code"); err == nil {
+		return exec.Command(codePath, filePath).Start()
+	}
+	if goruntime.GOOS == "windows" {
+		return exec.Command("cmd", "/C", "start", "", filePath).Start()
+	}
+	if goruntime.GOOS == "darwin" {
+		return exec.Command("open", filePath).Start()
+	}
+	return exec.Command("xdg-open", filePath).Start()
 }
 
 func ensureInside(projectPath, filePath string) error {
