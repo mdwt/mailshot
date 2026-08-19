@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import "@/index.css";
-import { EventsOn } from "../wailsjs/runtime/runtime";
-import { RefreshProject } from "../wailsjs/go/main/ProjectService";
-import { ListSequences } from "../wailsjs/go/main/SequenceService";
-import { StackStatus, Whoami } from "../wailsjs/go/main/AwsService";
-import type { main } from "../wailsjs/go/models";
+import { Events } from "@wailsio/runtime";
+import { RefreshProject } from "../bindings/desktop/projectservice";
+import { ListSequences } from "../bindings/desktop/sequenceservice";
+import { StackStatus, Whoami } from "../bindings/desktop/awsservice";
+import type * as models from "../bindings/desktop";
 import { ProjectPicker } from "@/components/ProjectPicker";
 import { Dashboard } from "@/components/Dashboard";
 import { SequenceView } from "@/components/SequenceView";
 import { SubscribersView } from "@/components/SubscribersView";
 import { BroadcastsView } from "@/components/BroadcastsView";
-import { awsCtxFor } from "@/lib/aws";
+import { awsCtxFor, deployState } from "@/lib/aws";
 
 type View =
   | { kind: "dashboard" }
@@ -19,10 +19,10 @@ type View =
   | { kind: "broadcasts" };
 
 function App() {
-  const [project, setProject] = useState<main.ProjectInfo | null>(null);
-  const [sequences, setSequences] = useState<main.SequenceEntry[]>([]);
-  const [identity, setIdentity] = useState<main.CallerIdentity | null>(null);
-  const [stack, setStack] = useState<main.StackInfo | null>(null);
+  const [project, setProject] = useState<models.ProjectInfo | null>(null);
+  const [sequences, setSequences] = useState<models.SequenceEntry[]>([]);
+  const [identity, setIdentity] = useState<models.CallerIdentity | null>(null);
+  const [stack, setStack] = useState<models.StackInfo | null>(null);
   const [view, setView] = useState<View>({ kind: "dashboard" });
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -32,20 +32,21 @@ function App() {
       .catch(() => setSequences([]));
   }, []);
 
-  const loadAws = useCallback((p: main.ProjectInfo) => {
+  const loadAws = useCallback((p: models.ProjectInfo) => {
     if (!p.hasEnv) {
       setIdentity(null);
       setStack(null);
       return;
     }
-    const profile = p.env.AWS_PROFILE ?? "";
-    const region = p.env.REGION ?? "";
+    const env = p.env ?? {};
+    const profile = env.AWS_PROFILE ?? "";
+    const region = env.REGION ?? "";
     Whoami(profile, region).then(setIdentity);
-    StackStatus(profile, region, p.env.STACK_NAME ?? "").then(setStack);
+    StackStatus(profile, region, env.STACK_NAME ?? "").then(setStack);
   }, []);
 
   const openProject = useCallback(
-    (p: main.ProjectInfo) => {
+    (p: models.ProjectInfo) => {
       setProject(p);
       setView({ kind: "dashboard" });
       setIdentity(null);
@@ -60,7 +61,7 @@ function App() {
   // editor touches the project. AWS state is left alone (poll-on-demand).
   useEffect(() => {
     if (!project) return;
-    const off = EventsOn("project:changed", () => {
+    const off = Events.On("project:changed", () => {
       RefreshProject(project.path)
         .then((p) => {
           setProject(p);
@@ -70,7 +71,7 @@ function App() {
         .catch(() => undefined);
     });
     return off;
-  }, [project?.path]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [project?.path]);
 
   if (!project) {
     return <ProjectPicker onOpen={openProject} />;
@@ -89,9 +90,7 @@ function App() {
       <div className="grid min-h-0 flex-1 grid-cols-[196px_1fr]">
         {/* Sidebar */}
         <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line bg-surface2 px-2.5 py-3">
-          <div className="px-2.5 pb-2 font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
-            {project.name}
-          </div>
+          <div className="px-2.5 pb-2 text-[11px] font-medium text-faint">{project.name}</div>
           <button
             onClick={() => setView({ kind: "dashboard" })}
             className={navBtn(view.kind === "dashboard")}
@@ -110,14 +109,14 @@ function App() {
           >
             Subscribers
           </button>
-          <div className="mt-3 px-2.5 pb-1 font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
+          <div className="mt-3 px-2.5 pb-1 text-[11px] font-medium text-faint">
             Sequences · {sequences.length}
           </div>
           {sequences.map((s) => (
             <button
               key={s.dir}
               onClick={() => setView({ kind: "sequence", dir: s.dir })}
-              className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-left font-mono text-[12.5px] ${
+              className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] ${
                 view.kind === "sequence" && view.dir === s.dir
                   ? "bg-accentsoft text-ink"
                   : "text-muted hover:text-ink"
@@ -178,11 +177,12 @@ function App() {
             </>
           )}
           {identity?.error && <span className="text-bad">aws: not connected</span>}
-          {stack && !stack.error && (
-            <span className={stack.status.endsWith("_COMPLETE") ? "text-good" : "text-warn"}>
-              {stack.status}
-            </span>
-          )}
+          {stack &&
+            !stack.error &&
+            (() => {
+              const d = deployState(stack.status);
+              return <span className={d.cls}>{d.label}</span>;
+            })()}
         </span>
       </footer>
     </div>

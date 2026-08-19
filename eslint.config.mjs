@@ -14,6 +14,7 @@ export default tseslint.config(
       "**/*.d.ts",
       "templates/*/",
       "coverage/",
+      "apps/desktop/frontend/bindings/",
     ],
   },
 

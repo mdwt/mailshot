@@ -1,4 +1,5 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
+import type * as models from "../../../bindings/desktop";
 import type {
   ChoiceStep,
   ConditionStep,
@@ -8,7 +9,6 @@ import type {
 } from "@/types/mailshot";
 import { waitLabel } from "@/types/mailshot";
 import { pct } from "@/lib/aws";
-import type { main } from "../../../wailsjs/go/models";
 
 /** Custom node renderers for the read-only sequence canvas. */
 
@@ -39,7 +39,7 @@ function NodeShell({
 
 function Kind({ label, dotClass }: { label: string; dotClass: string }) {
   return (
-    <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-faint">
+    <div className="flex items-center gap-1.5 text-[10px] font-medium text-faint">
       <span className={`h-1.5 w-1.5 ${dotClass}`} />
       {label}
     </div>
@@ -52,7 +52,6 @@ export function TriggerNode({ data }: NodeProps) {
     <NodeShell>
       <Kind label="trigger" dotClass="rounded-full bg-accent" />
       <div className="mt-0.5 font-mono text-[13px]">{trigger.detailType}</div>
-      <div className="truncate text-xs text-muted">email ← {trigger.subscriberMapping.email}</div>
       <Handle type="source" position={Position.Bottom} />
     </NodeShell>
   );
@@ -60,8 +59,8 @@ export function TriggerNode({ data }: NodeProps) {
 
 export function SendNode({ data }: NodeProps) {
   const step = data.step as SendStep;
-  const stat = data.stat as main.Counters | undefined;
-  const variantStats = data.variantStats as (main.Counters | undefined)[] | undefined;
+  const stat = data.stat as models.Counters | undefined;
+  const variantStats = data.variantStats as (models.Counters | undefined)[] | undefined;
   const variants = step.variants ?? [];
   const name = (key?: string) => key?.split("/").pop() ?? key ?? "?";
 
@@ -85,10 +84,12 @@ export function SendNode({ data }: NodeProps) {
       />
       {variants.length === 0 ? (
         <>
-          <div className="mt-0.5 truncate font-mono text-[13px]">{step.templateKey}</div>
-          <div className="truncate text-xs text-muted">"{step.subject}"</div>
+          <div className="mt-0.5 truncate text-[13px] text-ink">
+            {step.subject || name(step.templateKey)}
+          </div>
+          <div className="truncate font-mono text-[11px] text-faint">{step.templateKey}</div>
           {stat && (
-            <div className="mt-1.5 flex gap-4 border-t border-dashed border-linesoft pt-1.5 font-mono text-[10.5px] tabular-nums">
+            <div className="mt-1.5 flex gap-4 border-t border-dashed border-linesoft pt-1.5 text-[10.5px] tabular-nums">
               <span>
                 <b className="font-semibold text-ink">{stat.delivery.toLocaleString()}</b>{" "}
                 <span className="text-faint">delivered</span>
@@ -112,20 +113,18 @@ export function SendNode({ data }: NodeProps) {
             return (
               <div
                 key={v.templateKey}
-                className={`flex items-center gap-2 rounded-md border px-2 py-0.5 font-mono text-[11px] tabular-nums ${
+                className={`flex items-center gap-2 rounded-md border px-2 py-0.5 text-[11px] tabular-nums ${
                   isLeader ? "border-good bg-goodsoft" : "border-linesoft"
                 }`}
               >
-                <span className="text-accent">{String.fromCharCode(65 + i)}</span>
-                <span className="truncate text-ink">{name(v.templateKey)}</span>
-                {vs ? (
+                <span className="font-mono text-accent">{String.fromCharCode(65 + i)}</span>
+                <span className="truncate text-ink">{v.subject || name(v.templateKey)}</span>
+                {vs && (
                   <span
-                    className={`ml-auto ${isLeader ? "font-semibold text-good" : "text-muted"}`}
+                    className={`ml-auto flex-none ${isLeader ? "font-semibold text-good" : "text-muted"}`}
                   >
                     {pct(vs.open, vs.delivery)} open{isLeader ? " ▲" : ""}
                   </span>
-                ) : (
-                  <span className="ml-auto truncate text-faint">"{v.subject}"</span>
                 )}
               </div>
             );
@@ -142,7 +141,7 @@ export function WaitNode({ data }: NodeProps) {
   return (
     <NodeShell className="border-dashed bg-surface2">
       <Kind label="wait" dotClass="rounded-[2px] bg-faint" />
-      <div className="font-mono text-[13px]">{waitLabel(step)}</div>
+      <div className="mt-0.5 text-[13px] text-ink">{waitLabel(step)}</div>
       <Ports />
     </NodeShell>
   );
@@ -152,10 +151,10 @@ export function ChoiceNode({ data }: NodeProps) {
   const step = data.step as ChoiceStep;
   return (
     <NodeShell>
-      <div className="flex items-center gap-2 font-mono text-xs">
+      <div className="flex items-center gap-2 text-xs">
         <span className="text-[11px] text-warn">◆</span>
         <span className="text-faint">choice</span>
-        <span className="truncate text-ink">{step.field.split(".").pop()}</span>
+        <span className="truncate font-mono text-ink">{step.field.split(".").pop()}</span>
       </div>
       <div className="truncate font-mono text-[10.5px] text-faint">{step.field}</div>
       <Ports />
@@ -173,10 +172,10 @@ export function ConditionNode({ data }: NodeProps) {
         : step.field;
   return (
     <NodeShell>
-      <div className="flex items-center gap-2 font-mono text-xs">
+      <div className="flex items-center gap-2 text-xs">
         <span className="text-[11px] text-warn">◆</span>
         <span className="text-faint">condition</span>
-        <span className="truncate text-ink">{step.check}</span>
+        <span className="truncate font-mono text-ink">{step.check}</span>
       </div>
       <div className="truncate font-mono text-[10.5px] text-faint">{detail}</div>
       <Ports />
@@ -188,7 +187,6 @@ export function CompleteNode() {
   return (
     <NodeShell className="bg-surface2">
       <Kind label="complete" dotClass="rounded-[2px] bg-good" />
-      <div className="text-xs text-muted">sequence ends</div>
       <Handle type="target" position={Position.Top} />
     </NodeShell>
   );

@@ -2,10 +2,9 @@ package main
 
 import (
 	"embed"
+	"log"
 
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 //go:embed all:frontend/dist
@@ -19,28 +18,36 @@ func main() {
 	awsSvc := NewAwsService()
 	dataSvc := NewDataService()
 
-	err := wails.Run(&options.App{
-		Title:     "mailshot",
-		Width:     1280,
-		Height:    820,
-		MinWidth:  960,
-		MinHeight: 640,
-		AssetServer: &assetserver.Options{
-			Assets: assets,
+	wailsApp := application.New(application.Options{
+		Name: "mailshot",
+		Services: []application.Service{
+			application.NewService(projectSvc),
+			application.NewService(sequenceSvc),
+			application.NewService(templateSvc),
+			application.NewService(awsSvc),
+			application.NewService(dataSvc),
 		},
-		BackgroundColour: &options.RGBA{R: 13, G: 17, B: 22, A: 1},
-		OnStartup:        app.startup,
-		OnShutdown:       app.shutdown,
-		Bind: []interface{}{
-			projectSvc,
-			sequenceSvc,
-			templateSvc,
-			awsSvc,
-			dataSvc,
+		Assets: application.AssetOptions{
+			Handler: application.AssetFileServerFS(assets),
+		},
+		OnShutdown: app.shutdown,
+		Mac: application.MacOptions{
+			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
 	})
+	app.wails = wailsApp
 
-	if err != nil {
-		println("Error:", err.Error())
+	wailsApp.Window.NewWithOptions(application.WebviewWindowOptions{
+		Title:            "mailshot",
+		Width:            1280,
+		Height:           820,
+		MinWidth:         960,
+		MinHeight:        640,
+		BackgroundColour: application.NewRGB(13, 17, 22),
+		URL:              "/",
+	})
+
+	if err := wailsApp.Run(); err != nil {
+		log.Fatal(err)
 	}
 }

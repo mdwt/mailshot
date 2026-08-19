@@ -8,8 +8,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { SequenceTimeSeries } from "../../wailsjs/go/main/DataService";
-import type { main } from "../../wailsjs/go/models";
+import { SequenceTimeSeries } from "../../bindings/desktop/dataservice";
+import type * as models from "../../bindings/desktop";
 import type { SequenceDefinition } from "@/types/mailshot";
 import { collectFunnelSteps, pct } from "@/lib/aws";
 
@@ -25,11 +25,11 @@ export function AnalyticsPanel({
   def,
   templateStats,
 }: {
-  awsCtx: main.AwsCtx | null;
+  awsCtx: models.AwsCtx | null;
   def: SequenceDefinition;
-  templateStats: main.TemplateStat[];
+  templateStats: models.TemplateStat[];
 }) {
-  const [series, setSeries] = useState<main.DayCounts[] | null>(null);
+  const [series, setSeries] = useState<models.DayCounts[] | null>(null);
   const [seriesError, setSeriesError] = useState("");
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export function AnalyticsPanel({
   }, [awsCtx, def.id]);
 
   const byKey = useMemo(() => {
-    const m: Record<string, main.TemplateStat> = {};
+    const m: Record<string, models.TemplateStat> = {};
     for (const s of templateStats) m[s.templateKey] = s;
     return m;
   }, [templateStats]);
@@ -72,7 +72,7 @@ export function AnalyticsPanel({
   }
 
   return (
-    <div className="overflow-y-auto p-6">
+    <div className="h-full min-h-0 overflow-y-auto p-6">
       {truncated && (
         <div className="mb-4 max-w-2xl rounded-md border border-warn/40 bg-warnsoft px-3 py-2 text-xs text-warn">
           Some template stats hit the query page cap — counts below may be under-reported.
@@ -80,16 +80,14 @@ export function AnalyticsPanel({
       )}
 
       {/* Step funnel */}
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.13em] text-faint">
-        Step funnel · last 90 days
-      </div>
+      <div className="text-[11px] font-medium text-faint">Step funnel · last 90 days</div>
       <div className="mt-2 max-w-3xl space-y-2">
         {funnelRows.length === 0 && <p className="text-sm text-faint">No send steps.</p>}
         {funnelRows.map((row, i) => (
           <div key={i} className="rounded-lg border border-linesoft bg-surface2 px-4 py-2.5">
             <div className="flex items-baseline gap-3">
-              <span className="font-mono text-xs text-ink">{row.label}</span>
-              <span className="ml-auto font-mono text-[11px] tabular-nums text-faint">
+              <span className="text-xs font-medium text-ink">{row.label}</span>
+              <span className="ml-auto text-[11px] tabular-nums text-faint">
                 {row.delivery.toLocaleString()} delivered ·{" "}
                 <span className="text-good">{pct(row.open, row.delivery)} open</span> ·{" "}
                 {pct(row.click, row.delivery)} click
@@ -112,9 +110,7 @@ export function AnalyticsPanel({
       {/* A/B variant comparison */}
       {abSteps.length > 0 && (
         <>
-          <div className="mt-7 font-mono text-[10.5px] uppercase tracking-[0.13em] text-faint">
-            A/B variants
-          </div>
+          <div className="mt-7 text-[11px] font-medium text-faint">A/B variants</div>
           {abSteps.map((step) => {
             const rows = step.templateKeys.map((k) => ({ key: k, c: byKey[k]?.counters }));
             const leader = rows.reduce(
@@ -129,9 +125,9 @@ export function AnalyticsPanel({
                 key={step.label}
                 className="mt-2 max-w-3xl overflow-x-auto rounded-lg border border-linesoft"
               >
-                <table className="w-full text-left font-mono text-xs">
+                <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-linesoft text-[10px] uppercase tracking-wide text-faint">
+                    <tr className="border-b border-linesoft text-[10px] font-medium text-faint">
                       <th className="px-4 py-2">variant</th>
                       <th className="px-4 py-2 text-right">delivered</th>
                       <th className="px-4 py-2 text-right">open</th>
@@ -146,7 +142,7 @@ export function AnalyticsPanel({
                         className={`border-b border-linesoft last:border-b-0 ${leader.i === i ? "bg-goodsoft" : ""}`}
                       >
                         <td className="px-4 py-2">
-                          {r.key.split("/").pop()}
+                          <span className="font-mono">{r.key.split("/").pop()}</span>
                           {leader.i === i && <span className="ml-2 text-good">▲ leading</span>}
                         </td>
                         <td className="px-4 py-2 text-right">
@@ -172,9 +168,7 @@ export function AnalyticsPanel({
       )}
 
       {/* Time series */}
-      <div className="mt-7 font-mono text-[10.5px] uppercase tracking-[0.13em] text-faint">
-        Events per day · last 30 days
-      </div>
+      <div className="mt-7 text-[11px] font-medium text-faint">Events per day · last 30 days</div>
       <div className="mt-2 h-56 max-w-3xl rounded-lg border border-linesoft bg-surface2 p-3">
         {seriesError ? (
           <p className="text-xs text-bad">{seriesError}</p>
@@ -224,7 +218,7 @@ export function AnalyticsPanel({
           </ResponsiveContainer>
         )}
       </div>
-      <div className="mt-2 flex gap-4 font-mono text-[10.5px] text-faint">
+      <div className="mt-2 flex gap-4 text-[10.5px] text-faint">
         {SERIES.map((s) => (
           <span key={s.key} className="flex items-center gap-1.5">
             <span className="h-1.5 w-3 rounded-sm" style={{ background: s.color }} />

@@ -4,7 +4,7 @@ A modern Wails template featuring the latest technologies for building beautiful
 
 ## 🚀 Features
 
-- **[Wails v2.11.0](https://wails.io/)** - Build desktop apps using Go & Web Technologies
+- **[Wails v3](https://v3.wails.io/)** - Build desktop apps using Go & Web Technologies
 - **[React 18.3](https://react.dev/)** - Modern React with hooks
 - **[TypeScript 5.7](https://www.typescriptlang.org/)** - Type safety and better DX
 - **[Vite 5.4](https://vitejs.dev/)** - Lightning-fast HMR and build tool
@@ -13,29 +13,22 @@ A modern Wails template featuring the latest technologies for building beautiful
 - **[ESLint 9](https://eslint.org/)** - Code quality with flat config
 - **Cross-platform build scripts** - Easy builds for Windows, macOS, and Linux
 
-## 📦 Installation
-
-```bash
-wails init -n myapp -t https://github.com/Mahcks/wails-vite-react-tailwind-shadcnui-ts
-cd myapp
-```
-
 ## 🛠️ Development
 
 Run the app in development mode with hot reload:
 
 ```bash
-wails dev
+wails3 task dev
 ```
 
-The frontend dev server runs on http://localhost:5173 with Vite's fast HMR.
+The frontend dev server runs on http://localhost:9245 with Vite's fast HMR.
 
 ## 🏗️ Building
 
 ### Current Platform
 
 ```bash
-wails build
+wails3 task build
 # or
 ./scripts/build.sh
 ```
@@ -54,7 +47,8 @@ wails build
 ./scripts/build-macos-universal.sh  # macOS Universal Binary
 ```
 
-Built applications will be in `build/bin/`
+Built applications will be in `bin/`. Cross-platform builds need the Docker
+cross image (`wails3 task setup:docker`).
 
 ## 🎨 shadcn/ui Components
 
@@ -91,13 +85,12 @@ Browse components at [ui.shadcn.com](https://ui.shadcn.com/)
 
 ## 🔧 Configuration
 
-Project configuration is in `wails.json` (auto-generated on `wails init`).
-
-See [Wails documentation](https://wails.io/docs/reference/project-config) for all options.
+Project configuration is in `build/config.yml` and `Taskfile.yml`. Frontend
+bindings are generated into `frontend/bindings/` with `wails3 generate bindings -ts`.
 
 ## 📚 Learn More
 
-- [Wails Documentation](https://wails.io/docs/introduction)
+- [Wails v3 Documentation](https://v3.wails.io/)
 - [React Documentation](https://react.dev/)
 - [Vite Documentation](https://vitejs.dev/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/)

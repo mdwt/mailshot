@@ -3,14 +3,16 @@ import {
   SequenceOverview,
   TemplateStats,
   SequenceSubscribers,
-} from "../../wailsjs/go/main/DataService";
-import type { main } from "../../wailsjs/go/models";
+} from "../../bindings/desktop/dataservice";
+import { ReadFileInProject } from "../../bindings/desktop/templateservice";
+import type * as models from "../../bindings/desktop";
 import type { SequenceDefinition } from "@/types/mailshot";
 import { countSteps } from "@/types/mailshot";
 import { collectTemplateKeys, statsMapFrom, timeAgo, type StatsMap } from "@/lib/aws";
 import { FlowCanvas } from "@/components/FlowCanvas";
 import { TemplatesPanel } from "@/components/TemplatesPanel";
 import { AnalyticsPanel } from "@/components/AnalyticsPanel";
+import { SourceEditor } from "@/components/SourceEditor";
 
 const STATS_WINDOW_DAYS = 90;
 
@@ -21,16 +23,19 @@ export function SequenceView({
   refreshKey,
 }: {
   projectPath: string;
-  entry: main.SequenceEntry;
-  awsCtx: main.AwsCtx | null;
+  entry: models.SequenceEntry;
+  awsCtx: models.AwsCtx | null;
   refreshKey: number;
 }) {
-  const [tab, setTab] = useState<"flow" | "templates" | "analytics" | "subscribers">("flow");
+  const [tab, setTab] = useState<"flow" | "templates" | "analytics" | "subscribers" | "config">(
+    "flow",
+  );
   const [showStats, setShowStats] = useState(true);
   const [stats, setStats] = useState<StatsMap | null>(null);
-  const [templateStats, setTemplateStats] = useState<main.TemplateStat[]>([]);
-  const [runtime, setRuntime] = useState<main.SequenceRuntime | null>(null);
-  const [subscribers, setSubscribers] = useState<main.SeqSubscriberRow[] | null>(null);
+  const [templateStats, setTemplateStats] = useState<models.TemplateStat[]>([]);
+  const [runtime, setRuntime] = useState<models.SequenceRuntime | null>(null);
+  const [subscribers, setSubscribers] = useState<models.SeqSubscriberRow[] | null>(null);
+  const [configSrc, setConfigSrc] = useState<string | null>(null);
 
   const def = useMemo<SequenceDefinition | null>(() => {
     if (!entry.definition) return null;
@@ -65,10 +70,18 @@ export function SequenceView({
       .catch(() => setSubscribers([]));
   }, [tab, awsCtx, def]);
 
+  useEffect(() => {
+    setConfigSrc(null);
+    if (tab !== "config") return;
+    ReadFileInProject(projectPath, entry.configPath)
+      .then(setConfigSrc)
+      .catch((e) => setConfigSrc(`// failed to read config: ${e}`));
+  }, [tab, projectPath, entry.configPath]);
+
   if (entry.error || !def) {
     return (
       <div className="p-6">
-        <h2 className="font-mono text-lg font-semibold">{entry.dir}</h2>
+        <h2 className="text-lg font-semibold">{entry.dir}</h2>
         <div className="mt-4 max-w-2xl rounded-lg border border-bad/40 bg-badsoft p-4">
           <p className="text-sm font-semibold text-bad">Config could not be evaluated</p>
           <p className="mt-2 font-mono text-xs leading-relaxed text-muted">
@@ -87,26 +100,27 @@ export function SequenceView({
     ["templates", "Templates"],
     ["analytics", "Analytics"],
     ["subscribers", runtime ? `Subscribers · ${runtime.activeExecutions}` : "Subscribers"],
+    ["config", "Config"],
   ] as const;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex flex-none flex-wrap items-baseline gap-3 px-6 pt-5">
-        <h2 className="font-mono text-lg font-semibold">{def.id}</h2>
+        <h2 className="text-lg font-semibold">{def.id}</h2>
         {def.transactional && (
-          <span className="rounded-full bg-accentsoft px-2.5 py-0.5 font-mono text-[11px] text-accent">
+          <span className="rounded-full bg-accentsoft px-2.5 py-0.5 text-[11px] font-medium text-accent">
             transactional
           </span>
         )}
         {def.sender.captureReplies && (
-          <span className="rounded-full bg-surface2 px-2.5 py-0.5 font-mono text-[11px] text-muted">
+          <span className="rounded-full bg-surface2 px-2.5 py-0.5 text-[11px] font-medium text-muted">
             captures replies
           </span>
         )}
-        <span className="font-mono text-xs text-faint">
-          {def.sender.fromName} &lt;{def.sender.fromEmail}&gt; · {countSteps(def.steps)} steps ·
-          timeout{" "}
+        <span className="text-xs text-faint">
+          {def.sender.fromName} <span className="font-mono">&lt;{def.sender.fromEmail}&gt;</span> ·{" "}
+          {countSteps(def.steps)} steps · timeout{" "}
           {def.timeoutMinutes >= 1440
             ? `${Math.round(def.timeoutMinutes / 1440)}d`
             : `${def.timeoutMinutes}m`}
@@ -117,7 +131,7 @@ export function SequenceView({
         {tab === "flow" && awsCtx && (
           <button
             onClick={() => setShowStats((s) => !s)}
-            className={`ml-auto rounded-md border px-2.5 py-1 font-mono text-[11px] ${
+            className={`ml-auto rounded-md border px-2.5 py-1 text-[11px] ${
               showStats && stats
                 ? "border-accent bg-accentsoft text-accent"
                 : "border-line text-muted hover:text-ink"
@@ -165,8 +179,26 @@ export function SequenceView({
         {tab === "analytics" && (
           <AnalyticsPanel awsCtx={awsCtx} def={def} templateStats={templateStats} />
         )}
+        {tab === "config" && (
+          <div className="flex h-full min-h-0 flex-col gap-2 p-4">
+            <div className="flex flex-none items-baseline gap-3">
+              <span className="font-mono text-xs text-faint">{entry.configPath}</span>
+              <span className="text-[11px] text-faint">read-only</span>
+            </div>
+            {configSrc === null ? (
+              <p className="text-sm text-faint">Loading…</p>
+            ) : (
+              <SourceEditor
+                path={entry.configPath}
+                value={configSrc}
+                onChange={() => {}}
+                readOnly
+              />
+            )}
+          </div>
+        )}
         {tab === "subscribers" && (
-          <div className="overflow-y-auto p-6">
+          <div className="h-full min-h-0 overflow-y-auto p-6">
             {!awsCtx ? (
               <p className="text-sm text-faint">Configure .env to see who is in this sequence.</p>
             ) : subscribers === null ? (
@@ -180,13 +212,13 @@ export function SequenceView({
                     key={s.email}
                     className="flex items-center gap-3 border-b border-linesoft px-4 py-2 text-[13px] last:border-b-0"
                   >
-                    <span className="select-text font-mono">{s.email}</span>
+                    <span className="select-text font-mono text-[13px]">{s.email}</span>
                     {s.transactional && (
-                      <span className="rounded-full bg-accentsoft px-2 py-0.5 font-mono text-[10px] text-accent">
+                      <span className="rounded-full bg-accentsoft px-2 py-0.5 text-[10px] font-medium text-accent">
                         txn
                       </span>
                     )}
-                    <span className="ml-auto font-mono text-xs text-faint">
+                    <span className="ml-auto text-xs text-faint">
                       started {timeAgo(s.startedAt)}
                     </span>
                   </div>

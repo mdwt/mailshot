@@ -1,24 +1,35 @@
-import { main } from "../../wailsjs/go/models";
+import type * as models from "../../bindings/desktop";
 import type { SequenceDefinition, SequenceStep } from "@/types/mailshot";
 
 /** Builds the per-call AWS context from the project's .env. Null = no .env. */
-export function awsCtxFor(project: main.ProjectInfo): main.AwsCtx | null {
+export function awsCtxFor(project: models.ProjectInfo): models.AwsCtx | null {
   if (!project.hasEnv) return null;
   const env = project.env;
-  if (!env.TABLE_NAME || !env.EVENTS_TABLE_NAME) return null;
-  return main.AwsCtx.createFrom({
+  if (!env || !env.TABLE_NAME || !env.EVENTS_TABLE_NAME) return null;
+  return {
     profile: env.AWS_PROFILE ?? "",
     region: env.REGION ?? "",
     tableName: env.TABLE_NAME ?? "",
     eventsTableName: env.EVENTS_TABLE_NAME ?? "",
     stackName: env.STACK_NAME ?? "",
-  });
+  };
 }
 
 /** Percentage of n over base, formatted; "—" when base is 0. */
 export function pct(n: number, base: number): string {
   if (!base) return "—";
   return `${((n / base) * 100).toFixed(1)}%`;
+}
+
+/**
+ * Human-friendly deploy state from a raw CloudFormation stack status, so the
+ * UI never surfaces internal enums like `UPDATE_COMPLETE` / `ROLLBACK_COMPLETE`.
+ */
+export function deployState(status: string): { label: string; cls: string } {
+  if (/FAILED|ROLLBACK/.test(status)) return { label: "Deploy failed", cls: "text-bad" };
+  if (/IN_PROGRESS/.test(status)) return { label: "Deploying…", cls: "text-warn" };
+  if (/COMPLETE/.test(status)) return { label: "Deployed", cls: "text-good" };
+  return { label: "Unknown", cls: "text-warn" };
 }
 
 export function timeAgo(iso: string): string {
@@ -91,9 +102,9 @@ export function collectFunnelSteps(def: SequenceDefinition): FunnelStep[] {
   return out;
 }
 
-export type StatsMap = Record<string, main.Counters>;
+export type StatsMap = Record<string, models.Counters>;
 
-export function statsMapFrom(stats: main.TemplateStat[]): StatsMap {
+export function statsMapFrom(stats: models.TemplateStat[]): StatsMap {
   const map: StatsMap = {};
   for (const s of stats) {
     if (!s.error) map[s.templateKey] = s.counters;

@@ -1,24 +1,21 @@
 #!/bin/bash
-# Build script for all platforms
+# Build script for all platforms. Non-native targets need the Docker cross
+# image: wails3 task setup:docker
 
 echo "Building for all platforms..."
 echo "================================"
 
-# Build for Windows AMD64
 echo "Building for Windows (amd64)..."
-wails build -platform windows/amd64 -clean
+wails3 task windows:build ARCH=amd64
 
-# Build for Linux AMD64
 echo "Building for Linux (amd64)..."
-wails build -platform linux/amd64 -clean
+wails3 task linux:build ARCH=amd64
 
-# Build for macOS ARM64 (Apple Silicon)
 echo "Building for macOS (arm64)..."
-wails build -platform darwin/arm64 -clean
+wails3 task darwin:build ARCH=arm64
 
-# Build for macOS AMD64 (Intel)
 echo "Building for macOS (amd64)..."
-wails build -platform darwin/amd64 -clean
+wails3 task darwin:build ARCH=amd64
 
 echo "================================"
-echo "Build complete! Check build/bin/ directory"
+echo "Build complete! Check bin/ directory"

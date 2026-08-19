@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // ProjectInfo describes an opened mailshot project. The project folder is the
@@ -41,9 +41,11 @@ func NewProjectService(app *App) *ProjectService {
 // PickProjectFolder opens the native directory picker and returns the chosen
 // path ("" when cancelled).
 func (s *ProjectService) PickProjectFolder() (string, error) {
-	return runtime.OpenDirectoryDialog(s.app.ctx, runtime.OpenDialogOptions{
-		Title: "Open mailshot project",
-	})
+	return s.app.wails.Dialog.OpenFileWithOptions(&application.OpenFileDialogOptions{
+		Title:                "Open mailshot project",
+		CanChooseDirectories: true,
+		CanChooseFiles:       false,
+	}).PromptForSingleSelection()
 }
 
 // OpenProject validates the folder, loads .env, records it in the recent list
@@ -219,7 +221,7 @@ func (a *App) watchProject(projectPath string) {
 	go func() {
 		var timer *time.Timer
 		fire := func() {
-			runtime.EventsEmit(a.ctx, "project:changed", projectPath)
+			a.wails.Event.Emit("project:changed", projectPath)
 		}
 		for {
 			select {

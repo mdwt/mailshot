@@ -4,7 +4,8 @@
 /*
  * Mailshot Desktop theme — dark instrument panel.
  * Cool blue-grey grounds, amber signal accent, semantic good/warn/bad
- * kept separate from the accent. Data (keys, counts, ids) renders in mono.
+ * kept separate from the accent. Mono is reserved for literal machine
+ * strings (emails, template keys, ids, paths, code); UI chrome is sans.
  */
 @theme {
   --color-ground: #0d1116;

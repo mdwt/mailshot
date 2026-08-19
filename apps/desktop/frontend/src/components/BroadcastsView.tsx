@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { ListBroadcasts } from "../../wailsjs/go/main/DataService";
-import type { main } from "../../wailsjs/go/models";
+import { ListBroadcasts } from "../../bindings/desktop/dataservice";
+import type * as models from "../../bindings/desktop";
 import { pct, timeAgo } from "@/lib/aws";
 
-export function BroadcastsView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
-  const [rows, setRows] = useState<main.BroadcastRow[] | null>(null);
+export function BroadcastsView({ awsCtx }: { awsCtx: models.AwsCtx | null }) {
+  const [rows, setRows] = useState<models.BroadcastRow[] | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function BroadcastsView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
   }
 
   return (
-    <div className="overflow-y-auto p-6">
+    <div className="h-full min-h-0 overflow-y-auto p-6">
       <h2 className="text-lg font-semibold">Broadcasts</h2>
       <p className="mt-1 text-xs text-faint">
         One-off sends with live engagement counters. audience = subscribers resolved at send time,
@@ -40,7 +40,7 @@ export function BroadcastsView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
       <div className="mt-4 max-w-5xl overflow-x-auto rounded-lg border border-linesoft">
         <table className="w-full text-left text-[13px]">
           <thead>
-            <tr className="border-b border-linesoft font-mono text-[10px] uppercase tracking-wide text-faint">
+            <tr className="border-b border-linesoft text-[10px] font-medium text-faint">
               <th className="px-4 py-2">broadcast</th>
               <th className="px-4 py-2">subject</th>
               <th className="px-4 py-2 text-right">audience</th>
@@ -51,7 +51,7 @@ export function BroadcastsView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
               <th className="px-4 py-2 text-right">sent</th>
             </tr>
           </thead>
-          <tbody className="font-mono text-xs tabular-nums">
+          <tbody className="text-xs tabular-nums">
             {rows === null ? (
               <tr>
                 <td colSpan={8} className="px-4 py-3 text-faint">
@@ -70,7 +70,9 @@ export function BroadcastsView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
                   key={b.broadcastId + b.sentAt}
                   className="border-b border-linesoft last:border-b-0"
                 >
-                  <td className="max-w-44 truncate px-4 py-2 text-ink">{b.broadcastId}</td>
+                  <td className="max-w-44 truncate px-4 py-2 font-mono text-ink">
+                    {b.broadcastId}
+                  </td>
                   <td className="max-w-56 truncate px-4 py-2 text-muted">{b.subject}</td>
                   <td className="px-4 py-2 text-right">{b.audienceSize.toLocaleString()}</td>
                   <td className="px-4 py-2 text-right">{b.counters.delivery.toLocaleString()}</td>

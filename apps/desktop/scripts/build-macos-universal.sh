@@ -1,6 +1,6 @@
 #!/bin/bash
-# Build universal macOS binary (Intel + Apple Silicon)
+# Build universal macOS binary (arm64 + amd64)
 
 echo "Building universal macOS binary..."
-wails build -platform darwin/universal -clean
-echo "Build complete! Check build/bin/"
+wails3 task darwin:build:universal
+echo "Build complete! Check bin/"

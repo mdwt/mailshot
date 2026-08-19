@@ -1,6 +1,7 @@
 #!/bin/bash
-# Build for Windows (AMD64)
+# Build for Windows (amd64). Cross-compiling from macOS/Linux requires the
+# Docker cross image: wails3 task setup:docker
 
 echo "Building for Windows (amd64)..."
-wails build -platform windows/amd64 -clean
-echo "Build complete! Check build/bin/"
+wails3 task windows:build ARCH=amd64
+echo "Build complete! Check bin/"

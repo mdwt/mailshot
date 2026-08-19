@@ -3,8 +3,8 @@ import {
   GetSubscriber,
   SubscriberEvents,
   SubscribersByTag,
-} from "../../wailsjs/go/main/DataService";
-import type { main } from "../../wailsjs/go/models";
+} from "../../bindings/desktop/dataservice";
+import type * as models from "../../bindings/desktop";
 import { timeAgo } from "@/lib/aws";
 
 // Mirrors extractAttributes() in handlers/lib/dynamo-client: these system
@@ -29,12 +29,12 @@ const EVENT_COLOR: Record<string, string> = {
   reply: "text-ink",
 };
 
-export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
+export function SubscribersView({ awsCtx }: { awsCtx: models.AwsCtx | null }) {
   const [email, setEmail] = useState("");
   const [tag, setTag] = useState("");
-  const [detail, setDetail] = useState<main.SubscriberDetail | null>(null);
-  const [events, setEvents] = useState<main.EventRow[]>([]);
-  const [tagRows, setTagRows] = useState<main.TagRow[] | null>(null);
+  const [detail, setDetail] = useState<models.SubscriberDetail | null>(null);
+  const [events, setEvents] = useState<models.EventRow[]>([]);
+  const [tagRows, setTagRows] = useState<models.TagRow[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -86,10 +86,10 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
   const attributes = Object.entries(profile).filter(([k]) => !SYSTEM_COLUMNS.has(k));
 
   return (
-    <div className="overflow-y-auto p-6">
+    <div className="h-full min-h-0 overflow-y-auto p-6">
       <h2 className="text-lg font-semibold">Subscribers</h2>
       <p className="mt-1 text-xs text-faint">
-        Lookup is by exact email or tag — the table has no full listing by design (no scans).
+        Search for a subscriber by their exact email address, or browse everyone with a given tag.
       </p>
 
       <div className="mt-4 flex max-w-3xl flex-wrap gap-2">
@@ -157,9 +157,7 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
                 className="flex w-full items-center gap-3 border-b border-linesoft px-4 py-2 text-left text-[13px] last:border-b-0 hover:bg-surface2"
               >
                 <span className="font-mono">{r.email}</span>
-                <span className="ml-auto font-mono text-xs text-faint">
-                  tagged {timeAgo(r.taggedAt)}
-                </span>
+                <span className="ml-auto text-xs text-faint">tagged {timeAgo(r.taggedAt)}</span>
               </button>
             ))
           )}
@@ -184,12 +182,12 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
                 {String(profile.email ?? "")}
               </span>
               {profile.unsubscribed === true && (
-                <span className="rounded-full bg-warnsoft px-2 py-0.5 font-mono text-[10px] text-warn">
+                <span className="rounded-full bg-warnsoft px-2 py-0.5 text-[10px] font-medium text-warn">
                   unsubscribed
                 </span>
               )}
               {(profile.suppressed === true || detail.suppression) && (
-                <span className="rounded-full bg-badsoft px-2 py-0.5 font-mono text-[10px] text-bad">
+                <span className="rounded-full bg-badsoft px-2 py-0.5 text-[10px] font-medium text-bad">
                   suppressed{detail.suppression ? ` · ${detail.suppression}` : ""}
                 </span>
               )}
@@ -198,9 +196,7 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
               {String(profile.firstName ?? "")} · created {timeAgo(String(profile.createdAt ?? ""))}
             </div>
 
-            <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
-              Attributes
-            </div>
+            <div className="mt-3 text-[11px] font-medium text-faint">Attributes</div>
             {attributes.length === 0 ? (
               <p className="mt-1 text-xs text-faint">none</p>
             ) : (
@@ -214,14 +210,12 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
               </div>
             )}
 
-            <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
-              Active sequences
-            </div>
+            <div className="mt-3 text-[11px] font-medium text-faint">Active sequences</div>
             {(detail.executions ?? []).length === 0 ? (
               <p className="mt-1 text-xs text-faint">none</p>
             ) : (
-              <div className="mt-1 space-y-0.5 font-mono text-xs">
-                {detail.executions.map((e) => (
+              <div className="mt-1 space-y-0.5 text-xs">
+                {(detail.executions ?? []).map((e) => (
                   <div key={e.sequenceId} className="flex gap-2">
                     <span className="text-ink">{e.sequenceId}</span>
                     {e.transactional && <span className="text-accent">txn</span>}
@@ -231,13 +225,13 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
               </div>
             )}
 
-            <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
+            <div className="mt-3 text-[11px] font-medium text-faint">
               Send log · last {Math.min(detail.sendLog?.length ?? 0, 50)}
             </div>
-            <div className="mt-1 max-h-44 space-y-0.5 overflow-y-auto font-mono text-xs">
+            <div className="mt-1 max-h-44 space-y-0.5 overflow-y-auto text-xs">
               {(detail.sendLog ?? []).map((s, i) => (
                 <div key={i} className="flex gap-2">
-                  <span className="truncate text-ink">{s.templateKey}</span>
+                  <span className="truncate font-mono text-ink">{s.templateKey}</span>
                   <span className="ml-auto flex-none text-faint">{timeAgo(s.sentAt)}</span>
                 </div>
               ))}
@@ -247,9 +241,7 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
 
           {/* Engagement timeline */}
           <div className="rounded-lg border border-linesoft p-4">
-            <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
-              Engagement timeline
-            </div>
+            <div className="text-[11px] font-medium text-faint">Engagement timeline</div>
             <div className="mt-2 max-h-[420px] space-y-1 overflow-y-auto">
               {events.length === 0 ? (
                 <p className="text-xs text-faint">No engagement events.</p>
@@ -257,12 +249,12 @@ export function SubscribersView({ awsCtx }: { awsCtx: main.AwsCtx | null }) {
                 events.map((e, i) => (
                   <div key={i} className="flex items-center gap-3 text-[12.5px]">
                     <span
-                      className={`w-[70px] flex-none font-mono text-[11px] ${EVENT_COLOR[e.eventType] ?? "text-muted"}`}
+                      className={`w-[70px] flex-none text-[11px] font-medium ${EVENT_COLOR[e.eventType] ?? "text-muted"}`}
                     >
                       {e.eventType}
                     </span>
                     <span className="truncate font-mono text-xs text-muted">{e.templateKey}</span>
-                    <span className="ml-auto flex-none font-mono text-[11px] tabular-nums text-faint">
+                    <span className="ml-auto flex-none text-[11px] tabular-nums text-faint">
                       {timeAgo(e.timestamp)}
                     </span>
                   </div>

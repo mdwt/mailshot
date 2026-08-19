@@ -15,14 +15,14 @@ Congratulations! Your Wails project has been created. 🎉
 
    ```bash
    cd {{.ProjectDir}}
-   wails dev
+   wails3 task dev
    ```
 
-   Your app will launch with hot reload enabled. The frontend dev server runs on http://localhost:5173
+   Your app will launch with hot reload enabled. The frontend dev server runs on http://localhost:9245
 
 ## What's Included
 
-✅ **Wails v2.11.0** - Desktop app framework  
+✅ **Wails v3** - Desktop app framework  
 ✅ **React 18.3** - Modern UI library  
 ✅ **TypeScript 5.7** - Type safety  
 ✅ **Vite 5.4** - Fast development server  
@@ -59,7 +59,7 @@ Edit `frontend/src/App.tsx` to customize your interface.
 
 ```bash
 # Build for current platform
-wails build
+wails3 task build
 
 # Or use build scripts
 ./scripts/build-windows.sh      # Windows
@@ -76,13 +76,13 @@ Your executable will be in `build/bin/`
 {{.ProjectName}}/
 ├── app.go                   # Application logic
 ├── main.go                  # Entry point
-├── wails.json              # Project configuration
+├── Taskfile.yml             # Build tasks + config
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx         # Main React component
 │   │   ├── components/ui/  # shadcn/ui components
 │   │   └── lib/utils.ts    # Utilities
-│   ├── wailsjs/            # Generated Go bindings
+│   ├── bindings/           # Generated Go bindings
 │   ├── vite.config.ts      # Vite config
 │   └── package.json        # Dependencies
 └── build/                  # Build resources (icons, etc.)
@@ -90,7 +90,7 @@ Your executable will be in `build/bin/`
 
 ## Learn More
 
-- **Wails Docs:** https://wails.io/docs/introduction
+- **Wails Docs:** https://v3.wails.io/
 - **React Docs:** https://react.dev/
 - **Tailwind CSS v4:** https://tailwindcss.com/
 - **shadcn/ui:** https://ui.shadcn.com/

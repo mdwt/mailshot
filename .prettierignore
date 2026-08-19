@@ -8,3 +8,4 @@ cdk.out/
 coverage/
 templates/*/
 pnpm-lock.yaml
+apps/desktop/frontend/bindings/

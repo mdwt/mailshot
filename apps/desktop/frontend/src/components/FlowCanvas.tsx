@@ -32,18 +32,18 @@ export function FlowCanvas({ def, stats }: { def: SequenceDefinition; stats?: St
           {def.events?.map((e) => (
             <div
               key={e.detailType + e.templateKey}
-              className="rounded-lg border border-dashed border-line bg-surface2/90 px-3 py-1.5 font-mono text-[11px] text-muted"
+              className="rounded-lg border border-dashed border-line bg-surface2/90 px-3 py-1.5 text-[11px] text-muted"
             >
-              ⚡ event · <span className="text-ink">{e.detailType}</span> →{" "}
-              {e.templateKey.split("/").pop()}
+              ⚡ event · <span className="font-mono text-ink">{e.detailType}</span> →{" "}
+              <span className="font-mono">{e.templateKey.split("/").pop()}</span>
             </div>
           ))}
           {def.exitOn?.map((e) => (
             <div
               key={e.detailType}
-              className="rounded-lg border border-dashed border-line bg-surface2/90 px-3 py-1.5 font-mono text-[11px] text-muted"
+              className="rounded-lg border border-dashed border-line bg-surface2/90 px-3 py-1.5 text-[11px] text-muted"
             >
-              ⏏ exit on · <span className="text-ink">{e.detailType}</span>
+              ⏏ exit on · <span className="font-mono text-ink">{e.detailType}</span>
             </div>
           ))}
         </div>

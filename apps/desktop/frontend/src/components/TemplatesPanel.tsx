@@ -6,8 +6,8 @@ import {
   RenderPreview,
   RunRender,
   WriteFileInProject,
-} from "../../wailsjs/go/main/TemplateService";
-import type { main } from "../../wailsjs/go/models";
+} from "../../bindings/desktop/templateservice";
+import type * as models from "../../bindings/desktop";
 import type { SequenceDefinition } from "@/types/mailshot";
 import { SourceEditor } from "@/components/SourceEditor";
 
@@ -43,7 +43,7 @@ export function TemplatesPanel({
   def: SequenceDefinition | null;
   refreshKey: number;
 }) {
-  const [templates, setTemplates] = useState<main.TemplateEntry[]>([]);
+  const [templates, setTemplates] = useState<models.TemplateEntry[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<"preview" | "source">("preview");
   const [width, setWidth] = useState<375 | 640>(640);
@@ -53,7 +53,7 @@ export function TemplatesPanel({
   const [savedSource, setSavedSource] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [rendering, setRendering] = useState(false);
-  const [renderOutput, setRenderOutput] = useState<main.RenderResult | null>(null);
+  const [renderOutput, setRenderOutput] = useState<models.RenderResult | null>(null);
 
   const dirty = source !== savedSource;
 
@@ -88,7 +88,7 @@ export function TemplatesPanel({
 
   useEffect(() => {
     renderPreview();
-  }, [template, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [template, refreshKey]);
 
   // Load source when the selected template changes. Deliberately NOT keyed on
   // refreshKey — an external file change must not clobber unsaved edits.
@@ -209,7 +209,7 @@ export function TemplatesPanel({
             ))}
           </div>
           {view === "preview" && (
-            <div className="flex gap-1 font-mono text-[11px] text-faint">
+            <div className="flex gap-1 text-[11px] tabular-nums text-faint">
               {([375, 640] as const).map((w) => (
                 <button
                   key={w}
@@ -252,9 +252,7 @@ export function TemplatesPanel({
             {rendering ? "Rendering…" : "Render all"}
           </button>
           {template && usedBy && (
-            <span className="ml-auto truncate font-mono text-[11px] text-faint">
-              used by {usedBy}
-            </span>
+            <span className="ml-auto truncate text-[11px] text-faint">used by {usedBy}</span>
           )}
         </div>
 
@@ -311,9 +309,7 @@ export function TemplatesPanel({
 
       {/* Sample data */}
       <div className="flex flex-col gap-2 overflow-y-auto border-l border-line bg-surface2 p-3">
-        <h4 className="font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
-          Sample data (Liquid variables)
-        </h4>
+        <h4 className="text-[11px] font-medium text-faint">Sample data (Liquid variables)</h4>
         <textarea
           value={sampleData}
           onChange={(e) => setSampleData(e.target.value)}
